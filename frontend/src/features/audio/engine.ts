@@ -1,4 +1,4 @@
-import type { IrResponse } from '../../types'
+import type { IrResponse, MaterialSelection } from '../../types'
 
 export const MAX_DRY_SECONDS = 30
 
@@ -17,11 +17,15 @@ function b64ToArrayBuffer(b64: string): ArrayBuffer {
   return bytes.buffer
 }
 
-export async function fetchIr(sid: string, roomId: string): Promise<LoadedIr> {
+export async function fetchIr(
+  sid: string,
+  roomId: string,
+  materials?: MaterialSelection,
+): Promise<LoadedIr> {
   const res = await fetch('/api/rooms/ir', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ sid, room_id: roomId }),
+    body: JSON.stringify({ sid, room_id: roomId, materials }),
   })
   if (!res.ok) throw new Error(`ir: HTTP ${res.status}`)
   const meta = (await res.json()) as IrResponse

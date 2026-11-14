@@ -75,3 +75,26 @@ export interface IrResponse {
   params: Record<string, unknown>
   notes: string[]
 }
+
+export type Surface = 'floor' | 'walls' | 'ceiling'
+export type MaterialSelection = Partial<Record<Surface, string>>
+
+export interface MaterialCatalog {
+  materials: Record<string, { label: string; alpha: number[] }>
+  defaults: Record<Surface, string>
+}
+
+// Mirrors backend/acoustics/explain.py (Comparison).
+export interface Comparison {
+  mid_rt60_s: number[]
+  livelier: 'A' | 'B' | null
+  rt60_ratio: number
+  volume_factor: number
+  absorption_factor: number
+  material_differences: { surface: string; a: string; b: string }[]
+  schroeder_hz: number[]
+  lowest_mode_hz: (number | null)[]
+  first_reflection_ms: number[]
+  bass_ratio: number[]
+  statements: string[]
+}

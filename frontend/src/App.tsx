@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react'
-import { fetchProperties, fetchRooms } from './api'
+import { fetchMaterials, fetchProperties, fetchRooms } from './api'
 import { PropertyMap } from './features/map/PropertyMap'
 import { AudioLab } from './features/audio/AudioLab'
+import { MaterialEditor } from './features/materials/MaterialEditor'
+import { Explanation } from './features/numbers/Explanation'
 import { NumbersPanel } from './features/numbers/NumbersPanel'
+import { useComparison } from './features/numbers/useComparison'
 import { useReport } from './features/numbers/useReport'
 import { RoomPicker, type Slot } from './features/rooms/RoomPicker'
-import type { Property, Room } from './types'
+import type { MaterialCatalog, MaterialSelection, Property, Room } from './types'
 
 export default function App() {
   const [properties, setProperties] = useState<Property[]>([])
@@ -13,10 +16,15 @@ export default function App() {
   const [rooms, setRooms] = useState<Room[]>([])
   const [picked, setPicked] = useState<Record<Slot, string | null>>({ A: null, B: null })
   const [error, setError] = useState<string | null>(null)
+  const [catalog, setCatalog] = useState<MaterialCatalog | null>(null)
+  const [materials, setMaterials] = useState<Record<Slot, MaterialSelection>>({ A: {}, B: {} })
 
   useEffect(() => {
     fetchProperties()
       .then(setProperties)
+      .catch((e: Error) => setError(e.message))
+    fetchMaterials()
+      .then(setCatalog)
       .catch((e: Error) => setError(e.message))
   }, [])
 
@@ -31,11 +39,16 @@ export default function App() {
     setSelected(sid)
     setRooms([])
     setPicked({ A: null, B: null })
+    setMaterials({ A: {}, B: {} })
   }
 
   const prop = properties.find((p) => p.sid === selected)
-  const repA = useReport(selected, picked.A)
-  const repB = useReport(selected, picked.B)
+  const repA = useReport(selected, picked.A, materials.A)
+  const repB = useReport(selected, picked.B, materials.B)
+  const cmp = useComparison(
+    { sid: selected, roomId: picked.A, materials: materials.A },
+    { sid: selected, roomId: picked.B, materials: materials.B },
+  )
   const maxRt60 = Math.max(0.1, ...(repA.report?.rt60_s ?? []), ...(repB.report?.rt60_s ?? []))
 
   return (
@@ -75,13 +88,26 @@ export default function App() {
               <p className="mb-3 text-xs text-zinc-400">{prop.name}</p>
               <RoomPicker rooms={rooms} picked={picked} onPick={(s, id) => setPicked((x) => ({ ...x, [s]: id }))} />
               <div className="mt-4 grid grid-cols-2 gap-3" data-testid="selection">
-                <NumbersPanel slot="A" {...repA} maxRt60={maxRt60} />
-                <NumbersPanel slot="B" {...repB} maxRt60={maxRt60} />
+                {(['A', 'B'] as Slot[]).map((slot) => (
+                  <div key={slot}>
+                    {catalog && (
+                      <MaterialEditor
+                        slot={slot}
+                        catalog={catalog}
+                        value={materials[slot]}
+                        onChange={(v) => setMaterials((m) => ({ ...m, [slot]: v }))}
+                      />
+                    )}
+                    <NumbersPanel slot={slot} {...(slot === 'A' ? repA : repB)} maxRt60={maxRt60} />
+                  </div>
+                ))}
               </div>
+              <Explanation {...cmp} />
               <AudioLab
                 sid={prop.sid}
                 roomA={rooms.find((r) => r.id === picked.A) ?? null}
                 roomB={rooms.find((r) => r.id === picked.B) ?? null}
+                materials={materials}
               />
               <p className="mt-3 text-xs text-zinc-500">
                 All acoustic values are modeled approximations from room geometry and assumed materials, not measurements.

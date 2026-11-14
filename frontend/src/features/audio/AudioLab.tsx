@@ -7,6 +7,7 @@ import {
   syntheticClaps,
   type RoomRender,
 } from './engine'
+import type { MaterialSelection } from '../../types'
 import { useIr } from './useIr'
 
 type Mode = 'orig' | 'A' | 'B'
@@ -15,6 +16,7 @@ interface Props {
   sid: string
   roomA: { id: string; label: string } | null
   roomB: { id: string; label: string } | null
+  materials: Record<'A' | 'B', MaterialSelection>
 }
 
 interface Graph {
@@ -23,9 +25,9 @@ interface Graph {
   wetG: { A: GainNode; B: GainNode }
 }
 
-export function AudioLab({ sid, roomA, roomB }: Props) {
-  const irA = useIr(sid, roomA?.id ?? null)
-  const irB = useIr(sid, roomB?.id ?? null)
+export function AudioLab({ sid, roomA, roomB, materials }: Props) {
+  const irA = useIr(sid, roomA?.id ?? null, materials.A)
+  const irB = useIr(sid, roomB?.id ?? null, materials.B)
   const [dry, setDry] = useState<AudioBuffer | null>(null)
   const [dryName, setDryName] = useState('')
   const [renders, setRenders] = useState<{ A?: RoomRender; B?: RoomRender }>({})
@@ -140,6 +142,14 @@ export function AudioLab({ sid, roomA, roomB }: Props) {
     if (master.current) set(master.current, volume / 100)
   }
   useEffect(applyGains) // keep gains in sync with controls and render results
+
+  // A new IR (materials or rooms changed) while playing: rebuild the graph from the same position.
+  useEffect(() => {
+    if (!graph.current) return
+    stop()
+    void play()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [irA.ir, irB.ir])
 
   const onFile = async (f: File | undefined) => {
     if (!f) return

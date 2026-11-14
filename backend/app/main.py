@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+from acoustics.explain import Comparison, compare
 from acoustics.materials import DEFAULT_SELECTION, MATERIALS
 from acoustics.report import AcousticReport, UnknownMaterial, analyze_room
 from ir.service import IrResponse, build_ir
@@ -88,3 +89,13 @@ def analyze(req: AnalyzeRequest) -> AcousticReport:
 @app.post("/rooms/ir", response_model=IrResponse)
 def room_ir(req: AnalyzeRequest) -> IrResponse:
     return build_ir(analyze(req))
+
+
+class CompareRequest(BaseModel):
+    a: AnalyzeRequest
+    b: AnalyzeRequest
+
+
+@app.post("/rooms/compare", response_model=Comparison)
+def compare_rooms(req: CompareRequest) -> Comparison:
+    return compare(analyze(req.a), analyze(req.b))
