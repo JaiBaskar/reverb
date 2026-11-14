@@ -22,10 +22,7 @@ BASE_NOTES = [
 
 
 def default_cache_dir() -> Path:
-    root = (
-        os.environ.get("REVERB_DATA_DIR")
-        or Path(__file__).resolve().parents[2] / "data"
-    )
+    root = os.environ.get("REVERB_DATA_DIR") or Path(__file__).resolve().parents[2] / "data"
     return Path(root) / "cache" / "noise"
 
 

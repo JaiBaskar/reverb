@@ -6,6 +6,7 @@ from acoustics.explain import Comparison, compare
 from acoustics.materials import DEFAULT_SELECTION, MATERIALS
 from acoustics.report import AcousticReport, UnknownMaterial, analyze_room
 from ir.service import IrResponse, build_ir
+from noise.router import router as noise_router
 from properties.matterport import MatterportError
 from properties.models import Property, Room
 from properties.service import get_property, get_rooms, list_properties, shortlist_ids
@@ -17,6 +18,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.include_router(noise_router)
 
 
 @app.get("/health")

@@ -18,9 +18,7 @@ def src(category, distance):
     [(80, "high"), (100, "high"), (100.1, "moderate"), (250, "moderate"), (400, "low")],
 )
 def test_exposure_thresholds_major_road(distance, level):
-    e = exposure_for(
-        BY_NAME["road_major"], [src("road_major", distance), src("venue", 1)]
-    )
+    e = exposure_for(BY_NAME["road_major"], [src("road_major", distance), src("venue", 1)])
     assert e.level == level and e.count == 1 and e.nearest_m == distance
 
 

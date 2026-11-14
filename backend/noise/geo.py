@@ -30,9 +30,7 @@ def compass(deg: float) -> str:
     return COMPASS_16[int((deg % 360) / 22.5 + 0.5) % 16]
 
 
-def nearest_point(
-    lat: float, lon: float, line: list[tuple[float, float]]
-) -> tuple[float, float]:
+def nearest_point(lat: float, lon: float, line: list[tuple[float, float]]) -> tuple[float, float]:
     """Closest point to (lat, lon) on a polyline, using a local flat projection.
 
     Accurate to well under a metre at the few-km scales we query.

@@ -39,9 +39,7 @@ def build_query(lat: float, lon: float, timeout_s: int = 50) -> str:
 def fetch(query: str, client: httpx.Client | None = None) -> dict:
     """POST the query to each endpoint in turn; raise OverpassError if all fail."""
     own = client is None
-    client = client or httpx.Client(
-        timeout=TIMEOUT_S, headers={"User-Agent": USER_AGENT}
-    )
+    client = client or httpx.Client(timeout=TIMEOUT_S, headers={"User-Agent": USER_AGENT})
     errors = []
     try:
         for url in ENDPOINTS:
