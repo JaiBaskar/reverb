@@ -108,7 +108,7 @@ def client(monkeypatch):
     monkeypatch.setattr(service, "shortlist_ids", lambda: [SID])
     monkeypatch.setattr(service, "fetch_model", lambda sid, **_: RAW)
     monkeypatch.setattr(tour, "fetch_tour_geometry", lambda sid, **_: GEOM)
-    monkeypatch.setattr(main, "shortlist_ids", lambda: [SID])
+    monkeypatch.setattr(main, "is_known", lambda sid: sid == SID)
     return TestClient(app)
 
 

@@ -146,7 +146,10 @@ def analyze_room(sid: str, room: Room, selection: dict[str, str] | None = None) 
         warnings.append("Zero absorption in a band gives an infinite RT60.")
 
     assumptions = [
-        "Surface materials are generic presets, not known for this property.",
+        (
+            "Surface materials are generic presets unless you chose them; absorption values "
+            "are typical figures for those finishes, not measured for this property."
+        ),
         "Room is empty (no furniture, people or curtains).",
         "Walls, floor and ceiling are single uniform materials; doors and windows are ignored.",
         "Sabine RT60 values ignore air absorption; the impulse response you hear includes it, so its 2-4 kHz decay is somewhat shorter.",
@@ -162,6 +165,10 @@ def analyze_room(sid: str, room: Room, selection: dict[str, str] | None = None) 
     ):
         if field.provenance in ("estimated", "assumed"):
             assumptions.append(f"Room {name} is {field.provenance}: {field.note}.")
+    if room.width_m.provenance == "user":
+        assumptions.append(
+            "Room dimensions were entered by the user and are modeled as a rectangular box."
+        )
 
     return AcousticReport(
         sid=sid,
@@ -187,6 +194,7 @@ def analyze_room(sid: str, room: Room, selection: dict[str, str] | None = None) 
                 id=sel[s],
                 label=MATERIALS[sel[s]]["label"],
                 alpha=MATERIALS[sel[s]]["alpha"],
+                provenance="user" if s in (selection or {}) else "assumed",
             )
             for s in ("floor", "walls", "ceiling")
         ],

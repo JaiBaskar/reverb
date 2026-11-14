@@ -8,7 +8,7 @@ interface Props {
 
 export function Explanation({ comparison: c, error, loading }: Props) {
   return (
-    <div className="mt-4 rounded border border-zinc-800 p-3 text-sm" data-testid="explanation">
+    <div className="rounded-lg bg-zinc-950/50 p-3 text-sm" data-testid="explanation">
       <div className="mb-1 font-semibold">Why these rooms sound different</div>
       {error && <div className="text-red-300">{error}</div>}
       {loading && <div className="text-zinc-500">Calculating…</div>}

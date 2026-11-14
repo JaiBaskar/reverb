@@ -16,6 +16,8 @@ export interface NoiseSource {
   osm_url: string
   osm_ids: string[]
   provenance: Provenance
+  /** GeoJSON geometry ([lon, lat]); null in caches written before schema 2. */
+  geometry?: { type: string; coordinates: unknown } | null
 }
 
 export interface CategoryExposure {
@@ -40,4 +42,6 @@ export interface NoiseReport {
   notes: string[]
   data_source: string
   status: 'ok' | 'error'
+  schema_version?: number
+  categories_queried?: string[]
 }

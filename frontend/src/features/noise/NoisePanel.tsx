@@ -1,20 +1,46 @@
+import { useEffect, useState } from 'react'
 import { CATEGORY_COLOR, LEVEL_STYLE } from './colors'
-import { NoiseMap } from './NoiseMap'
 import type { NoiseReport } from './types'
-import { useNoise } from './useNoise'
+import type { useNoise } from './useNoise'
 
-export function NoisePanel({ sid }: { sid: string }) {
-  const { report, error, loading } = useNoise(sid)
+/** Exposure summary and source list; the sources are drawn on the main map. */
+export function NoisePanel({ noise }: { noise: ReturnType<typeof useNoise> }) {
+  const { report, error, loading, retry } = noise
+  const [waited, setWaited] = useState(0)
+  useEffect(() => {
+    if (!loading) return
+    const started = Date.now()
+    const id = setInterval(() => setWaited(Math.round((Date.now() - started) / 1000)), 1000)
+    return () => {
+      clearInterval(id)
+      setWaited(0)
+    }
+  }, [loading])
   return (
-    <div className="mt-4 rounded border border-zinc-800 p-3 text-sm" data-testid="noise-panel">
+    <div className="mt-3 text-sm" data-testid="noise-panel">
       <div className="mb-2 flex items-baseline justify-between">
-        <h3 className="font-semibold">Nearby noise sources</h3>
-        <span className="text-xs text-zinc-500">OpenStreetMap evidence · no dB</span>
+        <h3 className="font-medium text-zinc-200">Surrounding noise sources</h3>
+        <span className="text-xs text-zinc-500">Mapped proximity from OpenStreetMap · not measured sound levels</span>
       </div>
       {loading && (
-        <div className="text-zinc-500">Querying OpenStreetMap… the first lookup can take ~40 s.</div>
+        <div className="text-zinc-500">
+          Querying OpenStreetMap… {waited} s (a first lookup can take a minute; public servers are
+          sometimes slow).
+          {waited > 75 && (
+            <button className="ml-2 text-sky-300 underline" onClick={retry}>
+              Retry
+            </button>
+          )}
+        </div>
       )}
-      {error && <div className="text-red-300">{error}</div>}
+      {error && (
+        <div className="text-red-300">
+          {error}{' '}
+          <button className="text-sky-300 underline" onClick={retry}>
+            Retry
+          </button>
+        </div>
+      )}
       {report && <Report report={report} />}
     </div>
   )
@@ -26,7 +52,10 @@ function Report({ report: r }: { report: NoiseReport }) {
   }
   return (
     <div className="space-y-3">
-      <NoiseMap report={r} />
+      <div className="text-xs text-zinc-400">
+        Each chip rates how close the nearest mapped source of that kind is (high = very close). The
+        sources are drawn on the map; toggle categories in its legend.
+      </div>
       <div className="flex flex-wrap gap-1.5" data-testid="noise-exposure">
         {r.exposure.map((e) => (
           <span
@@ -42,7 +71,9 @@ function Report({ report: r }: { report: NoiseReport }) {
           </span>
         ))}
       </div>
-      <table className="w-full text-xs" data-testid="noise-list">
+      <details className="text-xs">
+      <summary className="cursor-pointer text-zinc-400">All {r.sources.length} mapped sources, nearest first</summary>
+      <table className="mt-1 w-full text-xs" data-testid="noise-list">
         <thead className="text-left text-zinc-400">
           <tr>
             <th className="py-1 font-normal">Source</th>
@@ -74,6 +105,7 @@ function Report({ report: r }: { report: NoiseReport }) {
           ))}
         </tbody>
       </table>
+      </details>
       <ul className="space-y-0.5 text-xs text-zinc-500">
         <li>
           Property location: {r.location_provenance} (Matterport). Distances are to the nearest

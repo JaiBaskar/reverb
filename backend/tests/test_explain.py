@@ -75,3 +75,9 @@ def test_lowest_mode_and_schroeder_are_taken_from_the_reports():
     assert c.first_reflection_ms == pytest.approx(
         [min(r.delay_ms for r in a.early_reflections), min(r.delay_ms for r in b.early_reflections)]
     )
+
+
+def test_user_chosen_materials_are_marked_user_and_defaults_assumed():
+    rep = report(SMALL, {"floor": "carpet"})
+    prov = {m.surface: m.provenance for m in rep.materials}
+    assert prov == {"floor": "user", "walls": "assumed", "ceiling": "assumed"}

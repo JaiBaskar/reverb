@@ -1,278 +1,1628 @@
 {
- "sid": "zvKHR9DHNjJ",
- "lat": 34.0934917,
- "lon": -118.3171,
- "location_provenance": "verified",
- "radius_m": 5000,
- "generated_at": "2026-11-14T16:57:25.388979Z",
- "sources": [
-  {
-   "id": "way/398048060",
-   "category": "road_minor",
-   "subtype": "highway=tertiary",
-   "name": "North Bronson Avenue",
-   "lat": 34.0934893,
-   "lon": -118.3179546,
-   "distance_m": 78.7,
-   "bearing_deg": 269.8,
-   "bearing_compass": "W",
-   "osm_url": "https://www.openstreetmap.org/way/398048060",
-   "osm_ids": [
-    "way/398048060",
-    "way/132489669",
-    "way/398048064",
-    "way/398018186",
-    "way/398048058",
-    "way/398048072",
-    "way/132489672",
-    "way/398048068"
-   ],
-   "provenance": "verified"
-  },
-  {
-   "id": "way/1160386735",
-   "category": "road_minor",
-   "subtype": "highway=tertiary",
-   "name": "North Van Ness Avenue",
-   "lat": 34.0935066,
-   "lon": -118.3157536,
-   "distance_m": 124.0,
-   "bearing_deg": 89.2,
-   "bearing_compass": "E",
-   "osm_url": "https://www.openstreetmap.org/way/1160386735",
-   "osm_ids": [
-    "way/1160386735",
-    "way/132489671",
-    "way/132489670"
-   ],
-   "provenance": "verified"
-  },
-  {
-   "id": "way/13458900",
-   "category": "road_minor",
-   "subtype": "highway=tertiary",
-   "name": "Fountain Avenue",
-   "lat": 34.0944204,
-   "lon": -118.3179763,
-   "distance_m": 131.1,
-   "bearing_deg": 322.0,
-   "bearing_compass": "NW",
-   "osm_url": "https://www.openstreetmap.org/way/13458900",
-   "osm_ids": [
-    "way/13458900",
-    "way/1011979954"
-   ],
-   "provenance": "verified"
-  },
-  {
-   "id": "way/1227482703",
-   "category": "construction",
-   "subtype": "landuse=construction",
-   "name": null,
-   "lat": 34.0953272,
-   "lon": -118.3191655,
-   "distance_m": 279.0,
-   "bearing_deg": 317.0,
-   "bearing_compass": "NW",
-   "osm_url": "https://www.openstreetmap.org/way/1227482703",
-   "osm_ids": [
-    "way/1227482703"
-   ],
-   "provenance": "verified"
-  },
-  {
-   "id": "way/398227021",
-   "category": "road_major",
-   "subtype": "highway=primary",
-   "name": "Santa Monica Boulevard",
-   "lat": 34.0907535,
-   "lon": -118.3171048,
-   "distance_m": 304.5,
-   "bearing_deg": 180.1,
-   "bearing_compass": "S",
-   "osm_url": "https://www.openstreetmap.org/way/398227021",
-   "osm_ids": [
-    "way/398227021",
-    "way/405131868",
-    "way/405131871",
-    "way/405193617",
-    "way/405131873",
-    "way/405141326",
-    "way/405141327",
-    "way/405131872",
-    "way/405131863",
-    "way/405131865",
-    "way/405131861",
-    "way/405131862",
-    "way/405131866",
-    "way/398018197",
-    "way/180079269",
-    "way/405131864"
-   ],
-   "provenance": "verified"
-  },
-  {
-   "id": "way/159763462",
-   "category": "road_major",
-   "subtype": "highway=motorway_link",
-   "name": null,
-   "lat": 34.0963385,
-   "lon": -118.3133747,
-   "distance_m": 466.8,
-   "bearing_deg": 47.3,
-   "bearing_compass": "NE",
-   "osm_url": "https://www.openstreetmap.org/way/159763462",
-   "osm_ids": [
-    "way/159763462"
-   ],
-   "provenance": "verified"
-  },
-  {
-   "id": "way/866596939",
-   "category": "road_major",
-   "subtype": "highway=motorway",
-   "name": "Hollywood Freeway",
-   "lat": 34.0963306,
-   "lon": -118.3132178,
-   "distance_m": 476.9,
-   "bearing_deg": 48.6,
-   "bearing_compass": "NE",
-   "osm_url": "https://www.openstreetmap.org/way/866596939",
-   "osm_ids": [
-    "way/866596939",
-    "way/148238623",
-    "way/860961742"
-   ],
-   "provenance": "verified"
-  },
-  {
-   "id": "way/1239611906",
-   "category": "heliport",
-   "subtype": "aeroway=helipad",
-   "name": null,
-   "lat": 34.0977035,
-   "lon": -118.3196681,
-   "distance_m": 524.6,
-   "bearing_deg": 333.2,
-   "bearing_compass": "NNW",
-   "osm_url": "https://www.openstreetmap.org/way/1239611906",
-   "osm_ids": [
-    "way/1239611906"
-   ],
-   "provenance": "verified"
-  },
-  {
-   "id": "way/1239612145",
-   "category": "heliport",
-   "subtype": "aeroway=helipad",
-   "name": null,
-   "lat": 34.0983839,
-   "lon": -118.3193378,
-   "distance_m": 581.7,
-   "bearing_deg": 339.3,
-   "bearing_compass": "NNW",
-   "osm_url": "https://www.openstreetmap.org/way/1239612145",
-   "osm_ids": [
-    "way/1239612145"
-   ],
-   "provenance": "verified"
-  },
-  {
-   "id": "way/1239611711",
-   "category": "heliport",
-   "subtype": "aeroway=helipad",
-   "name": null,
-   "lat": 34.0995226,
-   "lon": -118.3232963,
-   "distance_m": 880.5,
-   "bearing_deg": 319.6,
-   "bearing_compass": "NW",
-   "osm_url": "https://www.openstreetmap.org/way/1239611711",
-   "osm_ids": [
-    "way/1239611711"
-   ],
-   "provenance": "verified"
-  }
- ],
- "exposure": [
-  {
-   "category": "airport",
-   "label": "Airports and airfields",
-   "radius_m": 5000,
-   "count": 0,
-   "nearest_m": null,
-   "level": "none",
-   "reason": "No mapped source within 5000 m."
-  },
-  {
-   "category": "heliport",
-   "label": "Heliports and helipads",
-   "radius_m": 1000,
-   "count": 3,
-   "nearest_m": 524.6,
-   "level": "low",
-   "reason": "Nearest at 525 m (beyond 500 m)."
-  },
-  {
-   "category": "rail",
-   "label": "Rail and transit lines",
-   "radius_m": 500,
-   "count": 0,
-   "nearest_m": null,
-   "level": "none",
-   "reason": "No mapped source within 500 m."
-  },
-  {
-   "category": "road_major",
-   "label": "Major roads (motorway, trunk, primary)",
-   "radius_m": 500,
-   "count": 3,
-   "nearest_m": 304.5,
-   "level": "low",
-   "reason": "Nearest at 304 m (beyond 250 m)."
-  },
-  {
-   "category": "road_minor",
-   "label": "Secondary and tertiary roads",
-   "radius_m": 200,
-   "count": 3,
-   "nearest_m": 78.7,
-   "level": "moderate",
-   "reason": "Nearest at 79 m (within 100 m)."
-  },
-  {
-   "category": "construction",
-   "label": "Construction sites",
-   "radius_m": 300,
-   "count": 1,
-   "nearest_m": 279.0,
-   "level": "low",
-   "reason": "Nearest at 279 m (beyond 150 m)."
-  },
-  {
-   "category": "venue",
-   "label": "Bars, clubs and venues",
-   "radius_m": 300,
-   "count": 0,
-   "nearest_m": null,
-   "level": "none",
-   "reason": "No mapped source within 300 m."
-  },
-  {
-   "category": "industrial",
-   "label": "Industrial land and works",
-   "radius_m": 500,
-   "count": 0,
-   "nearest_m": null,
-   "level": "none",
-   "reason": "No mapped source within 500 m."
-  }
- ],
- "notes": [
-  "Sources come from OpenStreetMap, which may be incomplete or out of date.",
-  "Exposure levels are relative, based only on distance to the nearest mapped source in each category. They are not decibels and not measurements.",
-  "OSM data as of 2026-11-14T16:55:36Z."
- ],
- "data_source": "OpenStreetMap contributors, via the Overpass API (ODbL)",
- "status": "ok"
+    "sid": "zvKHR9DHNjJ",
+    "lat": 34.0934917,
+    "lon": -118.3171,
+    "location_provenance": "verified",
+    "radius_m": 5000,
+    "generated_at": "2026-11-14T18:59:41.296448Z",
+    "sources": [
+        {
+            "id": "way/398048060",
+            "category": "road_minor",
+            "subtype": "highway=tertiary",
+            "name": "North Bronson Avenue",
+            "lat": 34.0934893,
+            "lon": -118.3179546,
+            "distance_m": 78.7,
+            "bearing_deg": 269.8,
+            "bearing_compass": "W",
+            "osm_url": "https://www.openstreetmap.org/way/398048060",
+            "osm_ids": [
+                "way/398048060",
+                "way/132489669",
+                "way/398048064",
+                "way/398018186",
+                "way/398048058",
+                "way/398048072",
+                "way/132489672",
+                "way/398048068"
+            ],
+            "provenance": "verified",
+            "geometry": {
+                "type": "MultiLineString",
+                "coordinates": [
+                    [
+                        [
+                            -118.3179529,
+                            34.0930757
+                        ],
+                        [
+                            -118.3179553,
+                            34.0936713
+                        ],
+                        [
+                            -118.3179557,
+                            34.0937622
+                        ]
+                    ],
+                    [
+                        [
+                            -118.3179557,
+                            34.0937622
+                        ],
+                        [
+                            -118.317955,
+                            34.093868
+                        ],
+                        [
+                            -118.3179536,
+                            34.0940772
+                        ]
+                    ],
+                    [
+                        [
+                            -118.3179516,
+                            34.092772
+                        ],
+                        [
+                            -118.317952,
+                            34.0928549
+                        ],
+                        [
+                            -118.3179529,
+                            34.0930757
+                        ]
+                    ],
+                    [
+                        [
+                            -118.3179536,
+                            34.0940772
+                        ],
+                        [
+                            -118.317974,
+                            34.0943045
+                        ],
+                        [
+                            -118.3179763,
+                            34.0944204
+                        ]
+                    ],
+                    [
+                        [
+                            -118.3179509,
+                            34.0926028
+                        ],
+                        [
+                            -118.3179512,
+                            34.0926826
+                        ],
+                        [
+                            -118.3179516,
+                            34.092772
+                        ]
+                    ],
+                    [
+                        [
+                            -118.3179494,
+                            34.0922502
+                        ],
+                        [
+                            -118.3179505,
+                            34.0925098
+                        ],
+                        [
+                            -118.3179509,
+                            34.0926028
+                        ]
+                    ],
+                    [
+                        [
+                            -118.3179763,
+                            34.0944204
+                        ],
+                        [
+                            -118.3179764,
+                            34.0944897
+                        ],
+                        [
+                            -118.317978,
+                            34.0956981
+                        ],
+                        [
+                            -118.3179775,
+                            34.0957519
+                        ],
+                        [
+                            -118.3179781,
+                            34.0958022
+                        ]
+                    ],
+                    [
+                        [
+                            -118.3179474,
+                            34.0917797
+                        ],
+                        [
+                            -118.3179476,
+                            34.0918167
+                        ],
+                        [
+                            -118.3179483,
+                            34.091981
+                        ],
+                        [
+                            -118.3179494,
+                            34.0922502
+                        ]
+                    ]
+                ]
+            }
+        },
+        {
+            "id": "way/1160386735",
+            "category": "road_minor",
+            "subtype": "highway=tertiary",
+            "name": "North Van Ness Avenue",
+            "lat": 34.0935066,
+            "lon": -118.3157536,
+            "distance_m": 124.0,
+            "bearing_deg": 89.2,
+            "bearing_compass": "E",
+            "osm_url": "https://www.openstreetmap.org/way/1160386735",
+            "osm_ids": [
+                "way/1160386735",
+                "way/132489671",
+                "way/132489670"
+            ],
+            "provenance": "verified",
+            "geometry": {
+                "type": "MultiLineString",
+                "coordinates": [
+                    [
+                        [
+                            -118.3157427,
+                            34.0907527
+                        ],
+                        [
+                            -118.3157434,
+                            34.0908484
+                        ],
+                        [
+                            -118.3157503,
+                            34.0917262
+                        ],
+                        [
+                            -118.3157508,
+                            34.0917943
+                        ],
+                        [
+                            -118.3157504,
+                            34.0918419
+                        ],
+                        [
+                            -118.3157424,
+                            34.0927088
+                        ],
+                        [
+                            -118.3157418,
+                            34.0927751
+                        ],
+                        [
+                            -118.3157429,
+                            34.0928405
+                        ],
+                        [
+                            -118.3157568,
+                            34.0937025
+                        ],
+                        [
+                            -118.3157579,
+                            34.0937711
+                        ]
+                    ],
+                    [
+                        [
+                            -118.3157579,
+                            34.0937711
+                        ],
+                        [
+                            -118.3157652,
+                            34.0938304
+                        ],
+                        [
+                            -118.3157719,
+                            34.094662
+                        ],
+                        [
+                            -118.3157729,
+                            34.094728
+                        ]
+                    ],
+                    [
+                        [
+                            -118.3157729,
+                            34.094728
+                        ],
+                        [
+                            -118.3157724,
+                            34.0948096
+                        ],
+                        [
+                            -118.3157804,
+                            34.095811
+                        ],
+                        [
+                            -118.315784,
+                            34.0962227
+                        ],
+                        [
+                            -118.3157742,
+                            34.0972981
+                        ],
+                        [
+                            -118.3157763,
+                            34.097943
+                        ],
+                        [
+                            -118.3157749,
+                            34.0980624
+                        ]
+                    ]
+                ]
+            }
+        },
+        {
+            "id": "way/13458900",
+            "category": "road_minor",
+            "subtype": "highway=tertiary",
+            "name": "Fountain Avenue",
+            "lat": 34.0944204,
+            "lon": -118.3179763,
+            "distance_m": 131.1,
+            "bearing_deg": 322.0,
+            "bearing_compass": "NW",
+            "osm_url": "https://www.openstreetmap.org/way/13458900",
+            "osm_ids": [
+                "way/13458900",
+                "way/1011979954"
+            ],
+            "provenance": "verified",
+            "geometry": {
+                "type": "MultiLineString",
+                "coordinates": [
+                    [
+                        [
+                            -118.3179763,
+                            34.0944204
+                        ],
+                        [
+                            -118.3180659,
+                            34.0944196
+                        ],
+                        [
+                            -118.3189799,
+                            34.0944114
+                        ],
+                        [
+                            -118.319049,
+                            34.0944108
+                        ],
+                        [
+                            -118.3191369,
+                            34.0944098
+                        ],
+                        [
+                            -118.3200404,
+                            34.0943994
+                        ],
+                        [
+                            -118.320088,
+                            34.0943989
+                        ],
+                        [
+                            -118.3201911,
+                            34.0943979
+                        ],
+                        [
+                            -118.3211822,
+                            34.0943878
+                        ],
+                        [
+                            -118.3212727,
+                            34.094388
+                        ],
+                        [
+                            -118.321671,
+                            34.0943889
+                        ],
+                        [
+                            -118.3221883,
+                            34.0943897
+                        ],
+                        [
+                            -118.32231,
+                            34.0943904
+                        ]
+                    ],
+                    [
+                        [
+                            -118.3136034,
+                            34.094751
+                        ],
+                        [
+                            -118.3136959,
+                            34.09475
+                        ],
+                        [
+                            -118.3137321,
+                            34.0947496
+                        ],
+                        [
+                            -118.314352,
+                            34.0947428
+                        ],
+                        [
+                            -118.3149286,
+                            34.0947368
+                        ],
+                        [
+                            -118.3156887,
+                            34.0947289
+                        ],
+                        [
+                            -118.3157729,
+                            34.094728
+                        ]
+                    ]
+                ]
+            }
+        },
+        {
+            "id": "way/60577043",
+            "category": "school",
+            "subtype": "amenity=school",
+            "name": "Joseph Le Conte Middle School",
+            "lat": 34.094792,
+            "lon": -118.3168538,
+            "distance_m": 146.4,
+            "bearing_deg": 8.9,
+            "bearing_compass": "N",
+            "osm_url": "https://www.openstreetmap.org/way/60577043",
+            "osm_ids": [
+                "way/60577043"
+            ],
+            "provenance": "verified",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -118.3168538,
+                    34.094792
+                ]
+            }
+        },
+        {
+            "id": "way/422147485",
+            "category": "worship",
+            "subtype": "amenity=place_of_worship",
+            "name": "St. Kliment of Ochrid Orthodox Church",
+            "lat": 34.0919819,
+            "lon": -118.3177606,
+            "distance_m": 178.6,
+            "bearing_deg": 199.9,
+            "bearing_compass": "SSW",
+            "osm_url": "https://www.openstreetmap.org/way/422147485",
+            "osm_ids": [
+                "way/422147485"
+            ],
+            "provenance": "verified",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -118.3177606,
+                    34.0919819
+                ]
+            }
+        },
+        {
+            "id": "node/13973677803",
+            "category": "sports",
+            "subtype": "leisure=sports_centre",
+            "name": "Hollywood Boulders Touchstone",
+            "lat": 34.0912913,
+            "lon": -118.3182177,
+            "distance_m": 265.4,
+            "bearing_deg": 202.8,
+            "bearing_compass": "SSW",
+            "osm_url": "https://www.openstreetmap.org/node/13973677803",
+            "osm_ids": [
+                "node/13973677803"
+            ],
+            "provenance": "verified",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -118.3182177,
+                    34.0912913
+                ]
+            }
+        },
+        {
+            "id": "way/1227482703",
+            "category": "construction",
+            "subtype": "landuse=construction",
+            "name": null,
+            "lat": 34.0953272,
+            "lon": -118.3191655,
+            "distance_m": 279.0,
+            "bearing_deg": 317.0,
+            "bearing_compass": "NW",
+            "osm_url": "https://www.openstreetmap.org/way/1227482703",
+            "osm_ids": [
+                "way/1227482703"
+            ],
+            "provenance": "verified",
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            -118.3195856,
+                            34.0957316
+                        ],
+                        [
+                            -118.3191694,
+                            34.0957344
+                        ],
+                        [
+                            -118.3191655,
+                            34.0953272
+                        ],
+                        [
+                            -118.3195817,
+                            34.0953245
+                        ],
+                        [
+                            -118.3195856,
+                            34.0957316
+                        ]
+                    ]
+                ]
+            }
+        },
+        {
+            "id": "way/244066768",
+            "category": "sports",
+            "subtype": "leisure=pitch",
+            "name": null,
+            "lat": 34.0931348,
+            "lon": -118.3140656,
+            "distance_m": 282.2,
+            "bearing_deg": 98.1,
+            "bearing_compass": "E",
+            "osm_url": "https://www.openstreetmap.org/way/244066768",
+            "osm_ids": [
+                "way/244066768"
+            ],
+            "provenance": "verified",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -118.3140656,
+                    34.0931348
+                ]
+            }
+        },
+        {
+            "id": "way/610670587",
+            "category": "sports",
+            "subtype": "leisure=pitch",
+            "name": null,
+            "lat": 34.0954128,
+            "lon": -118.3150573,
+            "distance_m": 284.6,
+            "bearing_deg": 41.4,
+            "bearing_compass": "NE",
+            "osm_url": "https://www.openstreetmap.org/way/610670587",
+            "osm_ids": [
+                "way/610670587"
+            ],
+            "provenance": "verified",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -118.3150573,
+                    34.0954128
+                ]
+            }
+        },
+        {
+            "id": "node/6276871455",
+            "category": "transit",
+            "subtype": "highway=bus_stop",
+            "name": "Santa Monica & Bronson",
+            "lat": 34.0908495,
+            "lon": -118.317589,
+            "distance_m": 297.2,
+            "bearing_deg": 188.7,
+            "bearing_compass": "S",
+            "osm_url": "https://www.openstreetmap.org/node/6276871455",
+            "osm_ids": [
+                "node/6276871455",
+                "node/6276871456"
+            ],
+            "provenance": "verified",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -118.317589,
+                    34.0908495
+                ]
+            }
+        },
+        {
+            "id": "way/244066882",
+            "category": "sports",
+            "subtype": "leisure=playground",
+            "name": null,
+            "lat": 34.0930258,
+            "lon": -118.313905,
+            "distance_m": 298.7,
+            "bearing_deg": 100.0,
+            "bearing_compass": "E",
+            "osm_url": "https://www.openstreetmap.org/way/244066882",
+            "osm_ids": [
+                "way/244066882"
+            ],
+            "provenance": "verified",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -118.313905,
+                    34.0930258
+                ]
+            }
+        },
+        {
+            "id": "way/398227021",
+            "category": "road_major",
+            "subtype": "highway=primary",
+            "name": "Santa Monica Boulevard",
+            "lat": 34.0907535,
+            "lon": -118.3171048,
+            "distance_m": 304.5,
+            "bearing_deg": 180.1,
+            "bearing_compass": "S",
+            "osm_url": "https://www.openstreetmap.org/way/398227021",
+            "osm_ids": [
+                "way/398227021",
+                "way/405131868",
+                "way/405131871",
+                "way/405193617",
+                "way/405131873",
+                "way/405141326",
+                "way/405141327",
+                "way/405131872",
+                "way/405131863",
+                "way/405131865",
+                "way/405131861",
+                "way/405131862",
+                "way/405131866",
+                "way/398018197",
+                "way/180079269",
+                "way/405131864"
+            ],
+            "provenance": "verified",
+            "geometry": {
+                "type": "MultiLineString",
+                "coordinates": [
+                    [
+                        [
+                            -118.316095,
+                            34.0907528
+                        ],
+                        [
+                            -118.3163214,
+                            34.0907529
+                        ],
+                        [
+                            -118.3166721,
+                            34.090753
+                        ],
+                        [
+                            -118.3167452,
+                            34.0907531
+                        ],
+                        [
+                            -118.3175738,
+                            34.0907541
+                        ]
+                    ],
+                    [
+                        [
+                            -118.3175738,
+                            34.0907541
+                        ],
+                        [
+                            -118.3178287,
+                            34.0907544
+                        ],
+                        [
+                            -118.3179431,
+                            34.0907545
+                        ]
+                    ],
+                    [
+                        [
+                            -118.3179431,
+                            34.0907545
+                        ],
+                        [
+                            -118.3182812,
+                            34.0907535
+                        ]
+                    ],
+                    [
+                        [
+                            -118.3157427,
+                            34.0907527
+                        ],
+                        [
+                            -118.3158253,
+                            34.0907527
+                        ],
+                        [
+                            -118.316095,
+                            34.0907528
+                        ]
+                    ],
+                    [
+                        [
+                            -118.3182812,
+                            34.0907535
+                        ],
+                        [
+                            -118.318842,
+                            34.090752
+                        ],
+                        [
+                            -118.319031,
+                            34.0907515
+                        ]
+                    ],
+                    [
+                        [
+                            -118.3152142,
+                            34.0907535
+                        ],
+                        [
+                            -118.31567,
+                            34.0907523
+                        ],
+                        [
+                            -118.3157427,
+                            34.0907527
+                        ]
+                    ],
+                    [
+                        [
+                            -118.31395,
+                            34.0907618
+                        ],
+                        [
+                            -118.3140665,
+                            34.0907614
+                        ],
+                        [
+                            -118.3146038,
+                            34.0907545
+                        ],
+                        [
+                            -118.3152142,
+                            34.0907535
+                        ]
+                    ],
+                    [
+                        [
+                            -118.319031,
+                            34.0907515
+                        ],
+                        [
+                            -118.3193097,
+                            34.0907515
+                        ]
+                    ],
+                    [
+                        [
+                            -118.3193097,
+                            34.0907515
+                        ],
+                        [
+                            -118.3195551,
+                            34.0907515
+                        ]
+                    ],
+                    [
+                        [
+                            -118.3195551,
+                            34.0907515
+                        ],
+                        [
+                            -118.3201025,
+                            34.0907529
+                        ]
+                    ],
+                    [
+                        [
+                            -118.3201025,
+                            34.0907529
+                        ],
+                        [
+                            -118.3203447,
+                            34.0907507
+                        ]
+                    ],
+                    [
+                        [
+                            -118.3135594,
+                            34.090763
+                        ],
+                        [
+                            -118.3136503,
+                            34.0907624
+                        ],
+                        [
+                            -118.313813,
+                            34.0907613
+                        ],
+                        [
+                            -118.31395,
+                            34.0907618
+                        ]
+                    ],
+                    [
+                        [
+                            -118.3203447,
+                            34.0907507
+                        ],
+                        [
+                            -118.3211913,
+                            34.0907483
+                        ]
+                    ],
+                    [
+                        [
+                            -118.3131737,
+                            34.0907648
+                        ],
+                        [
+                            -118.3133595,
+                            34.0907639
+                        ],
+                        [
+                            -118.3134882,
+                            34.0907633
+                        ],
+                        [
+                            -118.3135594,
+                            34.090763
+                        ]
+                    ],
+                    [
+                        [
+                            -118.3114033,
+                            34.0907714
+                        ],
+                        [
+                            -118.311497,
+                            34.0907712
+                        ],
+                        [
+                            -118.3130747,
+                            34.0907655
+                        ],
+                        [
+                            -118.3131737,
+                            34.0907648
+                        ]
+                    ],
+                    [
+                        [
+                            -118.3211913,
+                            34.0907483
+                        ],
+                        [
+                            -118.3211983,
+                            34.0907485
+                        ],
+                        [
+                            -118.3214243,
+                            34.090749
+                        ]
+                    ]
+                ]
+            }
+        },
+        {
+            "id": "node/6276871454",
+            "category": "transit",
+            "subtype": "highway=bus_stop",
+            "name": "Santa Monica & Van Ness",
+            "lat": 34.0908506,
+            "lon": -118.316016,
+            "distance_m": 310.2,
+            "bearing_deg": 161.2,
+            "bearing_compass": "SSE",
+            "osm_url": "https://www.openstreetmap.org/node/6276871454",
+            "osm_ids": [
+                "node/6276871454",
+                "node/6276871453"
+            ],
+            "provenance": "verified",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -118.316016,
+                    34.0908506
+                ]
+            }
+        },
+        {
+            "id": "way/421684001",
+            "category": "sports",
+            "subtype": "leisure=pitch",
+            "name": null,
+            "lat": 34.0960397,
+            "lon": -118.3152701,
+            "distance_m": 329.6,
+            "bearing_deg": 30.7,
+            "bearing_compass": "NNE",
+            "osm_url": "https://www.openstreetmap.org/way/421684001",
+            "osm_ids": [
+                "way/421684001"
+            ],
+            "provenance": "verified",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -118.3152701,
+                    34.0960397
+                ]
+            }
+        },
+        {
+            "id": "way/49321027",
+            "category": "school",
+            "subtype": "amenity=school",
+            "name": "Bernstein High School",
+            "lat": 34.0963765,
+            "lon": -118.3147123,
+            "distance_m": 388.9,
+            "bearing_deg": 34.4,
+            "bearing_compass": "NE",
+            "osm_url": "https://www.openstreetmap.org/way/49321027",
+            "osm_ids": [
+                "way/49321027"
+            ],
+            "provenance": "verified",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -118.3147123,
+                    34.0963765
+                ]
+            }
+        },
+        {
+            "id": "node/6276871451",
+            "category": "transit",
+            "subtype": "highway=bus_stop",
+            "name": "Santa Monica & Wilton",
+            "lat": 34.0906751,
+            "lon": -118.313736,
+            "distance_m": 440.5,
+            "bearing_deg": 135.3,
+            "bearing_compass": "SE",
+            "osm_url": "https://www.openstreetmap.org/node/6276871451",
+            "osm_ids": [
+                "node/6276871451",
+                "node/6276871450"
+            ],
+            "provenance": "verified",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -118.313736,
+                    34.0906751
+                ]
+            }
+        },
+        {
+            "id": "way/159763462",
+            "category": "road_major",
+            "subtype": "highway=motorway_link",
+            "name": null,
+            "lat": 34.0963385,
+            "lon": -118.3133747,
+            "distance_m": 466.8,
+            "bearing_deg": 47.3,
+            "bearing_compass": "NE",
+            "osm_url": "https://www.openstreetmap.org/way/159763462",
+            "osm_ids": [
+                "way/159763462"
+            ],
+            "provenance": "verified",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        -118.3146638,
+                        34.0976906
+                    ],
+                    [
+                        -118.3145459,
+                        34.0974813
+                    ],
+                    [
+                        -118.3141289,
+                        34.0970154
+                    ],
+                    [
+                        -118.3130293,
+                        34.0960286
+                    ],
+                    [
+                        -118.3123514,
+                        34.0955959
+                    ]
+                ]
+            }
+        },
+        {
+            "id": "way/866596939",
+            "category": "road_major",
+            "subtype": "highway=motorway",
+            "name": "Hollywood Freeway",
+            "lat": 34.0963306,
+            "lon": -118.3132178,
+            "distance_m": 476.9,
+            "bearing_deg": 48.6,
+            "bearing_compass": "NE",
+            "osm_url": "https://www.openstreetmap.org/way/866596939",
+            "osm_ids": [
+                "way/866596939",
+                "way/148238623",
+                "way/860961742"
+            ],
+            "provenance": "verified",
+            "geometry": {
+                "type": "MultiLineString",
+                "coordinates": [
+                    [
+                        [
+                            -118.317114,
+                            34.1021896
+                        ],
+                        [
+                            -118.3169521,
+                            34.1019899
+                        ],
+                        [
+                            -118.3167968,
+                            34.1017756
+                        ],
+                        [
+                            -118.3166435,
+                            34.1015289
+                        ],
+                        [
+                            -118.315114,
+                            34.0989258
+                        ],
+                        [
+                            -118.3146404,
+                            34.098094
+                        ],
+                        [
+                            -118.3144985,
+                            34.0978658
+                        ],
+                        [
+                            -118.314343,
+                            34.0976321
+                        ],
+                        [
+                            -118.3141792,
+                            34.0974049
+                        ],
+                        [
+                            -118.3140063,
+                            34.0971834
+                        ],
+                        [
+                            -118.3138403,
+                            34.0969774
+                        ],
+                        [
+                            -118.3136628,
+                            34.0967793
+                        ],
+                        [
+                            -118.313466,
+                            34.0965778
+                        ],
+                        [
+                            -118.313262,
+                            34.0963721
+                        ],
+                        [
+                            -118.3130417,
+                            34.0961655
+                        ],
+                        [
+                            -118.3128244,
+                            34.0959725
+                        ],
+                        [
+                            -118.3125823,
+                            34.0957765
+                        ],
+                        [
+                            -118.3123514,
+                            34.0955959
+                        ]
+                    ],
+                    [
+                        [
+                            -118.3122188,
+                            34.0957177
+                        ],
+                        [
+                            -118.3124451,
+                            34.0958947
+                        ],
+                        [
+                            -118.3126828,
+                            34.096087
+                        ],
+                        [
+                            -118.3128951,
+                            34.0962756
+                        ],
+                        [
+                            -118.3131113,
+                            34.0964784
+                        ],
+                        [
+                            -118.3133126,
+                            34.0966814
+                        ],
+                        [
+                            -118.3135064,
+                            34.0968797
+                        ],
+                        [
+                            -118.3136784,
+                            34.0970718
+                        ],
+                        [
+                            -118.3138408,
+                            34.0972733
+                        ],
+                        [
+                            -118.3141297,
+                            34.0976985
+                        ]
+                    ],
+                    [
+                        [
+                            -118.3123514,
+                            34.0955959
+                        ],
+                        [
+                            -118.3120935,
+                            34.0954119
+                        ],
+                        [
+                            -118.3118653,
+                            34.095257
+                        ],
+                        [
+                            -118.3112442,
+                            34.0948637
+                        ],
+                        [
+                            -118.3109408,
+                            34.0946715
+                        ]
+                    ]
+                ]
+            }
+        },
+        {
+            "id": "node/8188973821",
+            "category": "transit",
+            "subtype": "highway=bus_stop",
+            "name": "Gower & Lexington",
+            "lat": 34.0927748,
+            "lon": -118.32221,
+            "distance_m": 477.3,
+            "bearing_deg": 260.4,
+            "bearing_compass": "W",
+            "osm_url": "https://www.openstreetmap.org/node/8188973821",
+            "osm_ids": [
+                "node/8188973821",
+                "node/8188973822"
+            ],
+            "provenance": "verified",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -118.32221,
+                    34.0927748
+                ]
+            }
+        },
+        {
+            "id": "node/8188973823",
+            "category": "transit",
+            "subtype": "highway=bus_stop",
+            "name": "Gower & Fountain",
+            "lat": 34.0946539,
+            "lon": -118.322208,
+            "distance_m": 487.8,
+            "bearing_deg": 285.4,
+            "bearing_compass": "WNW",
+            "osm_url": "https://www.openstreetmap.org/node/8188973823",
+            "osm_ids": [
+                "node/8188973823"
+            ],
+            "provenance": "verified",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -118.322208,
+                    34.0946539
+                ]
+            }
+        },
+        {
+            "id": "way/1239611906",
+            "category": "heliport",
+            "subtype": "aeroway=helipad",
+            "name": null,
+            "lat": 34.0977035,
+            "lon": -118.3196681,
+            "distance_m": 524.6,
+            "bearing_deg": 333.2,
+            "bearing_compass": "NNW",
+            "osm_url": "https://www.openstreetmap.org/way/1239611906",
+            "osm_ids": [
+                "way/1239611906"
+            ],
+            "provenance": "verified",
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            -118.3198346,
+                            34.0978397
+                        ],
+                        [
+                            -118.3198334,
+                            34.0977026
+                        ],
+                        [
+                            -118.3196681,
+                            34.0977035
+                        ],
+                        [
+                            -118.3196692,
+                            34.0978407
+                        ],
+                        [
+                            -118.3198346,
+                            34.0978397
+                        ]
+                    ]
+                ]
+            }
+        },
+        {
+            "id": "way/1239612145",
+            "category": "heliport",
+            "subtype": "aeroway=helipad",
+            "name": null,
+            "lat": 34.0983839,
+            "lon": -118.3193378,
+            "distance_m": 581.7,
+            "bearing_deg": 339.3,
+            "bearing_compass": "NNW",
+            "osm_url": "https://www.openstreetmap.org/way/1239612145",
+            "osm_ids": [
+                "way/1239612145"
+            ],
+            "provenance": "verified",
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            -118.3194895,
+                            34.0985334
+                        ],
+                        [
+                            -118.3195052,
+                            34.0983971
+                        ],
+                        [
+                            -118.3193378,
+                            34.0983839
+                        ],
+                        [
+                            -118.3193221,
+                            34.0985202
+                        ],
+                        [
+                            -118.3194895,
+                            34.0985334
+                        ]
+                    ]
+                ]
+            }
+        },
+        {
+            "id": "way/574228538",
+            "category": "emergency",
+            "subtype": "amenity=hospital",
+            "name": "Southern California Hospital Hollywood",
+            "lat": 34.0966428,
+            "lon": -118.3253222,
+            "distance_m": 834.3,
+            "bearing_deg": 294.8,
+            "bearing_compass": "WNW",
+            "osm_url": "https://www.openstreetmap.org/way/574228538",
+            "osm_ids": [
+                "way/574228538"
+            ],
+            "provenance": "verified",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -118.3253222,
+                    34.0966428
+                ]
+            }
+        },
+        {
+            "id": "way/1239611711",
+            "category": "heliport",
+            "subtype": "aeroway=helipad",
+            "name": null,
+            "lat": 34.0995226,
+            "lon": -118.3232963,
+            "distance_m": 880.5,
+            "bearing_deg": 319.6,
+            "bearing_compass": "NW",
+            "osm_url": "https://www.openstreetmap.org/way/1239611711",
+            "osm_ids": [
+                "way/1239611711"
+            ],
+            "provenance": "verified",
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            -118.3233835,
+                            34.0996132
+                        ],
+                        [
+                            -118.3233835,
+                            34.0995226
+                        ],
+                        [
+                            -118.3232963,
+                            34.0995226
+                        ],
+                        [
+                            -118.3232963,
+                            34.0996132
+                        ],
+                        [
+                            -118.3233835,
+                            34.0996132
+                        ]
+                    ]
+                ]
+            }
+        },
+        {
+            "id": "way/1258954047",
+            "category": "emergency",
+            "subtype": "amenity=fire_station",
+            "name": "Los Angeles Fire Department Station 82",
+            "lat": 34.1020658,
+            "lon": -118.3154483,
+            "distance_m": 965.5,
+            "bearing_deg": 9.1,
+            "bearing_compass": "N",
+            "osm_url": "https://www.openstreetmap.org/way/1258954047",
+            "osm_ids": [
+                "way/1258954047"
+            ],
+            "provenance": "verified",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -118.3154483,
+                    34.1020658
+                ]
+            }
+        },
+        {
+            "id": "way/422140077",
+            "category": "emergency",
+            "subtype": "amenity=fire_station",
+            "name": "Los Angeles Fire Department Fire Station 82",
+            "lat": 34.1035667,
+            "lon": -118.3176783,
+            "distance_m": 1121.6,
+            "bearing_deg": 357.3,
+            "bearing_compass": "N",
+            "osm_url": "https://www.openstreetmap.org/way/422140077",
+            "osm_ids": [
+                "way/422140077"
+            ],
+            "provenance": "verified",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -118.3176783,
+                    34.1035667
+                ]
+            }
+        },
+        {
+            "id": "way/423247011",
+            "category": "emergency",
+            "subtype": "amenity=fire_station",
+            "name": "Los Angeles Fire Department Fire Station 27",
+            "lat": 34.0955295,
+            "lon": -118.3301408,
+            "distance_m": 1222.0,
+            "bearing_deg": 280.7,
+            "bearing_compass": "W",
+            "osm_url": "https://www.openstreetmap.org/way/423247011",
+            "osm_ids": [
+                "way/423247011"
+            ],
+            "provenance": "verified",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -118.3301408,
+                    34.0955295
+                ]
+            }
+        },
+        {
+            "id": "way/362084318",
+            "category": "emergency",
+            "subtype": "amenity=police",
+            "name": "Hollywood Community Police Station",
+            "lat": 34.0958169,
+            "lon": -118.3306544,
+            "distance_m": 1274.6,
+            "bearing_deg": 281.7,
+            "bearing_compass": "WNW",
+            "osm_url": "https://www.openstreetmap.org/way/362084318",
+            "osm_ids": [
+                "way/362084318"
+            ],
+            "provenance": "verified",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -118.3306544,
+                    34.0958169
+                ]
+            }
+        },
+        {
+            "id": "way/420126929",
+            "category": "emergency",
+            "subtype": "amenity=fire_station",
+            "name": "Los Angeles Fire Department Fire Station 52",
+            "lat": 34.083802,
+            "lon": -118.3080782,
+            "distance_m": 1360.6,
+            "bearing_deg": 142.4,
+            "bearing_compass": "SE",
+            "osm_url": "https://www.openstreetmap.org/way/420126929",
+            "osm_ids": [
+                "way/420126929"
+            ],
+            "provenance": "verified",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -118.3080782,
+                    34.083802
+                ]
+            }
+        }
+    ],
+    "exposure": [
+        {
+            "category": "airport",
+            "label": "Airports and airfields",
+            "radius_m": 5000,
+            "count": 0,
+            "nearest_m": null,
+            "level": "none",
+            "reason": "No mapped source within 5000 m."
+        },
+        {
+            "category": "heliport",
+            "label": "Heliports and helipads",
+            "radius_m": 1000,
+            "count": 3,
+            "nearest_m": 524.6,
+            "level": "low",
+            "reason": "Nearest at 525 m (beyond 500 m)."
+        },
+        {
+            "category": "rail",
+            "label": "Rail and transit lines",
+            "radius_m": 500,
+            "count": 0,
+            "nearest_m": null,
+            "level": "none",
+            "reason": "No mapped source within 500 m."
+        },
+        {
+            "category": "road_major",
+            "label": "Major roads (motorway, trunk, primary)",
+            "radius_m": 500,
+            "count": 3,
+            "nearest_m": 304.5,
+            "level": "low",
+            "reason": "Nearest at 304 m (beyond 250 m)."
+        },
+        {
+            "category": "road_minor",
+            "label": "Secondary and tertiary roads",
+            "radius_m": 200,
+            "count": 3,
+            "nearest_m": 78.7,
+            "level": "moderate",
+            "reason": "Nearest at 79 m (within 100 m)."
+        },
+        {
+            "category": "construction",
+            "label": "Construction sites",
+            "radius_m": 300,
+            "count": 1,
+            "nearest_m": 279.0,
+            "level": "low",
+            "reason": "Nearest at 279 m (beyond 150 m)."
+        },
+        {
+            "category": "venue",
+            "label": "Bars, clubs and venues",
+            "radius_m": 300,
+            "count": 0,
+            "nearest_m": null,
+            "level": "none",
+            "reason": "No mapped source within 300 m."
+        },
+        {
+            "category": "industrial",
+            "label": "Industrial land and works",
+            "radius_m": 500,
+            "count": 0,
+            "nearest_m": null,
+            "level": "none",
+            "reason": "No mapped source within 500 m."
+        },
+        {
+            "category": "emergency",
+            "label": "Fire, ambulance and police stations (sirens)",
+            "radius_m": 1500,
+            "count": 6,
+            "nearest_m": 834.3,
+            "level": "low",
+            "reason": "Nearest at 834 m (beyond 800 m)."
+        },
+        {
+            "category": "transit",
+            "label": "Bus stops and rail or tram stations",
+            "radius_m": 500,
+            "count": 5,
+            "nearest_m": 297.2,
+            "level": "low",
+            "reason": "Nearest at 297 m (beyond 150 m)."
+        },
+        {
+            "category": "school",
+            "label": "Schools and colleges",
+            "radius_m": 400,
+            "count": 2,
+            "nearest_m": 146.4,
+            "level": "moderate",
+            "reason": "Nearest at 146 m (within 250 m)."
+        },
+        {
+            "category": "worship",
+            "label": "Places of worship (bells, gatherings)",
+            "radius_m": 400,
+            "count": 1,
+            "nearest_m": 178.6,
+            "level": "moderate",
+            "reason": "Nearest at 179 m (within 200 m)."
+        },
+        {
+            "category": "food_drink",
+            "label": "Restaurants and cafes",
+            "radius_m": 200,
+            "count": 0,
+            "nearest_m": null,
+            "level": "none",
+            "reason": "No mapped source within 200 m."
+        },
+        {
+            "category": "sports",
+            "label": "Sports pitches and playgrounds",
+            "radius_m": 400,
+            "count": 5,
+            "nearest_m": 265.4,
+            "level": "low",
+            "reason": "Nearest at 265 m (beyond 200 m)."
+        },
+        {
+            "category": "fuel",
+            "label": "Fuel stations",
+            "radius_m": 300,
+            "count": 0,
+            "nearest_m": null,
+            "level": "none",
+            "reason": "No mapped source within 300 m."
+        },
+        {
+            "category": "commercial",
+            "label": "Commercial and retail land",
+            "radius_m": 300,
+            "count": 0,
+            "nearest_m": null,
+            "level": "none",
+            "reason": "No mapped source within 300 m."
+        }
+    ],
+    "notes": [
+        "Sources come from OpenStreetMap, which may be incomplete or out of date.",
+        "Exposure levels are relative, based only on distance to the nearest mapped source in each category. They are not decibels and not measurements.",
+        "OSM data as of 2026-11-14T18:56:21Z."
+    ],
+    "data_source": "OpenStreetMap contributors, via the Overpass API (ODbL)",
+    "status": "ok",
+    "schema_version": 2,
+    "categories_queried": [
+        "airport",
+        "heliport",
+        "rail",
+        "road_major",
+        "road_minor",
+        "construction",
+        "venue",
+        "industrial",
+        "emergency",
+        "transit",
+        "school",
+        "worship",
+        "food_drink",
+        "sports",
+        "fuel",
+        "commercial"
+    ]
 }

@@ -5,14 +5,14 @@ from fastapi import APIRouter, HTTPException
 from noise_scout.models import NoiseScoutResult
 from noise_scout.service import cached_result, run_scout
 from properties.matterport import MatterportError
-from properties.service import shortlist_ids
+from properties.service import is_known
 
 router = APIRouter(tags=["noise-scout"])
 
 
 def _check(sid: str) -> None:
-    if sid not in shortlist_ids():
-        raise HTTPException(404, f"{sid} is not in shortlist.json")
+    if not is_known(sid):
+        raise HTTPException(404, f"{sid} is not a known property")
 
 
 @router.get("/properties/{sid}/noise-scout", response_model=NoiseScoutResult)

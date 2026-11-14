@@ -7,16 +7,18 @@ import {
   syntheticClaps,
   type RoomRender,
 } from './engine'
+import type { SlotRef } from '../../roomRef'
 import type { MaterialSelection } from '../../types'
 import { useIr } from './useIr'
 
 type Mode = 'orig' | 'A' | 'B'
 
 interface Props {
-  sid: string
-  roomA: { id: string; label: string } | null
-  roomB: { id: string; label: string } | null
+  a: SlotRef | null
+  b: SlotRef | null
   materials: Record<'A' | 'B', MaterialSelection>
+  /** Called with the loaded recording's name (or null), so the journey knows step 5 is done. */
+  onDry?: (name: string | null) => void
 }
 
 interface Graph {
@@ -25,9 +27,9 @@ interface Graph {
   wetG: { A: GainNode; B: GainNode }
 }
 
-export function AudioLab({ sid, roomA, roomB, materials }: Props) {
-  const irA = useIr(sid, roomA?.id ?? null, materials.A)
-  const irB = useIr(sid, roomB?.id ?? null, materials.B)
+export function AudioLab({ a, b, materials, onDry }: Props) {
+  const irA = useIr(a?.sid ?? null, a?.roomId ?? null, materials.A)
+  const irB = useIr(b?.sid ?? null, b?.roomId ?? null, materials.B)
   const [dry, setDry] = useState<AudioBuffer | null>(null)
   const [dryName, setDryName] = useState('')
   const [renders, setRenders] = useState<{ A?: RoomRender; B?: RoomRender }>({})
@@ -174,26 +176,46 @@ export function AudioLab({ sid, roomA, roomB, materials }: Props) {
     }
   }
 
-  const label = (slot: 'A' | 'B') => (slot === 'A' ? roomA : roomB)?.label ?? 'not chosen'
+  useEffect(() => onDry?.(dry ? dryName : null), [dry, dryName, onDry])
+
+  const label = (slot: 'A' | 'B') => (slot === 'A' ? a : b)?.label ?? 'not chosen'
   const ready = dry != null
 
-  return (
-    <div className="mt-4 rounded border border-zinc-800 p-3 text-sm" data-testid="audio-lab">
-      <div className="mb-2 flex items-center justify-between">
-        <div className="font-semibold">Hear the rooms</div>
-        <div className="text-xs text-amber-300">Modeled approximation — not a recording of this space</div>
-      </div>
+  // Keyboard: 0 = dry, 1 = Room A, 2 = Room B, space = play/pause (ignored while typing).
+  const keys = useRef({ play, stop, playing, irA: irA.ir, irB: irB.ir })
+  keys.current = { play, stop, playing, irA: irA.ir, irB: irB.ir }
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target instanceof HTMLElement ? e.target : null
+      if (t?.closest('input, select, textarea, [contenteditable]') || e.metaKey || e.ctrlKey || e.altKey) return
+      const k = keys.current
+      if (e.key === '0') setMode('orig')
+      else if (e.key === '1' && k.irA) setMode('A')
+      else if (e.key === '2' && k.irB) setMode('B')
+      else if (e.key === ' ' && t?.tagName !== 'BUTTON') {
+        e.preventDefault()
+        void (k.playing ? k.stop() : k.play())
+      } else return
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
-      <div className="mb-3 flex flex-wrap items-center gap-2">
-        <input
-          type="file"
-          accept="audio/*"
-          data-testid="dry-file"
-          onChange={(e) => onFile(e.target.files?.[0])}
-          className="text-xs"
-        />
+  return (
+    <div className="text-sm" data-testid="audio-lab">
+      <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-zinc-700 bg-zinc-950/50 p-3">
+        <label className="cursor-pointer rounded-md bg-zinc-100 px-3 py-1.5 text-xs font-semibold text-black hover:bg-white">
+          {dry ? 'Replace recording' : 'Upload dry recording'}
+          <input
+            type="file"
+            accept="audio/*"
+            data-testid="dry-file"
+            onChange={(e) => onFile(e.target.files?.[0])}
+            className="sr-only"
+          />
+        </label>
         <button
-          className="rounded bg-zinc-800 px-2 py-1 text-xs hover:bg-zinc-700"
+          className="rounded-md bg-zinc-800 px-3 py-1.5 text-xs hover:bg-zinc-700"
           onClick={() => {
             stop()
             timing.current.offset = 0
@@ -201,101 +223,114 @@ export function AudioLab({ sid, roomA, roomB, materials }: Props) {
             setDryName('synthetic test claps (generated in browser)')
           }}
         >
-          Use synthetic test claps
+          or use synthetic test claps
         </button>
-        <span className="text-xs text-zinc-400">{dryName || 'Upload a dry recording (first 30 s are used)'}</span>
+        <span className="min-w-0 truncate text-xs text-zinc-400" data-testid="dry-name">
+          {dryName || 'WAV, MP3 or M4A; a close-miked, dry take works best (first 30 s used).'}
+        </span>
       </div>
       {error && <div className="mb-2 text-red-300">{error}</div>}
 
-      <div className="mb-3 flex flex-wrap items-center gap-2" role="radiogroup" aria-label="Playback source">
-        {(['orig', 'A', 'B'] as Mode[]).map((m) => {
+      <div className="mb-3 flex flex-wrap items-stretch gap-2" role="radiogroup" aria-label="Playback source">
+        <button
+          disabled={!ready}
+          onClick={() => (playing ? stop() : play())}
+          className="w-24 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-bold text-black hover:bg-emerald-400 disabled:opacity-40"
+          data-testid="play"
+        >
+          {playing ? '❚❚ Pause' : '▶ Play'}
+        </button>
+        {(['orig', 'A', 'B'] as Mode[]).map((m, i) => {
           const loading = m === 'A' ? irA.loading : m === 'B' ? irB.loading : false
           const missing = m !== 'orig' && !(m === 'A' ? irA.ir : irB.ir)
+          const on = mode === m
+          const tone =
+            m === 'A' ? 'bg-sky-500 text-black' : m === 'B' ? 'bg-fuchsia-500 text-black' : 'bg-zinc-200 text-black'
           return (
             <button
               key={m}
               role="radio"
-              aria-checked={mode === m}
+              aria-checked={on}
               disabled={missing}
               onClick={() => setMode(m)}
-              className={`rounded px-3 py-1 text-xs font-semibold disabled:opacity-40 ${
-                mode === m
-                  ? m === 'A'
-                    ? 'bg-sky-500 text-black'
-                    : m === 'B'
-                      ? 'bg-fuchsia-500 text-black'
-                      : 'bg-zinc-200 text-black'
-                  : 'bg-zinc-800 hover:bg-zinc-700'
+              className={`min-w-0 flex-1 rounded-lg px-3 py-2 text-left text-xs disabled:opacity-40 ${
+                on ? tone : 'bg-zinc-800 hover:bg-zinc-700'
               }`}
             >
-              {m === 'orig' ? 'Original (dry)' : `Room ${m}: ${label(m)}`}
-              {loading && ' …'}
+              <div className="flex items-center justify-between font-semibold">
+                {m === 'orig' ? 'Dry original' : `Room ${m}`}
+                <kbd className={`rounded px-1 text-[10px] ${on ? 'bg-black/20' : 'bg-zinc-900 text-zinc-400'}`}>{i}</kbd>
+              </div>
+              <div className={`truncate ${on ? 'text-black/70' : 'text-zinc-400'}`}>
+                {m === 'orig' ? 'no room' : loading ? 'generating impulse response…' : label(m)}
+              </div>
             </button>
           )
         })}
-        <button
-          disabled={!ready}
-          onClick={() => (playing ? stop() : play())}
-          className="ml-auto rounded bg-emerald-500 px-4 py-1 text-xs font-bold text-black disabled:opacity-40"
-          data-testid="play"
-        >
-          {playing ? 'Pause' : 'Play'}
-        </button>
+      </div>
+
+      <div className="grid grid-cols-1 gap-x-4 gap-y-2 text-xs sm:grid-cols-[1fr_1fr_auto]">
+        <label className="block text-zinc-400">
+          Room {wet}% · dry {100 - wet}%
+          <input type="range" min={0} max={100} value={wet} onChange={(e) => setWet(+e.target.value)} className="w-full accent-amber-400" />
+        </label>
+        <label className="block text-zinc-400">
+          Volume {volume}%
+          <input type="range" min={0} max={100} value={volume} onChange={(e) => setVolume(+e.target.value)} className="w-full accent-amber-400" />
+        </label>
         {dry && (
-          <span className="text-xs tabular-nums text-zinc-400" data-testid="position">
+          <span className="self-end tabular-nums text-zinc-400" data-testid="position">
             {pos.toFixed(1)} / {dry.duration.toFixed(1)} s
           </span>
         )}
       </div>
+      <p className="mt-2 text-[11px] text-zinc-500">
+        One playhead feeds both rooms, so switching keeps your place. Rooms are loudness-matched so you
+        hear the room, not a volume change. Keys: 0 / 1 / 2 to switch, space to play.
+      </p>
 
-      <div className="grid grid-cols-2 gap-4 text-xs">
-        <label className="block">
-          Wet (room) {wet}% / dry {100 - wet}%
-          <input type="range" min={0} max={100} value={wet} onChange={(e) => setWet(+e.target.value)} className="w-full" />
-        </label>
-        <label className="block">
-          Volume {volume}%
-          <input type="range" min={0} max={100} value={volume} onChange={(e) => setVolume(+e.target.value)} className="w-full" />
-        </label>
-      </div>
-
-      <div className="mt-3 text-xs text-zinc-400" data-testid="verification">
-        {ready && (renders.A || renders.B) ? (
-          <>
-            Offline check: the audio was really convolved with each generated IR (loudness-matched).{' '}
-            {(['A', 'B'] as const).map(
-              (s) =>
-                renders[s] && (
-                  <span key={s} className="mr-3">
-                    Room {s} keeps ringing {renders[s]!.ringOutS.toFixed(2)} s after the dry take stops
-                  </span>
-                ),
-            )}
-          </>
-        ) : (
-          <>Choose two rooms and load audio to process it through their impulse responses.</>
-        )}
-        {(irA.error || irB.error) && <div className="text-red-300">{irA.error ?? irB.error}</div>}
-        {(irA.ir || irB.ir) && (
-          <div className="mt-2" data-testid="ir-rt60">
-            <div>RT60 of the modeled impulse response vs the Sabine estimate (500 Hz / 1 kHz / 2 kHz):</div>
-            {(['A', 'B'] as const).map((s) => {
-              const m = (s === 'A' ? irA : irB).ir?.meta
-              if (!m) return null
-              const f = (v: number | null) => (v == null ? '—' : v.toFixed(2))
-              return (
-                <div key={s} title={m.notes.join(' ')}>
-                  Room {s}: IR {[2, 3, 4].map((i) => f(m.ir_rt60_s[i])).join(' / ')} s · Sabine{' '}
-                  {[2, 3, 4].map((i) => f(m.sabine_rt60_s[i])).join(' / ')} s
-                </div>
-              )
-            })}
-            <div className="text-zinc-500">
-              {irA.ir?.meta.notes.slice(1).join(' ') ?? irB.ir?.meta.notes.slice(1).join(' ')}
+      <details className="mt-3 text-xs text-zinc-400" data-testid="verification">
+        <summary className="cursor-pointer">
+          Processing check
+          {ready && (renders.A || renders.B) ? (
+            <span className="text-zinc-500">
+              {' '}
+              ·{' '}
+              {(['A', 'B'] as const)
+                .filter((s) => renders[s])
+                .map((s) => `Room ${s} rings ${renders[s]!.ringOutS.toFixed(2)} s after the take stops`)
+                .join(' · ')}
+            </span>
+          ) : null}
+        </summary>
+        <div className="mt-2 space-y-1">
+          {ready && (renders.A || renders.B) ? (
+            <div>The audio was rendered offline through each generated impulse response to set the loudness match.</div>
+          ) : (
+            <div>Choose rooms and load audio to process it through their impulse responses.</div>
+          )}
+          {(irA.ir || irB.ir) && (
+            <div data-testid="ir-rt60">
+              <div>RT60 of the modeled impulse response vs the Sabine estimate (500 Hz / 1 kHz / 2 kHz):</div>
+              {(['A', 'B'] as const).map((s) => {
+                const m = (s === 'A' ? irA : irB).ir?.meta
+                if (!m) return null
+                const f = (v: number | null) => (v == null ? '—' : v.toFixed(2))
+                return (
+                  <div key={s} title={m.notes.join(' ')}>
+                    Room {s}: IR {[2, 3, 4].map((i) => f(m.ir_rt60_s[i])).join(' / ')} s · Sabine{' '}
+                    {[2, 3, 4].map((i) => f(m.sabine_rt60_s[i])).join(' / ')} s
+                  </div>
+                )
+              })}
+              <div className="text-zinc-500">
+                {irA.ir?.meta.notes.slice(1).join(' ') ?? irB.ir?.meta.notes.slice(1).join(' ')}
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      </details>
+      {(irA.error || irB.error) && <div className="mt-2 text-xs text-red-300">{irA.error ?? irB.error}</div>}
     </div>
   )
 }

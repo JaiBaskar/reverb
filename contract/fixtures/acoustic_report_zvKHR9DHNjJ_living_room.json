@@ -252,10 +252,10 @@
         }
     ],
     "assumptions": [
-        "Surface materials are generic presets, not known for this property.",
+        "Surface materials are generic presets unless you chose them; absorption values are typical figures for those finishes, not measured for this property.",
         "Room is empty (no furniture, people or curtains).",
         "Walls, floor and ceiling are single uniform materials; doors and windows are ignored.",
-        "Air absorption is ignored (affects 2-4 kHz in large rooms).",
+        "Sabine RT60 values ignore air absorption; the impulse response you hear includes it, so its 2-4 kHz decay is somewhat shorter.",
         "Source at (2.53, 1.43, 1.20) m and listener at (2.53, 3.43, 1.20) m are default positions."
     ],
     "warnings": [

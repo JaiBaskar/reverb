@@ -119,4 +119,4 @@ def test_shape_level_none_when_only_treatable_checks(living_room):
 def test_bass_ratio_reason_reads_cleanly(living_room):
     f = fit(with_rt60(living_room, 0.3, low=0.45), "mixing")
     reason = next(c for c in f.checks if c.id == "bass_ratio").reason
-    assert reason.startswith("RT60 at 125 Hz is 1.50x the mid RT60")
+    assert reason.startswith("RT60 at 125-250 Hz is 1.50x the 500 Hz-1 kHz RT60")

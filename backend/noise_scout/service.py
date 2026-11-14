@@ -1,8 +1,11 @@
 """Run the Noise Scout for a property: build context, invoke the agent, validate, cache."""
 
+import json
 import logging
 import os
 import uuid
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FutureTimeout
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -15,6 +18,9 @@ from noise_scout.validate import count_tool_calls, subagents_used, validate_draf
 from properties.service import get_property
 
 log = logging.getLogger(__name__)
+
+RUN_TIMEOUT_S = int(os.environ.get("NOISE_SCOUT_TIMEOUT_S", "600"))
+_POOL = ThreadPoolExecutor(max_workers=2, thread_name_prefix="noise-scout")
 
 PROVIDER_KEYS = {
     "anthropic": "ANTHROPIC_API_KEY",
@@ -106,20 +112,23 @@ def run_scout(sid: str, *, cache_dir: Path | None = None) -> NoiseScoutResult:
     )
     main_model, subagent_model = models()
     tools = build_tools(ctx)
-    context_tools = [t for t in tools if t.name == "get_property_context"]
+    context_tool = next(t for t in tools if t.name == "get_property_context")
     research_tools = [t for t in tools if t.name != "get_property_context"]
-    agent = build_agent(context_tools, research_tools)
+    agent = build_agent([], research_tools)
+    context = context_tool.invoke({})  # deterministic; handed to the coordinator up front
 
     run_id = uuid.uuid4()
     try:
-        state = agent.invoke(
+        future = _POOL.submit(
+            agent.invoke,
             {
                 "messages": [
                     {
                         "role": "user",
                         "content": f"Research the noise around {prop.address} "
                         f"(lat {prop.lat}, lon {prop.lon}) for a musician who wants to "
-                        "record and mix there.",
+                        "record and mix there.\n\nProperty context (from tools, verified):\n"
+                        + json.dumps(json.loads(context), indent=1),
                     }
                 ]
             },
@@ -128,8 +137,22 @@ def run_scout(sid: str, *, cache_dir: Path | None = None) -> NoiseScoutResult:
                 "run_name": "noise-scout",
                 "tags": ["reverb", "noise-scout", sid],
                 "metadata": {"sid": sid, "address": prop.address},
-                "recursion_limit": 120,
+                "recursion_limit": 80,
             },
+        )
+        state = future.result(timeout=RUN_TIMEOUT_S)
+    except FutureTimeout:
+        return NoiseScoutResult(
+            sid=sid,
+            status="error",
+            generated_at=_now(),
+            model=main_model,
+            subagent_model=subagent_model,
+            trace=_trace(run_id),
+            notes=[
+                f"Noise Scout timed out after {RUN_TIMEOUT_S} s (free models can be slow or "
+                "rate-limited). The OpenStreetMap noise report above is unaffected."
+            ],
         )
     except Exception as exc:  # noqa: BLE001 - surface agent failures; B1 report still renders
         return NoiseScoutResult(

@@ -9,6 +9,15 @@ def shortlist_ids() -> list[str]:
     return json.loads((ROOT / "shortlist.json").read_text())["properties"]
 
 
+def is_known(sid: str) -> bool:
+    """A curated demo pick or any property with a Matterport scan in the CoStar kit."""
+    if sid in shortlist_ids():
+        return True
+    from catalog.service import known_model_ids  # local import: catalog imports this module
+
+    return sid in known_model_ids()
+
+
 def _to_property(model: dict, rooms: list[Room]) -> Property:
     addr = model.get("address") or {}
     geo = model.get("geolocation") or {}

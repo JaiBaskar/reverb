@@ -84,3 +84,9 @@ def first_order_reflections(
             }
         )
     return out
+
+
+def bass_ratio(rt60: list[float], bands: list[int]) -> float:
+    """Beranek bass ratio (RT125 + RT250) / (RT500 + RT1k); above 1 the low end rings longer."""
+    t = dict(zip(bands, rt60, strict=True))
+    return (t[125] + t[250]) / (t[500] + t[1000])

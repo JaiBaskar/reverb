@@ -15,6 +15,7 @@ const PROV: Record<Provenance, string> = {
   estimated: 'bg-sky-900/60 text-sky-200',
   assumed: 'bg-amber-900/60 text-amber-200',
   missing: 'bg-zinc-800 text-zinc-400',
+  user: 'bg-violet-500/20 text-violet-300',
 }
 
 export function Badge({ p, title }: { p: Provenance; title?: string | null }) {

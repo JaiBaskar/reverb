@@ -1,5 +1,7 @@
 import type {
   AcousticReport,
+  CatalogEntry,
+  CatalogPoints,
   Comparison,
   MaterialCatalog,
   MaterialSelection,
@@ -7,6 +9,7 @@ import type {
   Room,
   TourLayout,
 } from './types'
+import { roomPayload } from './roomRef'
 import type { SuitabilityReport } from './features/suitability/types'
 
 async function get<T>(path: string): Promise<T> {
@@ -16,6 +19,14 @@ async function get<T>(path: string): Promise<T> {
 }
 
 export const fetchProperties = () => get<Property[]>('/properties')
+export const fetchProperty = (sid: string) => get<Property>(`/properties/${sid}`)
+export const fetchCatalogPoints = () => get<CatalogPoints>('/catalog/points')
+export function searchCatalog(q: string, city: string, kind: string, limit = 50) {
+  const p = new URLSearchParams({ q, limit: String(limit) })
+  if (city) p.set('city', city)
+  if (kind) p.set('kind', kind)
+  return get<{ total: number; results: CatalogEntry[] }>(`/catalog/search?${p}`)
+}
 export const fetchMaterials = () => get<MaterialCatalog>('/materials')
 export const fetchRooms = (sid: string) => get<Room[]>(`/properties/${sid}/rooms`)
 
@@ -27,7 +38,7 @@ export async function analyzeRoom(
   const res = await fetch('/api/rooms/analyze', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ sid, room_id: roomId, materials }),
+    body: JSON.stringify({ sid, ...roomPayload(roomId), materials }),
   })
   if (!res.ok) {
     const detail = await res.json().catch(() => ({}))
@@ -40,7 +51,7 @@ export async function compareRooms(
   a: { sid: string; roomId: string; materials?: MaterialSelection },
   b: { sid: string; roomId: string; materials?: MaterialSelection },
 ): Promise<Comparison> {
-  const body = (x: typeof a) => ({ sid: x.sid, room_id: x.roomId, materials: x.materials })
+  const body = (x: typeof a) => ({ sid: x.sid, ...roomPayload(x.roomId), materials: x.materials })
   const res = await fetch('/api/rooms/compare', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },

@@ -4,6 +4,7 @@ from acoustics.report import AcousticReport
 from suitability import metrics
 from suitability.models import Check, CheckStatus, Fit, FitLevel, SuitabilityReport
 from suitability.rules import COINCIDENT_TOLERANCE, MODE_FMAX_HZ, USE_CASES, Range
+from suitability.treatment import Treatment, treatment
 
 
 def _inside(v: float, r: Range) -> bool:
@@ -164,7 +165,7 @@ def _checks(rep: AcousticReport, rules: dict) -> list[Check]:
                 status=status,
                 treatable=True,
                 reason=(
-                    f"RT60 at 125 Hz is {br:.2f}x the mid RT60 "
+                    f"RT60 at 125-250 Hz is {br:.2f}x the 500 Hz-1 kHz RT60 "
                     f"(ideal {_fmt_range(rules['bass_ratio']['good'], 'x')}); below the "
                     "Schroeder frequency this is only indicative."
                 ),
@@ -179,9 +180,9 @@ def _level(checks: list[Check]) -> FitLevel:
 
 
 def _assumptions(rep: AcousticReport) -> list[str]:
-    mats = ", ".join(f"{m.surface}: {m.label}" for m in rep.materials)
+    mats = ", ".join(f"{m.surface}: {m.label} ({m.provenance})" for m in rep.materials)
     out = [
-        f"Surface materials are assumed presets ({mats}); results change with real finishes.",
+        f"Surface materials: {mats}; results change with the real finishes.",
         "Room is assumed empty; furniture, rugs and treatment would lower RT60.",
         "Rooms are treated as an equivalent rectangular box.",
     ]
@@ -200,18 +201,51 @@ MISSING = [
 ]
 
 
+def _target(rep: AcousticReport, rules: dict) -> tuple[float | None, float | None] | None:
+    if "rt60" in rules:
+        return rules["rt60"]["good"]
+    if "rt60_vs_bs1116" in rules:
+        ref = metrics.bs1116_target(rep.geometry.volume_m3)
+        tol = rules["rt60_vs_bs1116"]["good"][1]
+        return (ref - tol, ref + tol)
+    return None
+
+
+def _worst(*levels: FitLevel) -> FitLevel:
+    return min(levels, key=lambda lv: {"poor": 0, "workable": 1, "good": 2}[lv])
+
+
+def _potential(checks: list[Check], level: FitLevel, treat: Treatment | None) -> FitLevel:
+    """Best level reachable with practical treatment: fixed checks stay; reverberation is
+    fixed if treatment is practical; bass decay can at best become workable (bass traps)."""
+    if treat is None or treat.verdict == "none_needed":
+        return level
+    fixed = [c for c in checks if not c.treatable]
+    shape = _level(fixed) if fixed else "good"
+    if treat.verdict in ("impractical", "too_dead"):
+        return _worst(shape, "workable" if treat.verdict == "too_dead" else "poor")
+    bass = [c for c in checks if c.id == "bass_ratio"]
+    bass_level: FitLevel = "good" if not bass or bass[0].status == "pass" else "workable"
+    return _worst(shape, bass_level)
+
+
 def assess(rep: AcousticReport) -> SuitabilityReport:
     fits = []
     for key, rules in USE_CASES.items():
         checks = _checks(rep, rules)
         fixed = [c for c in checks if not c.treatable]
+        level = _level(checks)
+        target = _target(rep, rules)
+        treat = treatment(rep, target) if target else None
         fits.append(
             Fit(
                 use_case=key,
                 label=rules["label"],
-                level=_level(checks),
+                level=level,
                 shape_level=_level(fixed) if fixed else None,
                 checks=checks,
+                treatment=treat,
+                potential_level=_potential(checks, level, treat),
             )
         )
     return SuitabilityReport(

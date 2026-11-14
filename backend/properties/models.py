@@ -2,7 +2,7 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-Provenance = Literal["verified", "estimated", "assumed", "missing"]
+Provenance = Literal["verified", "estimated", "assumed", "user", "missing"]
 
 
 class Field(BaseModel):

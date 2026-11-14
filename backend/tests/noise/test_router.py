@@ -22,7 +22,7 @@ def props() -> dict[str, Property]:
 @pytest.fixture
 def client(tmp_path, monkeypatch, overpass_sample, props):
     monkeypatch.setenv("REVERB_DATA_DIR", str(tmp_path))
-    monkeypatch.setattr(router, "shortlist_ids", lambda: list(props))
+    monkeypatch.setattr(router, "is_known", lambda sid: sid in props)
     monkeypatch.setattr(router, "get_property", lambda sid: props[sid])
     real_fetch = overpass.fetch
     mock = httpx.Client(
@@ -46,17 +46,47 @@ def test_not_shortlisted_404(client):
     assert client.get("/properties/nope/noise").status_code == 404
 
 
-def test_missing_geolocation_422(client, props, monkeypatch):
+def _entry(lat, lon):
+    from catalog.models import CatalogEntry
+
+    return CatalogEntry(key="commercial-1", kind="commercial", costar_id=1, sid="zvKHR9DHNjJ",
+                        model_ids=["zvKHR9DHNjJ"], address="1 Main St", city=None, state=None,
+                        postcode=None, lat=lat, lon=lon,
+                        coords_provenance="verified" if lat else "missing", type_label=None)  # fmt: skip
+
+
+def test_missing_geolocation_without_costar_coords_422(client, props, monkeypatch):
     p = props["zvKHR9DHNjJ"].model_copy(update={"lat": None})
     monkeypatch.setattr(router, "get_property", lambda sid: p)
+    monkeypatch.setattr(router, "entry_for", lambda sid: _entry(None, None))
     assert client.get("/properties/zvKHR9DHNjJ/noise").status_code == 422
 
 
-def test_matterport_failure_502(client, monkeypatch):
+def test_missing_geolocation_falls_back_to_costar_coords(client, props, monkeypatch):
+    p = props["zvKHR9DHNjJ"].model_copy(update={"lat": None})
+    monkeypatch.setattr(router, "get_property", lambda sid: p)
+    monkeypatch.setattr(router, "entry_for", lambda sid: _entry(34.09, -118.31))
+    r = NoiseReport.model_validate(client.get("/properties/zvKHR9DHNjJ/noise").json())
+    assert (r.lat, r.lon) == (34.09, -118.31)
+    assert r.location_provenance == "estimated"
+    assert any("CoStar" in n for n in r.notes)
+
+
+def test_matterport_failure_uses_costar_coords(client, monkeypatch):
     def boom(sid):
         raise MatterportError("down")
 
     monkeypatch.setattr(router, "get_property", boom)
+    monkeypatch.setattr(router, "entry_for", lambda sid: _entry(34.09, -118.31))
+    assert client.get("/properties/zvKHR9DHNjJ/noise").status_code == 200
+
+
+def test_matterport_failure_without_costar_coords_502(client, monkeypatch):
+    def boom(sid):
+        raise MatterportError("down")
+
+    monkeypatch.setattr(router, "get_property", boom)
+    monkeypatch.setattr(router, "entry_for", lambda sid: None)
     assert client.get("/properties/zvKHR9DHNjJ/noise").status_code == 502
 
 

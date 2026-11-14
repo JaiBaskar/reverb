@@ -19,6 +19,8 @@ const withFit = (level: 'good' | 'workable' | 'poor', shape: 'good' | 'workable'
         label: 'Acoustic guitar recording',
         level,
         shape_level: shape,
+        treatment: null,
+        potential_level: level,
         checks: [
           { id: 'rt60', label: 'Reverberation', status: 'fail' as const, reason: 'Mid RT60 1.99 s', treatable: true },
           { id: 'volume', label: 'Room volume', status: 'pass' as const, reason: 'Volume 77 m3', treatable: false },

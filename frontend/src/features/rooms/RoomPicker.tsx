@@ -7,6 +7,7 @@ const BADGE: Record<Provenance, string> = {
   verified: 'bg-emerald-500/20 text-emerald-300',
   estimated: 'bg-amber-500/20 text-amber-300',
   assumed: 'bg-orange-500/20 text-orange-300',
+  user: 'bg-violet-500/20 text-violet-300',
   missing: 'bg-zinc-600/30 text-zinc-400',
 }
 

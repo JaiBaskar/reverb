@@ -1,5 +1,5 @@
 // Mirrors backend/properties/models.py. See contract/.
-export type Provenance = 'verified' | 'estimated' | 'assumed' | 'missing'
+export type Provenance = 'verified' | 'estimated' | 'assumed' | 'user' | 'missing'
 
 export interface Field {
   value: number | null
@@ -98,6 +98,34 @@ export interface Comparison {
   first_reflection_ms: number[]
   bass_ratio: number[]
   statements: string[]
+}
+
+// Mirrors backend/catalog/models.py.
+export interface CatalogEntry {
+  key: string
+  kind: 'commercial' | 'residential'
+  costar_id: number
+  sid: string
+  model_ids: string[]
+  address: string
+  city: string | null
+  state: string | null
+  postcode: string | null
+  lat: number | null
+  lon: number | null
+  coords_provenance: 'verified' | 'missing'
+  type_label: string | null
+  name: string | null
+  demo_pick: boolean
+}
+
+export interface CatalogPoints {
+  type: 'FeatureCollection'
+  features: {
+    type: 'Feature'
+    geometry: { type: 'Point'; coordinates: [number, number] }
+    properties: { sid: string; kind: string; label: string; type: string; demo: boolean }
+  }[]
 }
 
 // Mirrors backend/properties/models.py (TourLayout). See contract/fixtures/tour_zvKHR9DHNjJ.json.

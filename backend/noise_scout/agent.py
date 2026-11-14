@@ -6,7 +6,7 @@ server-side (validate.py) before it reaches the UI.
 
 import os
 
-from deepagents import SubAgent, create_deep_agent
+from deepagents import HarnessProfile, SubAgent, create_deep_agent, register_harness_profile
 from langchain_core.tools import BaseTool
 
 from noise_scout.models import ScoutDraft
@@ -18,6 +18,13 @@ DEFAULTS = {
     ),
     "anthropic": ("anthropic:claude-sonnet-5-5", "anthropic:claude-haiku-5-5"),
 }
+
+
+# The agents only need `task` (delegation) and `write_file` (saving findings). Hiding the
+# file-browsing tools keeps smaller models from wandering through an empty filesystem.
+_EXCLUDED = frozenset({"ls", "glob", "grep", "read_file", "edit_file", "execute"})
+for _provider in ("openrouter", "anthropic", "openai"):
+    register_harness_profile(_provider, HarnessProfile(excluded_tools=_EXCLUDED))
 
 
 def models() -> tuple[str, str]:
@@ -73,13 +80,16 @@ OSM ids, distances, bearings and why each matters. End with what you could not d
 MAIN_PROMPT = f"""You are Noise Scout, a research coordinator helping a musician judge whether a
 property is quiet enough to record and mix in. You research the noise around ONE property.
 
+The property context (address, coordinates, building facts, exposure levels) is in the
+user's message; you do not need to look it up.
+
 Process:
-1. Call get_property_context.
-2. Delegate to all three specialists with the task tool, in parallel, giving each the address
-   and coordinates: transport-analyst, nightlife-commercial-analyst,
-   aviation-industrial-analyst.
-3. Save each specialist's report with write_file to /findings/<specialist-name>.md.
-4. Combine them into the final structured report: the most important findings first, each
+1. YOUR FIRST RESPONSE must be exactly three `task` tool calls, one per specialist:
+   transport-analyst, nightlife-commercial-analyst, aviation-industrial-analyst. Give each
+   the address and coordinates. Do nothing else first.
+2. When they return, save each specialist's report with write_file to
+   /findings/<specialist-name>.md.
+3. Combine them into the final structured report: the most important findings first, each
    with the OSM ids that support it in `evidence`; practical recording advice grounded in the
    findings (for example, timing sessions around venue opening hours, or that sirens are
    likely from a nearby fire station); and the data gaps.

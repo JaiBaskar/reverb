@@ -19,8 +19,8 @@ def living_room() -> AcousticReport:
 
 
 def with_rt60(report: AcousticReport, mid: float, low: float | None = None) -> AcousticReport:
-    """Same room with a flat RT60 of `mid` s (125 Hz set to `low` if given)."""
+    """Same room with a flat RT60 of `mid` s (125 and 250 Hz set to `low` if given)."""
     rt = [mid] * len(report.bands_hz)
     if low is not None:
-        rt[0] = low
+        rt[0] = rt[1] = low
     return report.model_copy(update={"rt60_s": rt})

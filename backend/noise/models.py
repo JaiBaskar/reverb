@@ -24,6 +24,9 @@ class NoiseSource(BaseModel):
         description="All OSM elements merged into this source (e.g. road segments)"
     )
     provenance: Provenance = "verified"
+    geometry: dict | None = Field(
+        default=None, description="GeoJSON geometry of the feature, [lon, lat] coordinates"
+    )
 
 
 class CategoryExposure(BaseModel):
@@ -48,3 +51,5 @@ class NoiseReport(BaseModel):
     notes: list[str]
     data_source: str = "OpenStreetMap contributors, via the Overpass API (ODbL)"
     status: Literal["ok", "error"] = "ok"
+    schema_version: int = 1  # 2 adds geometry and the extra categories
+    categories_queried: list[str] = []

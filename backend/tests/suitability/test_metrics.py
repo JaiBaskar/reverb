@@ -12,7 +12,8 @@ def test_mid_rt60_is_mean_of_500_and_1k():
 
 
 def test_bass_ratio():
-    assert bass_ratio([0.6, 0.5, 0.4, 0.4, 0.3, 0.3], BANDS) == pytest.approx(1.5)
+    # Beranek bass ratio: (RT125 + RT250) / (RT500 + RT1k)
+    assert bass_ratio([0.6, 0.5, 0.4, 0.4, 0.3, 0.3], BANDS) == pytest.approx(1.375)
 
 
 def test_bs1116_target():

@@ -7,6 +7,7 @@ const BADGE: Record<Provenance, string> = {
   verified: 'bg-emerald-500/20 text-emerald-300',
   estimated: 'bg-amber-500/20 text-amber-300',
   assumed: 'bg-orange-500/20 text-orange-300',
+  user: 'bg-violet-500/20 text-violet-300',
   missing: 'bg-zinc-600/30 text-zinc-400',
 }
 
@@ -23,7 +24,7 @@ function show(f: Fact): string {
 export function FactsCard({ sid }: { sid: string }) {
   const { facts, error } = useFacts(sid)
   return (
-    <div className="mb-3 rounded border border-zinc-800 p-3 text-sm" data-testid="facts-card">
+    <div className="rounded-lg bg-zinc-950/50 p-3 text-sm" data-testid="facts-card">
       <div className="mb-2 flex items-baseline justify-between gap-2">
         <h3 className="font-semibold">Property facts</h3>
         <span className="text-xs text-zinc-500">
