@@ -5,10 +5,13 @@ from pydantic import BaseModel
 from acoustics.explain import Comparison, compare
 from acoustics.materials import DEFAULT_SELECTION, MATERIALS
 from acoustics.report import AcousticReport, UnknownMaterial, analyze_room
+from costar.router import router as costar_router
 from ir.service import IrResponse, build_ir
+from noise.router import router as noise_router
 from properties.matterport import MatterportError
 from properties.models import Property, Room
 from properties.service import get_property, get_rooms, list_properties, shortlist_ids
+from suitability.router import router as suitability_router
 
 app = FastAPI(title="REVERB")
 app.add_middleware(
@@ -17,6 +20,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.include_router(noise_router)
+app.include_router(suitability_router)
+app.include_router(costar_router)
 
 
 @app.get("/health")

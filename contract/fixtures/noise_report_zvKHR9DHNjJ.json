@@ -1,0 +1,278 @@
+{
+ "sid": "zvKHR9DHNjJ",
+ "lat": 34.0934917,
+ "lon": -118.3171,
+ "location_provenance": "verified",
+ "radius_m": 5000,
+ "generated_at": "2026-11-14T16:57:25.388979Z",
+ "sources": [
+  {
+   "id": "way/398048060",
+   "category": "road_minor",
+   "subtype": "highway=tertiary",
+   "name": "North Bronson Avenue",
+   "lat": 34.0934893,
+   "lon": -118.3179546,
+   "distance_m": 78.7,
+   "bearing_deg": 269.8,
+   "bearing_compass": "W",
+   "osm_url": "https://www.openstreetmap.org/way/398048060",
+   "osm_ids": [
+    "way/398048060",
+    "way/132489669",
+    "way/398048064",
+    "way/398018186",
+    "way/398048058",
+    "way/398048072",
+    "way/132489672",
+    "way/398048068"
+   ],
+   "provenance": "verified"
+  },
+  {
+   "id": "way/1160386735",
+   "category": "road_minor",
+   "subtype": "highway=tertiary",
+   "name": "North Van Ness Avenue",
+   "lat": 34.0935066,
+   "lon": -118.3157536,
+   "distance_m": 124.0,
+   "bearing_deg": 89.2,
+   "bearing_compass": "E",
+   "osm_url": "https://www.openstreetmap.org/way/1160386735",
+   "osm_ids": [
+    "way/1160386735",
+    "way/132489671",
+    "way/132489670"
+   ],
+   "provenance": "verified"
+  },
+  {
+   "id": "way/13458900",
+   "category": "road_minor",
+   "subtype": "highway=tertiary",
+   "name": "Fountain Avenue",
+   "lat": 34.0944204,
+   "lon": -118.3179763,
+   "distance_m": 131.1,
+   "bearing_deg": 322.0,
+   "bearing_compass": "NW",
+   "osm_url": "https://www.openstreetmap.org/way/13458900",
+   "osm_ids": [
+    "way/13458900",
+    "way/1011979954"
+   ],
+   "provenance": "verified"
+  },
+  {
+   "id": "way/1227482703",
+   "category": "construction",
+   "subtype": "landuse=construction",
+   "name": null,
+   "lat": 34.0953272,
+   "lon": -118.3191655,
+   "distance_m": 279.0,
+   "bearing_deg": 317.0,
+   "bearing_compass": "NW",
+   "osm_url": "https://www.openstreetmap.org/way/1227482703",
+   "osm_ids": [
+    "way/1227482703"
+   ],
+   "provenance": "verified"
+  },
+  {
+   "id": "way/398227021",
+   "category": "road_major",
+   "subtype": "highway=primary",
+   "name": "Santa Monica Boulevard",
+   "lat": 34.0907535,
+   "lon": -118.3171048,
+   "distance_m": 304.5,
+   "bearing_deg": 180.1,
+   "bearing_compass": "S",
+   "osm_url": "https://www.openstreetmap.org/way/398227021",
+   "osm_ids": [
+    "way/398227021",
+    "way/405131868",
+    "way/405131871",
+    "way/405193617",
+    "way/405131873",
+    "way/405141326",
+    "way/405141327",
+    "way/405131872",
+    "way/405131863",
+    "way/405131865",
+    "way/405131861",
+    "way/405131862",
+    "way/405131866",
+    "way/398018197",
+    "way/180079269",
+    "way/405131864"
+   ],
+   "provenance": "verified"
+  },
+  {
+   "id": "way/159763462",
+   "category": "road_major",
+   "subtype": "highway=motorway_link",
+   "name": null,
+   "lat": 34.0963385,
+   "lon": -118.3133747,
+   "distance_m": 466.8,
+   "bearing_deg": 47.3,
+   "bearing_compass": "NE",
+   "osm_url": "https://www.openstreetmap.org/way/159763462",
+   "osm_ids": [
+    "way/159763462"
+   ],
+   "provenance": "verified"
+  },
+  {
+   "id": "way/866596939",
+   "category": "road_major",
+   "subtype": "highway=motorway",
+   "name": "Hollywood Freeway",
+   "lat": 34.0963306,
+   "lon": -118.3132178,
+   "distance_m": 476.9,
+   "bearing_deg": 48.6,
+   "bearing_compass": "NE",
+   "osm_url": "https://www.openstreetmap.org/way/866596939",
+   "osm_ids": [
+    "way/866596939",
+    "way/148238623",
+    "way/860961742"
+   ],
+   "provenance": "verified"
+  },
+  {
+   "id": "way/1239611906",
+   "category": "heliport",
+   "subtype": "aeroway=helipad",
+   "name": null,
+   "lat": 34.0977035,
+   "lon": -118.3196681,
+   "distance_m": 524.6,
+   "bearing_deg": 333.2,
+   "bearing_compass": "NNW",
+   "osm_url": "https://www.openstreetmap.org/way/1239611906",
+   "osm_ids": [
+    "way/1239611906"
+   ],
+   "provenance": "verified"
+  },
+  {
+   "id": "way/1239612145",
+   "category": "heliport",
+   "subtype": "aeroway=helipad",
+   "name": null,
+   "lat": 34.0983839,
+   "lon": -118.3193378,
+   "distance_m": 581.7,
+   "bearing_deg": 339.3,
+   "bearing_compass": "NNW",
+   "osm_url": "https://www.openstreetmap.org/way/1239612145",
+   "osm_ids": [
+    "way/1239612145"
+   ],
+   "provenance": "verified"
+  },
+  {
+   "id": "way/1239611711",
+   "category": "heliport",
+   "subtype": "aeroway=helipad",
+   "name": null,
+   "lat": 34.0995226,
+   "lon": -118.3232963,
+   "distance_m": 880.5,
+   "bearing_deg": 319.6,
+   "bearing_compass": "NW",
+   "osm_url": "https://www.openstreetmap.org/way/1239611711",
+   "osm_ids": [
+    "way/1239611711"
+   ],
+   "provenance": "verified"
+  }
+ ],
+ "exposure": [
+  {
+   "category": "airport",
+   "label": "Airports and airfields",
+   "radius_m": 5000,
+   "count": 0,
+   "nearest_m": null,
+   "level": "none",
+   "reason": "No mapped source within 5000 m."
+  },
+  {
+   "category": "heliport",
+   "label": "Heliports and helipads",
+   "radius_m": 1000,
+   "count": 3,
+   "nearest_m": 524.6,
+   "level": "low",
+   "reason": "Nearest at 525 m (beyond 500 m)."
+  },
+  {
+   "category": "rail",
+   "label": "Rail and transit lines",
+   "radius_m": 500,
+   "count": 0,
+   "nearest_m": null,
+   "level": "none",
+   "reason": "No mapped source within 500 m."
+  },
+  {
+   "category": "road_major",
+   "label": "Major roads (motorway, trunk, primary)",
+   "radius_m": 500,
+   "count": 3,
+   "nearest_m": 304.5,
+   "level": "low",
+   "reason": "Nearest at 304 m (beyond 250 m)."
+  },
+  {
+   "category": "road_minor",
+   "label": "Secondary and tertiary roads",
+   "radius_m": 200,
+   "count": 3,
+   "nearest_m": 78.7,
+   "level": "moderate",
+   "reason": "Nearest at 79 m (within 100 m)."
+  },
+  {
+   "category": "construction",
+   "label": "Construction sites",
+   "radius_m": 300,
+   "count": 1,
+   "nearest_m": 279.0,
+   "level": "low",
+   "reason": "Nearest at 279 m (beyond 150 m)."
+  },
+  {
+   "category": "venue",
+   "label": "Bars, clubs and venues",
+   "radius_m": 300,
+   "count": 0,
+   "nearest_m": null,
+   "level": "none",
+   "reason": "No mapped source within 300 m."
+  },
+  {
+   "category": "industrial",
+   "label": "Industrial land and works",
+   "radius_m": 500,
+   "count": 0,
+   "nearest_m": null,
+   "level": "none",
+   "reason": "No mapped source within 500 m."
+  }
+ ],
+ "notes": [
+  "Sources come from OpenStreetMap, which may be incomplete or out of date.",
+  "Exposure levels are relative, based only on distance to the nearest mapped source in each category. They are not decibels and not measurements.",
+  "OSM data as of 2026-11-14T16:55:36Z."
+ ],
+ "data_source": "OpenStreetMap contributors, via the Overpass API (ODbL)",
+ "status": "ok"
+}

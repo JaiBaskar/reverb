@@ -1,0 +1,132 @@
+"""Overpass API client: build one query for all categories, fetch it, parse it."""
+
+import re
+
+import httpx
+
+from noise import geo
+from noise.categories import CATEGORIES, Category
+from noise.models import NoiseSource
+
+ENDPOINTS = (
+    "https://overpass-api.de/api/interpreter",
+    "https://overpass.kumi.systems/api/interpreter",
+    "https://overpass.private.coffee/api/interpreter",
+)
+USER_AGENT = "reverb-noise-scout/0.1 (hackathon project)"
+TIMEOUT_S = 60.0
+
+
+class OverpassError(RuntimeError):
+    pass
+
+
+def build_query(lat: float, lon: float, timeout_s: int = 50) -> str:
+    """Ways and nodes come back with full geometry; relations with a centre point."""
+    geom_parts, rel_parts = [], []
+    for cat in CATEGORIES:
+        for sel in cat.selectors:
+            for el in sel.elements:
+                stmt = f'{el}["{sel.key}"~"{sel.pattern}"](around:{cat.radius_m},{lat},{lon});'
+                (rel_parts if el == "relation" else geom_parts).append(stmt)
+    return (
+        f"[out:json][timeout:{timeout_s}];\n"
+        f"({' '.join(geom_parts)})->.g;\n.g out tags geom;\n"
+        f"({' '.join(rel_parts)})->.r;\n.r out tags center;\n"
+    )
+
+
+def fetch(query: str, client: httpx.Client | None = None) -> dict:
+    """POST the query to each endpoint in turn; raise OverpassError if all fail."""
+    own = client is None
+    client = client or httpx.Client(timeout=TIMEOUT_S, headers={"User-Agent": USER_AGENT})
+    errors = []
+    try:
+        for url in ENDPOINTS:
+            try:
+                resp = client.post(url, data={"data": query})
+                resp.raise_for_status()
+                return resp.json()
+            except (httpx.HTTPError, ValueError) as exc:
+                errors.append(f"{url}: {type(exc).__name__}: {exc}")
+    finally:
+        if own:
+            client.close()
+    raise OverpassError("; ".join(errors))
+
+
+def classify(tags: dict[str, str]) -> tuple[Category, str] | None:
+    for cat in CATEGORIES:
+        for sel in cat.selectors:
+            value = tags.get(sel.key)
+            if value is not None and re.match(sel.pattern, value):
+                return cat, f"{sel.key}={value}"
+    return None
+
+
+def _points(el: dict) -> list[tuple[float, float]]:
+    if "lat" in el and "lon" in el:
+        return [(el["lat"], el["lon"])]
+    if el.get("geometry"):
+        return [(p["lat"], p["lon"]) for p in el["geometry"] if p]
+    if "center" in el:
+        return [(el["center"]["lat"], el["center"]["lon"])]
+    return []
+
+
+def parse(payload: dict, lat: float, lon: float) -> list[NoiseSource]:
+    """Turn Overpass elements into sources: nearest point, distance, bearing.
+
+    Deduplicates by OSM id, drops elements without coordinates or beyond their
+    category radius, sorts nearest first.
+    """
+    found: dict[str, NoiseSource] = {}
+    for el in payload.get("elements", []):
+        match = classify(el.get("tags", {}))
+        pts = _points(el)
+        if match is None or not pts:
+            continue
+        cat, subtype = match
+        plat, plon = geo.nearest_point(lat, lon, pts)
+        dist = geo.haversine_m(lat, lon, plat, plon)
+        if dist > cat.radius_m * 1.05:  # small slack for projection differences
+            continue
+        osm_id = f"{el['type']}/{el['id']}"
+        brg = geo.bearing_deg(lat, lon, plat, plon)
+        src = NoiseSource(
+            id=osm_id,
+            category=cat.name,
+            subtype=subtype,
+            name=el.get("tags", {}).get("name"),
+            lat=round(plat, 7),
+            lon=round(plon, 7),
+            distance_m=round(dist, 1),
+            bearing_deg=round(brg, 1),
+            bearing_compass=geo.compass(brg),
+            osm_url=f"https://www.openstreetmap.org/{osm_id}",
+            osm_ids=[osm_id],
+        )
+        if osm_id not in found or src.distance_m < found[osm_id].distance_m:
+            found[osm_id] = src
+    return merge_named(sorted(found.values(), key=lambda s: s.distance_m))
+
+
+def merge_named(sources: list[NoiseSource]) -> list[NoiseSource]:
+    """Merge elements that share category, subtype and name (road segments) into one.
+
+    Input must be sorted nearest first; the nearest element is kept as the source.
+    Unnamed elements are never merged.
+    """
+    merged: dict[tuple, NoiseSource] = {}
+    out: list[NoiseSource] = []
+    for src in sources:
+        if src.name is None:
+            out.append(src)
+            continue
+        key = (src.category, src.subtype, src.name)
+        if key in merged:
+            merged[key].osm_ids.append(src.id)
+        else:
+            merged[key] = src
+            out.append(src)
+    return out

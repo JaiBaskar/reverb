@@ -1,0 +1,17 @@
+export const CATEGORY_COLOR: Record<string, string> = {
+  road_major: '#ef4444',
+  road_minor: '#f97316',
+  rail: '#a855f7',
+  airport: '#0ea5e9',
+  heliport: '#38bdf8',
+  venue: '#ec4899',
+  industrial: '#84cc16',
+  construction: '#eab308',
+}
+
+export const LEVEL_STYLE: Record<string, string> = {
+  high: 'bg-red-900/60 text-red-200',
+  moderate: 'bg-amber-900/60 text-amber-200',
+  low: 'bg-zinc-800 text-zinc-300',
+  none: 'bg-zinc-900 text-zinc-500',
+}
