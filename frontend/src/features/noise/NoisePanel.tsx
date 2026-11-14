@@ -17,10 +17,10 @@ export function NoisePanel({ noise }: { noise: ReturnType<typeof useNoise> }) {
     }
   }, [loading])
   return (
-    <div className="mt-4 rounded border border-zinc-800 p-3 text-sm" data-testid="noise-panel">
+    <div className="mt-3 text-sm" data-testid="noise-panel">
       <div className="mb-2 flex items-baseline justify-between">
-        <h3 className="font-semibold">Nearby noise sources</h3>
-        <span className="text-xs text-zinc-500">OpenStreetMap evidence · no dB</span>
+        <h3 className="font-medium text-zinc-200">Surrounding noise sources</h3>
+        <span className="text-xs text-zinc-500">Mapped proximity from OpenStreetMap · not measured sound levels</span>
       </div>
       {loading && (
         <div className="text-zinc-500">
@@ -53,7 +53,8 @@ function Report({ report: r }: { report: NoiseReport }) {
   return (
     <div className="space-y-3">
       <div className="text-xs text-zinc-400">
-        Sources are drawn on the main map; toggle categories in its legend.
+        Each chip rates how close the nearest mapped source of that kind is (high = very close). The
+        sources are drawn on the map; toggle categories in its legend.
       </div>
       <div className="flex flex-wrap gap-1.5" data-testid="noise-exposure">
         {r.exposure.map((e) => (
@@ -70,7 +71,9 @@ function Report({ report: r }: { report: NoiseReport }) {
           </span>
         ))}
       </div>
-      <table className="w-full text-xs" data-testid="noise-list">
+      <details className="text-xs">
+      <summary className="cursor-pointer text-zinc-400">All {r.sources.length} mapped sources, nearest first</summary>
+      <table className="mt-1 w-full text-xs" data-testid="noise-list">
         <thead className="text-left text-zinc-400">
           <tr>
             <th className="py-1 font-normal">Source</th>
@@ -102,6 +105,7 @@ function Report({ report: r }: { report: NoiseReport }) {
           ))}
         </tbody>
       </table>
+      </details>
       <ul className="space-y-0.5 text-xs text-zinc-500">
         <li>
           Property location: {r.location_provenance} (Matterport). Distances are to the nearest

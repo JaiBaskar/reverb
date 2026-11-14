@@ -30,12 +30,13 @@ export function SuitabilityPanel({ a, b }: Props) {
   if (!a && !b) return null
 
   return (
-    <div className="mt-4 rounded border border-zinc-800 p-3 text-sm" data-testid="suitability-panel">
+    <div className="mt-3 text-sm" data-testid="suitability-panel">
       <div className="mb-2 flex items-baseline justify-between gap-2">
         <h3 className="font-semibold">Studio suitability</h3>
         <span className="text-xs text-zinc-500">Rule-based fit · qualitative, not a score</span>
       </div>
       {(sa.error || sb.error) && <div className="text-red-300">{sa.error ?? sb.error}</div>}
+      {verdicts && verdicts.length > 0 && <Verdict verdicts={verdicts} a={a?.label} b={b?.label} />}
       <p className="mb-2 text-xs text-zinc-400">
         <b>Best achievable</b>: what the room can reach with a practical amount of acoustic panels; its
         size, height and bass modes cannot be changed. <b>Empty</b>: the room as modeled, with no
@@ -176,6 +177,33 @@ function Notes({ a, b }: { a?: SuitabilityReport; b?: SuitabilityReport }) {
       <div>
         <div className="text-zinc-400">Not assessed</div>
         <ul className="list-disc pl-4">{missing.map((x) => <li key={x}>{x}</li>)}</ul>
+      </div>
+    </div>
+  )
+}
+
+/** Headline from the per-use verdicts: which room wins which uses. Counts only, no score. */
+function Verdict({ verdicts, a, b }: { verdicts: UseCaseVerdict[]; a?: string; b?: string }) {
+  const by = (s: 'A' | 'B' | null) => verdicts.filter((v) => v.better === s).map((v) => v.label.toLowerCase())
+  const [wa, wb, tie] = [by('A'), by('B'), by(null)]
+  const list = (xs: string[]) => xs.join(', ')
+  return (
+    <div className="mb-3 rounded-lg bg-zinc-950/60 p-3 text-sm" data-testid="verdict">
+      {wa.length > 0 && (
+        <div>
+          <span className="font-semibold text-sky-300">Room A{a ? ` (${a})` : ''}</span> is the better fit for{' '}
+          {list(wa)}.
+        </div>
+      )}
+      {wb.length > 0 && (
+        <div>
+          <span className="font-semibold text-fuchsia-300">Room B{b ? ` (${b})` : ''}</span> is the better fit for{' '}
+          {list(wb)}.
+        </div>
+      )}
+      {tie.length > 0 && <div className="text-zinc-400">No clear difference for {list(tie)}.</div>}
+      <div className="mt-1 text-[11px] text-zinc-500">
+        From the rule-based checks below on the modeled numbers; open a row for the reasons.
       </div>
     </div>
   )

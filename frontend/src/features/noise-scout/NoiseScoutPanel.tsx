@@ -44,7 +44,7 @@ export function NoiseScoutPanel({ sid }: { sid: string }) {
   const error = state.sid === sid ? state.error : undefined
 
   return (
-    <div className="mt-4 rounded border border-zinc-800 p-3 text-sm" data-testid="noise-scout">
+    <div className="mt-3 rounded-lg bg-zinc-950/50 p-3 text-sm" data-testid="noise-scout">
       <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
         <h3 className="font-semibold">Noise Scout · AI research agent</h3>
         <span className="text-xs text-zinc-500">

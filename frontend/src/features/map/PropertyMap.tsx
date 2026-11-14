@@ -2,6 +2,7 @@ import {
   type GeoJSONSource,
   type MapGeoJSONFeature,
   Map as MapLibreMap,
+  Popup,
   setWorkerUrl,
 } from 'maplibre-gl'
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
@@ -128,6 +129,22 @@ export function PropertyMap({ points, selected, flyTo, onSelect, noise }: Props)
         const sid = e.features?.[0]?.properties.sid as string | undefined
         if (sid) onSelectRef.current(sid)
       })
+      // Hover a property for its address and type before clicking.
+      const hover = new Popup({ closeButton: false, closeOnClick: false, offset: 10, className: 'reverb-hover' })
+      m.on('mousemove', 'points', (e) => {
+        const p = e.features?.[0]?.properties
+        if (!p) return
+        const esc = (v: unknown) => String(v ?? '').replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
+        hover
+          .setLngLat(e.lngLat)
+          .setHTML(
+            `<div style="color:#111;font:12px system-ui"><b>${esc(p.label)}</b><br/>${esc(p.type)}${
+              p.demo ? ' · demo pick' : ''
+            }<br/><span style="color:#666">Click to explore</span></div>`,
+          )
+          .addTo(m)
+      })
+      m.on('mouseleave', 'points', () => hover.remove())
       for (const layer of ['clusters', 'points']) {
         m.on('mouseenter', layer, () => (m.getCanvas().style.cursor = 'pointer'))
         m.on('mouseleave', layer, () => (m.getCanvas().style.cursor = ''))
@@ -198,6 +215,12 @@ export function PropertyMap({ points, selected, flyTo, onSelect, noise }: Props)
     <div className="relative h-full w-full">
       <div ref={el} className="h-full w-full" data-testid="map" />
       {noise?.status === 'ok' && <NoiseLegend report={noise} enabled={shown} onChange={setEnabled} />}
+      <div className="pointer-events-none absolute bottom-8 left-2 z-10 hidden rounded-md sm:block bg-zinc-950/85 px-2 py-1.5 text-[11px] text-zinc-300">
+        <div className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-amber-500" />Demo pick</div>
+        <div className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />Home (CoStar residential)</div>
+        <div className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-sky-400" />Commercial (CoStar)</div>
+        <div className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-indigo-500" />Cluster, click to zoom</div>
+      </div>
     </div>
   )
 }
