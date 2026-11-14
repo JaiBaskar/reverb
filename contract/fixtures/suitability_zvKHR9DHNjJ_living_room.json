@@ -1,0 +1,185 @@
+{
+    "sid": "zvKHR9DHNjJ",
+    "room_id": "cdz3fkt38kae7tapstpt0eaeb",
+    "label": "Living Room",
+    "fits": [
+        {
+            "use_case": "vocal",
+            "label": "Vocal recording",
+            "level": "poor",
+            "shape_level": "good",
+            "checks": [
+                {
+                    "id": "rt60",
+                    "label": "Reverberation",
+                    "status": "fail",
+                    "reason": "Mid RT60 (500 Hz-1 kHz) 1.99 s, outside the workable range (<= 0.6 s).",
+                    "treatable": true
+                },
+                {
+                    "id": "volume",
+                    "label": "Room volume",
+                    "status": "pass",
+                    "reason": "Volume 77.07 m3, within range (>= 15 m3).",
+                    "treatable": false
+                },
+                {
+                    "id": "height",
+                    "label": "Ceiling height",
+                    "status": "pass",
+                    "reason": "Ceiling 2.67 m, within range (>= 2.2 m).",
+                    "treatable": false
+                }
+            ]
+        },
+        {
+            "use_case": "instrument",
+            "label": "Instrument tracking",
+            "level": "poor",
+            "shape_level": "good",
+            "checks": [
+                {
+                    "id": "rt60",
+                    "label": "Reverberation",
+                    "status": "fail",
+                    "reason": "Mid RT60 (500 Hz-1 kHz) 1.99 s, outside the workable range (0.2-0.8 s).",
+                    "treatable": true
+                },
+                {
+                    "id": "volume",
+                    "label": "Room volume",
+                    "status": "pass",
+                    "reason": "Volume 77.07 m3, within range (>= 40 m3).",
+                    "treatable": false
+                }
+            ]
+        },
+        {
+            "use_case": "production",
+            "label": "Production / writing",
+            "level": "poor",
+            "shape_level": "good",
+            "checks": [
+                {
+                    "id": "rt60",
+                    "label": "Reverberation",
+                    "status": "fail",
+                    "reason": "Mid RT60 (500 Hz-1 kHz) 1.99 s, outside the workable range (<= 0.7 s).",
+                    "treatable": true
+                },
+                {
+                    "id": "volume",
+                    "label": "Room volume",
+                    "status": "pass",
+                    "reason": "Volume 77.07 m3, within range (>= 20 m3).",
+                    "treatable": false
+                }
+            ]
+        },
+        {
+            "use_case": "mixing",
+            "label": "Mixing",
+            "level": "poor",
+            "shape_level": "workable",
+            "checks": [
+                {
+                    "id": "rt60",
+                    "label": "Reverberation",
+                    "status": "fail",
+                    "reason": "Mid RT60 (500 Hz-1 kHz) 1.99 s, outside the workable range (0.15-0.5 s).",
+                    "treatable": true
+                },
+                {
+                    "id": "mode_gap",
+                    "label": "Bass mode spacing",
+                    "status": "caution",
+                    "reason": "Largest gap between axial modes below 200 Hz is 26 Hz (34-60 Hz); ideal <= 25 Hz. Big gaps mean uneven bass from note to note.",
+                    "treatable": false
+                },
+                {
+                    "id": "coincident_modes",
+                    "label": "Coincident modes",
+                    "status": "pass",
+                    "reason": "No axial modes on different axes within 5% of each other below 200 Hz.",
+                    "treatable": false
+                },
+                {
+                    "id": "bass_ratio",
+                    "label": "Bass decay",
+                    "status": "pass",
+                    "reason": "RT60 at 125 Hz is 0.21x the mid RT60 (ideal <= 1.5x); below the Schroeder frequency this is only indicative.",
+                    "treatable": true
+                }
+            ]
+        },
+        {
+            "use_case": "critical_listening",
+            "label": "Critical listening",
+            "level": "poor",
+            "shape_level": "workable",
+            "checks": [
+                {
+                    "id": "rt60",
+                    "label": "Reverberation",
+                    "status": "fail",
+                    "reason": "Mid RT60 1.99 s vs ITU-R BS.1116 reference 0.23 s for 77 m3: off by 1.77 s (ideal <= 0.1 s).",
+                    "treatable": true
+                },
+                {
+                    "id": "floor_area",
+                    "label": "Floor area",
+                    "status": "pass",
+                    "reason": "Floor area 28.87 m2, within range (20-60 m2).",
+                    "treatable": false
+                },
+                {
+                    "id": "mode_gap",
+                    "label": "Bass mode spacing",
+                    "status": "caution",
+                    "reason": "Largest gap between axial modes below 200 Hz is 26 Hz (34-60 Hz); ideal <= 25 Hz. Big gaps mean uneven bass from note to note.",
+                    "treatable": false
+                },
+                {
+                    "id": "coincident_modes",
+                    "label": "Coincident modes",
+                    "status": "pass",
+                    "reason": "No axial modes on different axes within 5% of each other below 200 Hz.",
+                    "treatable": false
+                },
+                {
+                    "id": "bass_ratio",
+                    "label": "Bass decay",
+                    "status": "pass",
+                    "reason": "RT60 at 125 Hz is 0.21x the mid RT60 (ideal <= 1.5x); below the Schroeder frequency this is only indicative.",
+                    "treatable": true
+                }
+            ]
+        },
+        {
+            "use_case": "podcasting",
+            "label": "Podcasting / voice-over",
+            "level": "poor",
+            "shape_level": null,
+            "checks": [
+                {
+                    "id": "rt60",
+                    "label": "Reverberation",
+                    "status": "fail",
+                    "reason": "Mid RT60 (500 Hz-1 kHz) 1.99 s, outside the workable range (<= 0.5 s).",
+                    "treatable": true
+                }
+            ]
+        }
+    ],
+    "assumptions": [
+        "Surface materials are assumed presets (floor: Hardwood floor, walls: Painted drywall / plaster, ceiling: Painted drywall / plaster); results change with real finishes.",
+        "Room is assumed empty; furniture, rugs and treatment would lower RT60.",
+        "Rooms are treated as an equivalent rectangular box."
+    ],
+    "missing": [
+        "Outside noise and sound isolation are not assessed here; see the nearby noise sources panel.",
+        "HVAC, plumbing and neighbour noise are unknown.",
+        "Door, window and opening positions are unknown."
+    ],
+    "method": "Rule-based fit from the modeled acoustic report: each use case checks mid RT60, size and bass-mode spacing against editable thresholds. Qualitative, not a measurement or a score."
+}
