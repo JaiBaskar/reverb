@@ -169,6 +169,92 @@
                     "treatable": true
                 }
             ]
+        },
+        {
+            "use_case": "acoustic_guitar",
+            "label": "Acoustic guitar recording",
+            "level": "poor",
+            "shape_level": "good",
+            "checks": [
+                {
+                    "id": "rt60",
+                    "label": "Reverberation",
+                    "status": "fail",
+                    "reason": "Mid RT60 (500 Hz-1 kHz) 1.99 s, outside the workable range (0.2-0.8 s).",
+                    "treatable": true
+                },
+                {
+                    "id": "volume",
+                    "label": "Room volume",
+                    "status": "pass",
+                    "reason": "Volume 77.07 m3, within range (>= 30 m3).",
+                    "treatable": false
+                },
+                {
+                    "id": "mode_gap",
+                    "label": "Bass mode spacing",
+                    "status": "pass",
+                    "reason": "Largest gap between axial modes below 200 Hz is 26 Hz (34-60 Hz); ideal <= 30 Hz. Big gaps mean uneven bass from note to note.",
+                    "treatable": false
+                },
+                {
+                    "id": "hf_ratio",
+                    "label": "High-frequency decay",
+                    "status": "caution",
+                    "reason": "RT60 at 4 kHz is 0.64x the mid RT60 (ideal >= 0.7x); lower means the room swallows string brightness. Sabine here ignores air absorption.",
+                    "treatable": true
+                },
+                {
+                    "id": "reflection_gap",
+                    "label": "Early reflections",
+                    "status": "pass",
+                    "reason": "First wall or ceiling reflection arrives 4.5 ms after the direct sound (ideal >= 3 ms); earlier ones comb-filter the tone. Default source and mic positions; the floor bounce is excluded.",
+                    "treatable": false
+                }
+            ]
+        },
+        {
+            "use_case": "electric_guitar",
+            "label": "Electric guitar amp recording",
+            "level": "poor",
+            "shape_level": "workable",
+            "checks": [
+                {
+                    "id": "rt60",
+                    "label": "Reverberation",
+                    "status": "fail",
+                    "reason": "Mid RT60 (500 Hz-1 kHz) 1.99 s, outside the workable range (<= 0.9 s).",
+                    "treatable": true
+                },
+                {
+                    "id": "volume",
+                    "label": "Room volume",
+                    "status": "pass",
+                    "reason": "Volume 77.07 m3, within range (>= 12 m3).",
+                    "treatable": false
+                },
+                {
+                    "id": "mode_gap",
+                    "label": "Bass mode spacing",
+                    "status": "caution",
+                    "reason": "Largest gap between axial modes below 200 Hz is 26 Hz (34-60 Hz); ideal <= 25 Hz. Big gaps mean uneven bass from note to note.",
+                    "treatable": false
+                },
+                {
+                    "id": "coincident_modes",
+                    "label": "Coincident modes",
+                    "status": "pass",
+                    "reason": "No axial modes on different axes within 5% of each other below 200 Hz.",
+                    "treatable": false
+                },
+                {
+                    "id": "bass_ratio",
+                    "label": "Bass decay",
+                    "status": "pass",
+                    "reason": "RT60 at 125 Hz is 0.21x the mid RT60 (ideal <= 1.5x); below the Schroeder frequency this is only indicative.",
+                    "treatable": true
+                }
+            ]
         }
     ],
     "assumptions": [
