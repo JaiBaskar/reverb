@@ -1,0 +1,46 @@
+[
+    {
+        "sid": "zvKHR9DHNjJ",
+        "name": "5836 La Mirada Ave",
+        "address": "5836 La Mirada Ave, Los Angeles, CA, 90038, US",
+        "city": "Los Angeles",
+        "state": "CA",
+        "lat": 34.0934917,
+        "lon": -118.3171,
+        "usable_room_count": 13,
+        "room_count": 19
+    },
+    {
+        "sid": "qRFURoCtFoy",
+        "name": "6BR, 5BA -1,846SF",
+        "address": "5823 Lexington Ave, 502, Los Angeles, CA, 90038, US",
+        "city": "Los Angeles",
+        "state": "CA",
+        "lat": 34.0931847,
+        "lon": -118.3167391,
+        "usable_room_count": 14,
+        "room_count": 16
+    },
+    {
+        "sid": "AhTroQ5o2fN",
+        "name": "6BR, 3BA - 1,823SF",
+        "address": "5806 Lexington Ave, Los Angeles, CA, 90038, US",
+        "city": "Los Angeles",
+        "state": "CA",
+        "lat": 34.0926714,
+        "lon": -118.3163376,
+        "usable_room_count": 12,
+        "room_count": 18
+    },
+    {
+        "sid": "hwunjJ37J65",
+        "name": "6BR, 4BA - 1,728SF",
+        "address": "5806 Lexington Ave, Los Angeles, CA, 90038, US",
+        "city": "Los Angeles",
+        "state": "CA",
+        "lat": 34.0925668,
+        "lon": -118.3161223,
+        "usable_room_count": 13,
+        "room_count": 17
+    }
+]

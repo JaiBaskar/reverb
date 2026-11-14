@@ -1,0 +1,529 @@
+[
+    {
+        "id": "n2yqr30509t7i8whfdf2htwic",
+        "label": "Void",
+        "label_confidence": 1.0,
+        "area_m2": {
+            "value": null,
+            "provenance": "missing",
+            "note": null
+        },
+        "width_m": {
+            "value": null,
+            "provenance": "missing",
+            "note": null
+        },
+        "depth_m": {
+            "value": null,
+            "provenance": "missing",
+            "note": null
+        },
+        "height_m": {
+            "value": null,
+            "provenance": "missing",
+            "note": null
+        },
+        "usable": false,
+        "issues": [
+            "no floor area from Matterport",
+            "labelled Void by Matterport"
+        ]
+    },
+    {
+        "id": "peina19mpqedsku6a3huu38md",
+        "label": "Void",
+        "label_confidence": 1.0,
+        "area_m2": {
+            "value": null,
+            "provenance": "missing",
+            "note": null
+        },
+        "width_m": {
+            "value": null,
+            "provenance": "missing",
+            "note": null
+        },
+        "depth_m": {
+            "value": null,
+            "provenance": "missing",
+            "note": null
+        },
+        "height_m": {
+            "value": null,
+            "provenance": "missing",
+            "note": null
+        },
+        "usable": false,
+        "issues": [
+            "no floor area from Matterport",
+            "labelled Void by Matterport"
+        ]
+    },
+    {
+        "id": "613htqkzf66zz7hf7n8kzszed",
+        "label": "Dining Room",
+        "label_confidence": 1.0,
+        "area_m2": {
+            "value": 22.7091007232666,
+            "provenance": "verified",
+            "note": null
+        },
+        "width_m": {
+            "value": 4.4001145362854,
+            "provenance": "verified",
+            "note": null
+        },
+        "depth_m": {
+            "value": 4.840274333953857,
+            "provenance": "verified",
+            "note": null
+        },
+        "height_m": {
+            "value": 2.679999828338623,
+            "provenance": "verified",
+            "note": null
+        },
+        "usable": true,
+        "issues": []
+    },
+    {
+        "id": "cdz3fkt38kae7tapstpt0eaeb",
+        "label": "Living Room",
+        "label_confidence": 0.8571428656578064,
+        "area_m2": {
+            "value": 28.86639976501465,
+            "provenance": "verified",
+            "note": null
+        },
+        "width_m": {
+            "value": 5.041176795959473,
+            "provenance": "verified",
+            "note": null
+        },
+        "depth_m": {
+            "value": 5.70418119430542,
+            "provenance": "verified",
+            "note": null
+        },
+        "height_m": {
+            "value": 2.669999837875366,
+            "provenance": "verified",
+            "note": null
+        },
+        "usable": true,
+        "issues": []
+    },
+    {
+        "id": "xy2x8mpaaqknp7q2c3nnbw1ma",
+        "label": "Living Room",
+        "label_confidence": 0.8041198253631592,
+        "area_m2": {
+            "value": 14.78279972076416,
+            "provenance": "verified",
+            "note": null
+        },
+        "width_m": {
+            "value": 3.816937208175659,
+            "provenance": "verified",
+            "note": null
+        },
+        "depth_m": {
+            "value": 3.696150779724121,
+            "provenance": "verified",
+            "note": null
+        },
+        "height_m": {
+            "value": 2.7200000286102295,
+            "provenance": "verified",
+            "note": null
+        },
+        "usable": true,
+        "issues": []
+    },
+    {
+        "id": "tt6gm2a0463x9wmnx7rn6gugc",
+        "label": "Bedroom",
+        "label_confidence": 1.0,
+        "area_m2": {
+            "value": 17.179800033569336,
+            "provenance": "verified",
+            "note": null
+        },
+        "width_m": {
+            "value": 4.0718231201171875,
+            "provenance": "verified",
+            "note": null
+        },
+        "depth_m": {
+            "value": 3.990187406539917,
+            "provenance": "verified",
+            "note": null
+        },
+        "height_m": {
+            "value": 2.7200000286102295,
+            "provenance": "estimated",
+            "note": "median ceiling height of this property's other rooms"
+        },
+        "usable": true,
+        "issues": []
+    },
+    {
+        "id": "h26t7ky77ew74yb0pg8qqf5rd",
+        "label": "Bedroom",
+        "label_confidence": 1.0,
+        "area_m2": {
+            "value": 13.820500373840332,
+            "provenance": "verified",
+            "note": null
+        },
+        "width_m": {
+            "value": 3.3188233375549316,
+            "provenance": "verified",
+            "note": null
+        },
+        "depth_m": {
+            "value": 3.9525792598724365,
+            "provenance": "verified",
+            "note": null
+        },
+        "height_m": {
+            "value": 2.7200000286102295,
+            "provenance": "estimated",
+            "note": "median ceiling height of this property's other rooms"
+        },
+        "usable": true,
+        "issues": []
+    },
+    {
+        "id": "3m54yff1z7crxaywd8if9rb0d",
+        "label": "Kitchen",
+        "label_confidence": 0.9066063761711121,
+        "area_m2": {
+            "value": 13.284099578857422,
+            "provenance": "verified",
+            "note": null
+        },
+        "width_m": {
+            "value": 4.786667823791504,
+            "provenance": "verified",
+            "note": null
+        },
+        "depth_m": {
+            "value": 3.0049800872802734,
+            "provenance": "verified",
+            "note": null
+        },
+        "height_m": {
+            "value": 2.7200000286102295,
+            "provenance": "verified",
+            "note": null
+        },
+        "usable": true,
+        "issues": []
+    },
+    {
+        "id": "2qdmc5i9byxi79ry1pxdkqzea",
+        "label": "Dining Room",
+        "label_confidence": 0.996412992477417,
+        "area_m2": {
+            "value": 11.080300331115723,
+            "provenance": "verified",
+            "note": null
+        },
+        "width_m": {
+            "value": 3.469740390777588,
+            "provenance": "verified",
+            "note": null
+        },
+        "depth_m": {
+            "value": 2.872286319732666,
+            "provenance": "verified",
+            "note": null
+        },
+        "height_m": {
+            "value": 2.7200000286102295,
+            "provenance": "verified",
+            "note": null
+        },
+        "usable": true,
+        "issues": []
+    },
+    {
+        "id": "a5f9age4zzxewres6iqux2emc",
+        "label": "Unlabelled",
+        "label_confidence": null,
+        "area_m2": {
+            "value": 12.857799530029297,
+            "provenance": "verified",
+            "note": null
+        },
+        "width_m": {
+            "value": 1.8362737894058228,
+            "provenance": "verified",
+            "note": null
+        },
+        "depth_m": {
+            "value": 7.002114610692011,
+            "provenance": "estimated",
+            "note": "area / width"
+        },
+        "height_m": {
+            "value": 2.7200000286102295,
+            "provenance": "estimated",
+            "note": "median ceiling height of this property's other rooms"
+        },
+        "usable": true,
+        "issues": []
+    },
+    {
+        "id": "19ab05tns5h6y4qm42esqqpea",
+        "label": "Bathroom",
+        "label_confidence": 0.9244164824485779,
+        "area_m2": {
+            "value": 7.877200126647949,
+            "provenance": "verified",
+            "note": null
+        },
+        "width_m": {
+            "value": 1.9332488775253296,
+            "provenance": "verified",
+            "note": null
+        },
+        "depth_m": {
+            "value": 2.883636951446533,
+            "provenance": "verified",
+            "note": null
+        },
+        "height_m": {
+            "value": 2.7300000190734863,
+            "provenance": "verified",
+            "note": null
+        },
+        "usable": true,
+        "issues": []
+    },
+    {
+        "id": "m8npxsuk79xy21dd09x9wtped",
+        "label": "Unlabelled",
+        "label_confidence": null,
+        "area_m2": {
+            "value": 8.622400283813477,
+            "provenance": "verified",
+            "note": null
+        },
+        "width_m": {
+            "value": 2.936392392684172,
+            "provenance": "assumed",
+            "note": "square footprint assumed from floor area"
+        },
+        "depth_m": {
+            "value": 2.936392392684172,
+            "provenance": "assumed",
+            "note": "square footprint assumed from floor area"
+        },
+        "height_m": {
+            "value": 2.5199999809265137,
+            "provenance": "verified",
+            "note": null
+        },
+        "usable": true,
+        "issues": []
+    },
+    {
+        "id": "b4qtykzcazp4iumkamm7y7h2b",
+        "label": "Closet",
+        "label_confidence": 0.48476919531822205,
+        "area_m2": {
+            "value": 4.211400032043457,
+            "provenance": "verified",
+            "note": null
+        },
+        "width_m": {
+            "value": 0.9943249225616455,
+            "provenance": "verified",
+            "note": null
+        },
+        "depth_m": {
+            "value": 3.723818778991699,
+            "provenance": "verified",
+            "note": null
+        },
+        "height_m": {
+            "value": 2.7200000286102295,
+            "provenance": "estimated",
+            "note": "median ceiling height of this property's other rooms"
+        },
+        "usable": true,
+        "issues": []
+    },
+    {
+        "id": "ediidma5zg15dufx3n0qyq21a",
+        "label": "Bathroom",
+        "label_confidence": 0.7846601605415344,
+        "area_m2": {
+            "value": 3.580199956893921,
+            "provenance": "verified",
+            "note": null
+        },
+        "width_m": {
+            "value": 2.247802495956421,
+            "provenance": "verified",
+            "note": null
+        },
+        "depth_m": {
+            "value": 1.59275557498239,
+            "provenance": "estimated",
+            "note": "area / width"
+        },
+        "height_m": {
+            "value": 2.7200000286102295,
+            "provenance": "estimated",
+            "note": "median ceiling height of this property's other rooms"
+        },
+        "usable": true,
+        "issues": []
+    },
+    {
+        "id": "wbpb7dkfuwnikd1kq2a9hz70a",
+        "label": "Hallway",
+        "label_confidence": 0.9570372104644775,
+        "area_m2": {
+            "value": 3.0322999954223633,
+            "provenance": "verified",
+            "note": null
+        },
+        "width_m": {
+            "value": 2.7815380096435547,
+            "provenance": "verified",
+            "note": null
+        },
+        "depth_m": {
+            "value": 0.8803982734680176,
+            "provenance": "verified",
+            "note": null
+        },
+        "height_m": {
+            "value": 2.7200000286102295,
+            "provenance": "verified",
+            "note": null
+        },
+        "usable": true,
+        "issues": []
+    },
+    {
+        "id": "n81qfe51azs8iexnbqwspye6c",
+        "label": "Hallway",
+        "label_confidence": 0.7903682589530945,
+        "area_m2": {
+            "value": 2.2945001125335693,
+            "provenance": "verified",
+            "note": null
+        },
+        "width_m": {
+            "value": 1.4571452140808105,
+            "provenance": "verified",
+            "note": null
+        },
+        "depth_m": {
+            "value": 1.3256914615631104,
+            "provenance": "verified",
+            "note": null
+        },
+        "height_m": {
+            "value": 2.7300000190734863,
+            "provenance": "verified",
+            "note": null
+        },
+        "usable": false,
+        "issues": [
+            "floor area under 3 m2"
+        ]
+    },
+    {
+        "id": "kuc0fpmsgqxff63egrxrycfud",
+        "label": "Hallway",
+        "label_confidence": 0.43514394760131836,
+        "area_m2": {
+            "value": 2.0889999866485596,
+            "provenance": "verified",
+            "note": null
+        },
+        "width_m": {
+            "value": 1.784322738647461,
+            "provenance": "verified",
+            "note": null
+        },
+        "depth_m": {
+            "value": 1.0398114919662476,
+            "provenance": "verified",
+            "note": null
+        },
+        "height_m": {
+            "value": 2.7200000286102295,
+            "provenance": "verified",
+            "note": null
+        },
+        "usable": false,
+        "issues": [
+            "floor area under 3 m2"
+        ]
+    },
+    {
+        "id": "3ygfq6yfyyw3hi9x7u5rm2iqa",
+        "label": "Bathroom",
+        "label_confidence": 0.673126757144928,
+        "area_m2": {
+            "value": 1.1567000150680542,
+            "provenance": "verified",
+            "note": null
+        },
+        "width_m": {
+            "value": 1.0754998907801219,
+            "provenance": "assumed",
+            "note": "square footprint assumed from floor area"
+        },
+        "depth_m": {
+            "value": 1.0754998907801219,
+            "provenance": "assumed",
+            "note": "square footprint assumed from floor area"
+        },
+        "height_m": {
+            "value": 2.7200000286102295,
+            "provenance": "estimated",
+            "note": "median ceiling height of this property's other rooms"
+        },
+        "usable": false,
+        "issues": [
+            "floor area under 3 m2"
+        ]
+    },
+    {
+        "id": "b2kez6wsw32fm2x3ui593u3hc",
+        "label": "Unlabelled",
+        "label_confidence": null,
+        "area_m2": {
+            "value": 0.09629999846220016,
+            "provenance": "verified",
+            "note": null
+        },
+        "width_m": {
+            "value": 0.31032241050591264,
+            "provenance": "assumed",
+            "note": "square footprint assumed from floor area"
+        },
+        "depth_m": {
+            "value": 0.31032241050591264,
+            "provenance": "assumed",
+            "note": "square footprint assumed from floor area"
+        },
+        "height_m": {
+            "value": 2.7200000286102295,
+            "provenance": "estimated",
+            "note": "median ceiling height of this property's other rooms"
+        },
+        "usable": false,
+        "issues": [
+            "floor area under 3 m2"
+        ]
+    }
+]

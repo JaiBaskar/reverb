@@ -1,0 +1,4 @@
+{
+  "_comment": "Matterport model IDs. Each needs >=2 rooms with area, width, depth and height. Add an ID to add a property.",
+  "properties": ["zvKHR9DHNjJ", "qRFURoCtFoy", "AhTroQ5o2fN", "hwunjJ37J65"]
+}
