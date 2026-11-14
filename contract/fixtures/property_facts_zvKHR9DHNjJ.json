@@ -1,0 +1,108 @@
+{
+    "sid": "zvKHR9DHNjJ",
+    "status": "ok",
+    "kind": "residential",
+    "costar_id": 235967170,
+    "facts": [
+        {
+            "key": "construction",
+            "label": "Construction",
+            "value": null,
+            "unit": null,
+            "provenance": "missing",
+            "source": null,
+            "note": "CoStar residential listings do not record the structural material."
+        },
+        {
+            "key": "year_built",
+            "label": "Year built",
+            "value": 1920,
+            "unit": null,
+            "provenance": "verified",
+            "source": "CoStar residential listing (MLS)",
+            "note": null
+        },
+        {
+            "key": "floors",
+            "label": "Floors",
+            "value": 1,
+            "unit": null,
+            "provenance": "verified",
+            "source": "CoStar residential listing (MLS)",
+            "note": null
+        },
+        {
+            "key": "hardwood_floors",
+            "label": "Hardwood floors",
+            "value": true,
+            "unit": null,
+            "provenance": "verified",
+            "source": "CoStar residential listing (MLS)",
+            "note": null
+        },
+        {
+            "key": "ceiling_height_m",
+            "label": "Ceiling height",
+            "value": null,
+            "unit": "m",
+            "provenance": "missing",
+            "source": null,
+            "note": "Not recorded in CoStar for this property."
+        },
+        {
+            "key": "architectural_style",
+            "label": "Style",
+            "value": "California Bungalow",
+            "unit": null,
+            "provenance": "verified",
+            "source": "CoStar residential listing (MLS)",
+            "note": null
+        },
+        {
+            "key": "property_type",
+            "label": "Property type",
+            "value": "Residential Single-Family, Single Family Residence",
+            "unit": null,
+            "provenance": "verified",
+            "source": "CoStar residential listing (MLS)",
+            "note": null
+        },
+        {
+            "key": "building_area_m2",
+            "label": "Building area",
+            "value": 151.2,
+            "unit": "m2",
+            "provenance": "verified",
+            "source": "CoStar residential listing (MLS)",
+            "note": "1,628 sq ft"
+        },
+        {
+            "key": "flooring",
+            "label": "Flooring",
+            "value": "Wood Flooring",
+            "unit": null,
+            "provenance": "verified",
+            "source": "CoStar residential listing (MLS)",
+            "note": null
+        },
+        {
+            "key": "no_common_walls",
+            "label": "No shared walls",
+            "value": true,
+            "unit": null,
+            "provenance": "verified",
+            "source": "CoStar residential listing (MLS)",
+            "note": "Detached: no walls shared with neighbours."
+        }
+    ],
+    "material_hints": [
+        {
+            "surface": "floor",
+            "material_id": "hardwood",
+            "reason": "CoStar lists hardwood floors.",
+            "provenance": "verified"
+        }
+    ],
+    "notes": [],
+    "data_source": "CoStar hackathon data kit"
+}
