@@ -90,3 +90,19 @@ def bass_ratio(rt60: list[float], bands: list[int]) -> float:
     """Beranek bass ratio (RT125 + RT250) / (RT500 + RT1k); above 1 the low end rings longer."""
     t = dict(zip(bands, rt60, strict=True))
     return (t[125] + t[250]) / (t[500] + t[1000])
+
+
+def polygon_area(poly: list[tuple[float, float]] | list[list[float]]) -> float:
+    n = len(poly)
+    return abs(sum(poly[i][0] * poly[i - 1][1] - poly[i - 1][0] * poly[i][1] for i in range(n))) / 2
+
+
+def polygon_perimeter(poly: list[tuple[float, float]] | list[list[float]]) -> float:
+    return sum(math.dist(poly[i - 1], poly[i]) for i in range(len(poly)))
+
+
+def outline_wall_length(poly, true_area: float) -> float:
+    """Perimeter of a room outline scaled to the room's true floor area (Matterport outlines
+    are wall centrelines, so they enclose slightly more than the floor)."""
+    a = polygon_area(poly)
+    return polygon_perimeter(poly) * math.sqrt(true_area / a) if a > 0 else 0.0

@@ -1,13 +1,16 @@
 import math
+from typing import Literal
 
 from pydantic import BaseModel
 
+from acoustics.furniture import FURNITURE, FurnitureItem, furniture_absorption
 from acoustics.materials import DEFAULT_SELECTION, MATERIALS
 from acoustics.physics import (
     BANDS_HZ,
     axial_modes,
     equivalent_box,
     first_order_reflections,
+    outline_wall_length,
     sabine_rt60,
     schroeder_frequency,
     surface_areas,
@@ -30,6 +33,7 @@ class Geometry(BaseModel):
     equivalent_depth_m: float
     volume_m3: float
     note: str | None = None
+    wall_source: Literal["box", "outline"] = "box"
 
 
 class Surfaces(BaseModel):
@@ -66,6 +70,7 @@ class AcousticReport(BaseModel):
     geometry: Geometry
     surfaces: Surfaces
     materials: list[MaterialChoice]
+    furniture: list[FurnitureItem] = []
     absorption_sabins: list[float]
     rt60_s: list[float]
     schroeder_hz: float
@@ -82,7 +87,15 @@ class UnknownMaterial(ValueError):
     pass
 
 
-def analyze_room(sid: str, room: Room, selection: dict[str, str] | None = None) -> AcousticReport:
+def analyze_room(
+    sid: str,
+    room: Room,
+    selection: dict[str, str] | None = None,
+    furniture: list[FurnitureItem] | None = None,
+    outline: list | None = None,
+) -> AcousticReport:
+    """furniture None means an empty room. outline: the room's floor polygon (metres); when
+    given, wall area comes from its perimeter instead of the equivalent box."""
     if not room.usable:
         raise ValueError(f"room {room.id} is not usable: {'; '.join(room.issues)}")
     sel = {**DEFAULT_SELECTION, **(selection or {})}
@@ -96,14 +109,26 @@ def analyze_room(sid: str, room: Room, selection: dict[str, str] | None = None) 
     w, d = equivalent_box(area, w0, d0)
     vol = volume(area, h)
     surf = surface_areas(w, d, h)
+    wall_source = "box"
+    if outline and len(outline) >= 3:
+        surf["walls"] = outline_wall_length(outline, area) * h
+        wall_source = "outline"
+    items = furniture or []
+    extra = furniture_absorption(items)
 
     geo_note = None
-    if w0 * d0 / area < 1 / ASPECT_NOTE_THRESHOLD:
+    if wall_source == "outline":
+        geo_note = (
+            f"Wall area ({surf['walls']:.1f} m2) comes from the Matterport room outline, so the "
+            "room's real shape is used for absorption; modes and reflections still use an "
+            f"equivalent {w:.2f} x {d:.2f} m box."
+        )
+    elif w0 * d0 / area < 1 / ASPECT_NOTE_THRESHOLD:
         geo_note = (
             f"Matterport width x depth ({w0:.2f} x {d0:.2f} m) is smaller than the floor area "
             f"({area:.1f} m2); calculations scale them to an equivalent {w:.2f} x {d:.2f} m box."
         )
-    if w0 * d0 / area > ASPECT_NOTE_THRESHOLD:
+    elif w0 * d0 / area > ASPECT_NOTE_THRESHOLD:
         geo_note = (
             f"Matterport bounding box {w0:.2f} x {d0:.2f} m exceeds the true floor area "
             f"({area:.1f} m2): the room is not a rectangle. Calculations use an equivalent "
@@ -113,12 +138,15 @@ def analyze_room(sid: str, room: Room, selection: dict[str, str] | None = None) 
 
     absorption, rt60 = [], []
     for i in range(len(BANDS_HZ)):
-        a = total_absorption(
-            [
-                (surf["floor"], MATERIALS[sel["floor"]]["alpha"][i]),
-                (surf["ceiling"], MATERIALS[sel["ceiling"]]["alpha"][i]),
-                (surf["walls"], MATERIALS[sel["walls"]]["alpha"][i]),
-            ]
+        a = (
+            total_absorption(
+                [
+                    (surf["floor"], MATERIALS[sel["floor"]]["alpha"][i]),
+                    (surf["ceiling"], MATERIALS[sel["ceiling"]]["alpha"][i]),
+                    (surf["walls"], MATERIALS[sel["walls"]]["alpha"][i]),
+                ]
+            )
+            + extra[i]
         )
         absorption.append(a)
         rt60.append(sabine_rt60(vol, a))
@@ -136,7 +164,7 @@ def analyze_room(sid: str, room: Room, selection: dict[str, str] | None = None) 
             "individual room modes and the Sabine RT60 is not a reliable description."
         ),
     ]
-    mean_alpha = [a / sum(surf.values()) for a in absorption]
+    mean_alpha = [a / sum(surf.values()) for a in absorption]  # furniture counted as surface
     if max(mean_alpha) > 0.3:
         warnings.append(
             "Average absorption exceeds 0.3 in at least one band; Sabine tends to overestimate "
@@ -150,7 +178,15 @@ def analyze_room(sid: str, room: Room, selection: dict[str, str] | None = None) 
             "Surface materials are generic presets unless you chose them; absorption values "
             "are typical figures for those finishes, not measured for this property."
         ),
-        "Room is empty (no furniture, people or curtains).",
+        (
+            "Furnishing: "
+            + ", ".join(
+                f"{it.count} x {FURNITURE[it.id]['label']} ({it.provenance})" for it in items
+            )
+            + "; typical absorption per item, not measured."
+            if items
+            else "Room is empty (no furniture, people or curtains)."
+        ),
         "Walls, floor and ceiling are single uniform materials; doors and windows are ignored.",
         "Sabine RT60 values ignore air absorption; the impulse response you hear includes it, so its 2-4 kHz decay is somewhat shorter.",
         (
@@ -184,6 +220,7 @@ def analyze_room(sid: str, room: Room, selection: dict[str, str] | None = None) 
             equivalent_depth_m=d,
             volume_m3=vol,
             note=geo_note,
+            wall_source=wall_source,
         ),
         surfaces=Surfaces(
             floor_m2=surf["floor"], ceiling_m2=surf["ceiling"], walls_m2=surf["walls"]
@@ -198,6 +235,7 @@ def analyze_room(sid: str, room: Room, selection: dict[str, str] | None = None) 
             )
             for s in ("floor", "walls", "ceiling")
         ],
+        furniture=items,
         absorption_sabins=absorption,
         rt60_s=rt60,
         schroeder_hz=fs,

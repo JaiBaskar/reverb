@@ -3,8 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, model_validator
 
 from acoustics.explain import Comparison, compare
+from acoustics.furniture import FURNITURE, FurnitureItem, UnknownFurniture, default_furnishing
 from acoustics.materials import DEFAULT_SELECTION, MATERIALS
 from acoustics.report import AcousticReport, UnknownMaterial, analyze_room
+from acoustics.router import router as acoustics_router
 from catalog.router import router as catalog_router
 from costar.router import router as costar_router
 from ir.service import IrResponse, build_ir
@@ -31,6 +33,7 @@ app.include_router(suitability_router)
 app.include_router(costar_router)
 app.include_router(catalog_router)
 app.include_router(viewer_router)
+app.include_router(acoustics_router)
 
 
 @app.get("/health")
@@ -91,6 +94,10 @@ class AnalyzeRequest(BaseModel):
     room_id: str | None = None  # a Matterport room of this property
     custom_room: CustomRoom | None = None  # or dimensions entered by the user
     materials: dict[str, str] | None = None  # surface (floor|walls|ceiling) -> material id
+    # None = default furnishing for the room type (assumed); [] = empty room.
+    furniture: list[FurnitureItem] | None = None
+    furnished: bool = False  # False keeps the room empty unless furniture is given
+    use_outline: bool = False  # wall area from the Matterport outline when available
 
     @model_validator(mode="after")
     def _one_room_source(self) -> "AnalyzeRequest":
@@ -112,11 +119,39 @@ def analyze(req: AnalyzeRequest) -> AcousticReport:
     if room is None:
         raise HTTPException(404, f"room {req.room_id} not found in {req.sid}")
     try:
-        return analyze_room(req.sid, room, req.materials)
-    except UnknownMaterial as e:
+        return analyze_room(
+            req.sid,
+            room,
+            req.materials,
+            furniture=furnishing(req, room),
+            outline=outline_for(req, room),
+        )
+    except (UnknownMaterial, UnknownFurniture) as e:
         raise HTTPException(422, str(e)) from e
     except ValueError as e:
         raise HTTPException(422, str(e)) from e
+
+
+def furnishing(req: AnalyzeRequest, room: Room) -> list[FurnitureItem] | None:
+    if req.furniture is not None:
+        return req.furniture
+    return default_furnishing(room.label) if req.furnished else None
+
+
+def outline_for(req: AnalyzeRequest, room: Room) -> list | None:
+    """The room's Matterport outline, if asked for and available (custom rooms have none)."""
+    if not req.use_outline or req.room_id is None:
+        return None
+    try:
+        tour = get_tour(req.sid)
+    except MatterportError:
+        return None
+    return next((r.polygon for r in tour.rooms if r.room_id == room.id and r.polygon), None)
+
+
+@app.get("/furniture")
+def furniture_catalog() -> dict:
+    return {k: {"label": v["label"], "sabins": v["sabins"]} for k, v in FURNITURE.items()}
 
 
 @app.post("/rooms/ir", response_model=IrResponse)
