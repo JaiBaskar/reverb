@@ -13,7 +13,7 @@
           "id": "rt60",
           "label": "Reverberation",
           "status": "fail",
-          "reason": "Mid RT60 (500 Hz-1 kHz) 1.99 s, outside the workable range (<= 0.6 s).",
+          "reason": "Mid RT60 (500 Hz-1 kHz) 1.86 s, outside the workable range (<= 0.6 s).",
           "treatable": true
         },
         {
@@ -37,12 +37,12 @@
           null,
           0.4
         ],
-        "current_mid_s": 1.9944255415056578,
-        "added_sabins": 24.80025560945253,
-        "panel_area_m2": 29.314628054299938,
-        "panels": 41,
-        "coverage": 0.2544158817077561,
-        "reason": "To bring mid RT60 from 1.99 s to 0.40 s, add about 24.8 m2 of absorption: roughly 29.3 m2 of panels (41 panels), covering 25% of the room's surfaces.",
+        "current_mid_s": 1.8572547581802674,
+        "added_sabins": 20.656355576723875,
+        "panel_area_m2": 24.445999670711604,
+        "panels": 34,
+        "coverage": 0.21216201511856891,
+        "reason": "To bring mid RT60 from 1.86 s to 0.40 s, add about 20.7 m2 of absorption: roughly 24.4 m2 of panels (34 panels), covering 21% of the room's surfaces.",
         "assumptions": [
           "Panels absorb 0.9 at 500 Hz-1 kHz and are 0.72 m2 each (0.6 x 1.2 m); typical values, not a specific product.",
           "Panels mainly control mid and high frequencies; low-frequency decay needs bass traps."
@@ -60,7 +60,7 @@
           "id": "rt60",
           "label": "Reverberation",
           "status": "fail",
-          "reason": "Mid RT60 (500 Hz-1 kHz) 1.99 s, outside the workable range (0.2-0.8 s).",
+          "reason": "Mid RT60 (500 Hz-1 kHz) 1.86 s, outside the workable range (0.2-0.8 s).",
           "treatable": true
         },
         {
@@ -77,12 +77,12 @@
           0.3,
           0.6
         ],
-        "current_mid_s": 1.9944255415056578,
-        "added_sabins": 14.459590181524057,
-        "panel_area_m2": 17.09165883868655,
-        "panels": 24,
-        "coverage": 0.14833513989118374,
-        "reason": "To bring mid RT60 from 1.99 s to 0.60 s, add about 14.5 m2 of absorption: roughly 17.1 m2 of panels (24 panels), covering 15% of the room's surfaces.",
+        "current_mid_s": 1.8572547581802674,
+        "added_sabins": 12.372274095459638,
+        "panel_area_m2": 14.642108930598171,
+        "panels": 21,
+        "coverage": 0.12707597881640953,
+        "reason": "To bring mid RT60 from 1.86 s to 0.60 s, add about 12.4 m2 of absorption: roughly 14.6 m2 of panels (21 panels), covering 13% of the room's surfaces.",
         "assumptions": [
           "Panels absorb 0.9 at 500 Hz-1 kHz and are 0.72 m2 each (0.6 x 1.2 m); typical values, not a specific product.",
           "Panels mainly control mid and high frequencies; low-frequency decay needs bass traps."
@@ -100,7 +100,7 @@
           "id": "rt60",
           "label": "Reverberation",
           "status": "fail",
-          "reason": "Mid RT60 (500 Hz-1 kHz) 1.99 s, outside the workable range (<= 0.7 s).",
+          "reason": "Mid RT60 (500 Hz-1 kHz) 1.86 s, outside the workable range (<= 0.7 s).",
           "treatable": true
         },
         {
@@ -117,12 +117,12 @@
           null,
           0.5
         ],
-        "current_mid_s": 1.9944255415056578,
-        "added_sabins": 18.595856352695446,
-        "panel_area_m2": 21.980846524931906,
-        "panels": 31,
-        "coverage": 0.1907674366178127,
-        "reason": "To bring mid RT60 from 1.99 s to 0.50 s, add about 18.6 m2 of absorption: roughly 22.0 m2 of panels (31 panels), covering 19% of the room's surfaces.",
+        "current_mid_s": 1.8572547581802674,
+        "added_sabins": 15.775373329022834,
+        "panel_area_m2": 18.66954554370663,
+        "panels": 26,
+        "coverage": 0.1620293077499414,
+        "reason": "To bring mid RT60 from 1.86 s to 0.50 s, add about 15.8 m2 of absorption: roughly 18.7 m2 of panels (26 panels), covering 16% of the room's surfaces.",
         "assumptions": [
           "Panels absorb 0.9 at 500 Hz-1 kHz and are 0.72 m2 each (0.6 x 1.2 m); typical values, not a specific product.",
           "Panels mainly control mid and high frequencies; low-frequency decay needs bass traps."
@@ -140,7 +140,7 @@
           "id": "rt60",
           "label": "Reverberation",
           "status": "fail",
-          "reason": "Mid RT60 (500 Hz-1 kHz) 1.99 s, outside the workable range (0.15-0.5 s).",
+          "reason": "Mid RT60 (500 Hz-1 kHz) 1.86 s, outside the workable range (0.15-0.5 s).",
           "treatable": true
         },
         {
@@ -161,7 +161,7 @@
           "id": "bass_ratio",
           "label": "Bass decay",
           "status": "pass",
-          "reason": "RT60 at 125-250 Hz is 0.37x the 500 Hz-1 kHz RT60 (ideal <= 1.5x); below the Schroeder frequency this is only indicative.",
+          "reason": "RT60 at 125-250 Hz is 0.36x the 500 Hz-1 kHz RT60 (ideal <= 1.5x); below the Schroeder frequency this is only indicative.",
           "treatable": true
         }
       ],
@@ -171,12 +171,12 @@
           0.2,
           0.4
         ],
-        "current_mid_s": 1.9944255415056578,
-        "added_sabins": 24.80025560945253,
-        "panel_area_m2": 29.314628054299938,
-        "panels": 41,
-        "coverage": 0.2544158817077561,
-        "reason": "To bring mid RT60 from 1.99 s to 0.40 s, add about 24.8 m2 of absorption: roughly 29.3 m2 of panels (41 panels), covering 25% of the room's surfaces.",
+        "current_mid_s": 1.8572547581802674,
+        "added_sabins": 20.656355576723875,
+        "panel_area_m2": 24.445999670711604,
+        "panels": 34,
+        "coverage": 0.21216201511856891,
+        "reason": "To bring mid RT60 from 1.86 s to 0.40 s, add about 20.7 m2 of absorption: roughly 24.4 m2 of panels (34 panels), covering 21% of the room's surfaces.",
         "assumptions": [
           "Panels absorb 0.9 at 500 Hz-1 kHz and are 0.72 m2 each (0.6 x 1.2 m); typical values, not a specific product.",
           "Panels mainly control mid and high frequencies; low-frequency decay needs bass traps."
@@ -194,7 +194,7 @@
           "id": "rt60",
           "label": "Reverberation",
           "status": "fail",
-          "reason": "Mid RT60 1.99 s vs ITU-R BS.1116 reference 0.23 s for 77 m3: off by 1.77 s (ideal <= 0.1 s).",
+          "reason": "Mid RT60 1.86 s vs ITU-R BS.1116 reference 0.23 s for 77 m3: off by 1.63 s (ideal <= 0.1 s).",
           "treatable": true
         },
         {
@@ -222,7 +222,7 @@
           "id": "bass_ratio",
           "label": "Bass decay",
           "status": "pass",
-          "reason": "RT60 at 125-250 Hz is 0.37x the 500 Hz-1 kHz RT60 (ideal <= 1.5x); below the Schroeder frequency this is only indicative.",
+          "reason": "RT60 at 125-250 Hz is 0.36x the 500 Hz-1 kHz RT60 (ideal <= 1.5x); below the Schroeder frequency this is only indicative.",
           "treatable": true
         }
       ],
@@ -232,12 +232,12 @@
           0.12921408138115273,
           0.3292140813811527
         ],
-        "current_mid_s": 1.9944255415056578,
-        "added_sabins": 31.470445703161975,
-        "panel_area_m2": 37.19898798702746,
-        "panels": 52,
-        "coverage": 0.3228426882928714,
-        "reason": "To bring mid RT60 from 1.99 s to 0.33 s, add about 31.5 m2 of absorption: roughly 37.2 m2 of panels (52 panels), covering 32% of the room's surfaces.",
+        "current_mid_s": 1.8572547581802674,
+        "added_sabins": 25.618743437938647,
+        "panel_area_m2": 30.318794199766646,
+        "panels": 43,
+        "coverage": 0.2631308418568929,
+        "reason": "To bring mid RT60 from 1.86 s to 0.33 s, add about 25.6 m2 of absorption: roughly 30.3 m2 of panels (43 panels), covering 26% of the room's surfaces.",
         "assumptions": [
           "Panels absorb 0.9 at 500 Hz-1 kHz and are 0.72 m2 each (0.6 x 1.2 m); typical values, not a specific product.",
           "Panels mainly control mid and high frequencies; low-frequency decay needs bass traps."
@@ -255,7 +255,7 @@
           "id": "rt60",
           "label": "Reverberation",
           "status": "fail",
-          "reason": "Mid RT60 (500 Hz-1 kHz) 1.99 s, outside the workable range (<= 0.5 s).",
+          "reason": "Mid RT60 (500 Hz-1 kHz) 1.86 s, outside the workable range (<= 0.5 s).",
           "treatable": true
         }
       ],
@@ -265,12 +265,12 @@
           null,
           0.3
         ],
-        "current_mid_s": 1.9944255415056578,
-        "added_sabins": 35.14092103738102,
-        "panel_area_m2": 41.53759726991334,
-        "panels": 58,
-        "coverage": 0.3604966235243286,
-        "reason": "To bring mid RT60 from 1.99 s to 0.30 s, add about 35.1 m2 of absorption: roughly 41.5 m2 of panels (58 panels), covering 36% of the room's surfaces.",
+        "current_mid_s": 1.8572547581802674,
+        "added_sabins": 28.229369899283107,
+        "panel_area_m2": 33.408369869459854,
+        "panels": 47,
+        "coverage": 0.28994466042732947,
+        "reason": "To bring mid RT60 from 1.86 s to 0.30 s, add about 28.2 m2 of absorption: roughly 33.4 m2 of panels (47 panels), covering 29% of the room's surfaces.",
         "assumptions": [
           "Panels absorb 0.9 at 500 Hz-1 kHz and are 0.72 m2 each (0.6 x 1.2 m); typical values, not a specific product.",
           "Panels mainly control mid and high frequencies; low-frequency decay needs bass traps."
@@ -288,7 +288,7 @@
           "id": "rt60",
           "label": "Reverberation",
           "status": "fail",
-          "reason": "Mid RT60 (500 Hz-1 kHz) 1.99 s, outside the workable range (0.2-0.8 s).",
+          "reason": "Mid RT60 (500 Hz-1 kHz) 1.86 s, outside the workable range (0.2-0.8 s).",
           "treatable": true
         },
         {
@@ -309,7 +309,7 @@
           "id": "hf_ratio",
           "label": "High-frequency decay",
           "status": "caution",
-          "reason": "RT60 at 4 kHz is 0.64x the mid RT60 (ideal >= 0.7x); lower means the room swallows string brightness. Sabine here ignores air absorption.",
+          "reason": "RT60 at 4 kHz is 0.54x the mid RT60 (ideal >= 0.7x); lower means the room swallows string brightness. Air absorption is included.",
           "treatable": true
         },
         {
@@ -326,12 +326,12 @@
           0.3,
           0.6
         ],
-        "current_mid_s": 1.9944255415056578,
-        "added_sabins": 14.459590181524057,
-        "panel_area_m2": 17.09165883868655,
-        "panels": 24,
-        "coverage": 0.14833513989118374,
-        "reason": "To bring mid RT60 from 1.99 s to 0.60 s, add about 14.5 m2 of absorption: roughly 17.1 m2 of panels (24 panels), covering 15% of the room's surfaces.",
+        "current_mid_s": 1.8572547581802674,
+        "added_sabins": 12.372274095459638,
+        "panel_area_m2": 14.642108930598171,
+        "panels": 21,
+        "coverage": 0.12707597881640953,
+        "reason": "To bring mid RT60 from 1.86 s to 0.60 s, add about 12.4 m2 of absorption: roughly 14.6 m2 of panels (21 panels), covering 13% of the room's surfaces.",
         "assumptions": [
           "Panels absorb 0.9 at 500 Hz-1 kHz and are 0.72 m2 each (0.6 x 1.2 m); typical values, not a specific product.",
           "Panels mainly control mid and high frequencies; low-frequency decay needs bass traps."
@@ -349,7 +349,7 @@
           "id": "rt60",
           "label": "Reverberation",
           "status": "fail",
-          "reason": "Mid RT60 (500 Hz-1 kHz) 1.99 s, outside the workable range (<= 0.9 s).",
+          "reason": "Mid RT60 (500 Hz-1 kHz) 1.86 s, outside the workable range (<= 0.9 s).",
           "treatable": true
         },
         {
@@ -377,7 +377,7 @@
           "id": "bass_ratio",
           "label": "Bass decay",
           "status": "pass",
-          "reason": "RT60 at 125-250 Hz is 0.37x the 500 Hz-1 kHz RT60 (ideal <= 1.5x); below the Schroeder frequency this is only indicative.",
+          "reason": "RT60 at 125-250 Hz is 0.36x the 500 Hz-1 kHz RT60 (ideal <= 1.5x); below the Schroeder frequency this is only indicative.",
           "treatable": true
         }
       ],
@@ -387,12 +387,12 @@
           null,
           0.6
         ],
-        "current_mid_s": 1.9944255415056578,
-        "added_sabins": 14.459590181524057,
-        "panel_area_m2": 17.09165883868655,
-        "panels": 24,
-        "coverage": 0.14833513989118374,
-        "reason": "To bring mid RT60 from 1.99 s to 0.60 s, add about 14.5 m2 of absorption: roughly 17.1 m2 of panels (24 panels), covering 15% of the room's surfaces.",
+        "current_mid_s": 1.8572547581802674,
+        "added_sabins": 12.372274095459638,
+        "panel_area_m2": 14.642108930598171,
+        "panels": 21,
+        "coverage": 0.12707597881640953,
+        "reason": "To bring mid RT60 from 1.86 s to 0.60 s, add about 12.4 m2 of absorption: roughly 14.6 m2 of panels (21 panels), covering 13% of the room's surfaces.",
         "assumptions": [
           "Panels absorb 0.9 at 500 Hz-1 kHz and are 0.72 m2 each (0.6 x 1.2 m); typical values, not a specific product.",
           "Panels mainly control mid and high frequencies; low-frequency decay needs bass traps."

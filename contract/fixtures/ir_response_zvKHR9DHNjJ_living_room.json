@@ -4,7 +4,7 @@
   "label": "Living Room",
   "sample_rate": 48000,
   "duration_s": 2.9048333333333334,
-  "wav_base64": "<base64 float32 mono 48 kHz WAV omitted from fixture>",
+  "wav_base64": "<base64 float32 mono WAV, omitted>",
   "bands_hz": [
     125,
     250,
@@ -13,13 +13,21 @@
     2000,
     4000
   ],
-  "sabine_rt60_s": [
-    0.4224494699529891,
-    1.050614571578749,
-    1.7223717890281522,
-    2.266479293983163,
-    1.5955838105229456,
-    1.267139327490714
+  "report_rt60_s": [
+    0.36562893238381816,
+    0.9884226053979114,
+    1.6256282522976742,
+    2.0888812640628607,
+    1.4175475747098798,
+    1.0055778195039877
+  ],
+  "ir_rt60_s": [
+    0.8216203865514246,
+    1.163557723139654,
+    1.648572530213012,
+    1.9272143945843763,
+    1.446161951302486,
+    1.0546079121819014
   ],
   "params": {
     "method": "pyroomacoustics hybrid image-source + ray tracing",
@@ -44,16 +52,9 @@
     ]
   },
   "notes": [
-    "Modeled approximation of an empty room from geometry and assumed materials; not a recording of the real space.",
+    "Modeled approximation from geometry, assumed materials and furniture (its absorption spread over the surfaces); not a recording of the real space.",
     "Surface scattering of 0.5 is an assumption.",
-    "Measured RT60 below the Schroeder frequency (~322 Hz) is modal and can differ strongly from the Sabine value."
-  ],
-  "ir_rt60_s": [
-    0.8216203865587319,
-    1.1635577231396559,
-    1.6485725302130125,
-    1.9272143945843767,
-    1.4461619513024846,
-    1.054607912181902
+    "Both the IR and the report's RT60 include air absorption (ISO 9613-1).",
+    "IR decay below the Schroeder frequency (~310 Hz) is modal and can differ strongly from the statistical (Eyring) value."
   ]
 }

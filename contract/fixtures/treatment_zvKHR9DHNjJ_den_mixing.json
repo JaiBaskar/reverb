@@ -48,8 +48,8 @@
       "product_id": "panel_100",
       "group": "first_reflection",
       "center": [
-        1.8772369785318894,
-        1.158961920626601,
+        1.6789633680345981,
+        1.1585505463407657,
         1.2251613348749535
       ],
       "normal": [
@@ -66,9 +66,21 @@
       "height_m": 1.2,
       "depth_m": 0.1,
       "wall": 3,
-      "where": "right wall, 3.00 m along it, centred 1.20 m up",
-      "reason": "First reflection of the right speaker: arrives 4.2 ms after the direct sound at -5.3 dB.",
+      "where": "right wall, 2.80 m along it, centred 1.20 m up",
+      "reason": "First reflections after the direct sound: left speaker 9.1 ms at -8.9 dB; right speaker 4.2 ms at -5.3 dB.",
       "status": "blocked",
+      "covers": [
+        [
+          1.4807934963554432,
+          1.1081392796724705,
+          1.2251613348749535
+        ],
+        [
+          1.8773407173500254,
+          1.1089620282441408,
+          1.2251613348749535
+        ]
+      ],
       "adjustment": null,
       "blocked_by": [
         {
@@ -84,21 +96,6 @@
             2.7,
             3.317,
             1.257
-          ]
-        },
-        {
-          "id": "w3-0",
-          "label": "artwork",
-          "kind": "wall_object",
-          "min": [
-            1.9830870216833567,
-            1.109181686931418,
-            1.5104635953903198
-          ],
-          "max": [
-            2.6310720659367552,
-            1.1705257264548972,
-            2.267741516940575
           ]
         },
         {
@@ -144,6 +141,7 @@
       "where": "Corner between the right wall and the front wall, floor to ceiling",
       "reason": "Every room mode has a pressure maximum in the corners, so a trap there damps all of them at once.",
       "status": "blocked",
+      "covers": [],
       "adjustment": null,
       "blocked_by": [
         {
@@ -219,6 +217,7 @@
       "where": "Ceiling, centred over the reflection points between the speakers and the listener, hung 150 mm down",
       "reason": "Ceiling reflection: left speaker 5.1 ms at -6.0 dB, right speaker 5.1 ms at -6.0 dB.",
       "status": "ok",
+      "covers": [],
       "adjustment": null,
       "blocked_by": []
     },
@@ -248,6 +247,7 @@
       "where": "front wall, 0.60 m along it, centred 1.2 m up",
       "reason": "Adds broadband absorption to bring the overall reverberation time to the target.",
       "status": "replaced",
+      "covers": [],
       "adjustment": "replaced by a half-size panel moved 0.3 m lower to clear artwork",
       "blocked_by": []
     },
@@ -277,6 +277,7 @@
       "where": "rear wall, 0.60 m along it, centred 1.2 m up",
       "reason": "Adds broadband absorption to bring the overall reverberation time to the target.",
       "status": "blocked",
+      "covers": [],
       "adjustment": null,
       "blocked_by": [
         {
@@ -353,7 +354,7 @@
     {
       "id": "reverb",
       "title": "Too much reverberation",
-      "detail": "Mid-band RT60 is 0.58 s; mixing wants 0.13-0.23 s. Notes smear into each other and you hear the room more than the source.",
+      "detail": "Mid-band RT60 is 0.53 s; mixing wants 0.13-0.23 s. Notes smear into each other and you hear the room more than the source.",
       "severity": "high",
       "addressed_by": [
         "coverage",
@@ -361,17 +362,17 @@
         "ceiling",
         "corner"
       ],
-      "after": "Predicted 0.39 s after treatment."
+      "after": "Predicted 0.34 s after treatment."
     },
     {
       "id": "bass",
       "title": "Bass resonances (room modes)",
-      "detail": "Below ~240 Hz the room's modes dominate. Lowest axial modes: 44, 45, 63, 88, 91, 126 Hz; modes nearly on top of each other at 44/45 Hz, 88/91 Hz, 132/136 Hz boom on those notes; the biggest gap between modes is 40 Hz, so some notes are weak. 125 Hz rings for 0.29 s.",
+      "detail": "Below ~229 Hz the room's modes dominate. Lowest axial modes: 44, 45, 63, 88, 91, 126 Hz; modes nearly on top of each other at 44/45 Hz, 88/91 Hz, 132/136 Hz boom on those notes; the biggest gap between modes is 40 Hz, so some notes are weak. 125 Hz rings for 0.24 s.",
       "severity": "medium",
       "addressed_by": [
         "corner"
       ],
-      "after": "125 Hz decay predicted 0.26 s. Traps shorten the ringing; the modes stay where they are."
+      "after": "125 Hz decay predicted 0.21 s. Traps shorten the ringing; the modes stay where they are."
     },
     {
       "id": "reflections",
@@ -459,20 +460,20 @@
       4000
     ],
     "before_rt60_s": [
-      0.29139728250482255,
-      0.4838832863536722,
-      0.5651128606754053,
-      0.5960488543327388,
-      0.5418666798805047,
-      0.5084216834648391
+      0.24310493166270306,
+      0.4355567692623792,
+      0.514296908800166,
+      0.5415284326525388,
+      0.48166065288972476,
+      0.42807054461376837
     ],
     "after_rt60_s": [
-      0.25793404135531267,
-      0.35162184678441216,
-      0.38434727220260967,
-      0.3974119965926613,
-      0.3752192646328438,
-      0.36368375250672474
+      0.20922769624426943,
+      0.3033470925963978,
+      0.3352199545547738,
+      0.34688270400535165,
+      0.32183128652253906,
+      0.3000839529792417
     ],
     "target_low_s": [
       0.13452216543121825,
@@ -483,19 +484,19 @@
       0.13452216543121825
     ],
     "target_high_s": [
-      0.3845221654312183,
+      0.33623846831429743,
       0.2345221654312183,
       0.2345221654312183,
       0.2345221654312183,
       0.2345221654312183,
       0.2345221654312183
     ],
-    "mid_before_s": 0.5805808575040721,
-    "mid_after_s": 0.3908796343976355,
-    "bass_ratio_before": 0.6676766541971779,
-    "bass_ratio_after": 0.779723263248391,
-    "schroeder_before_hz": 240.32477870140607,
-    "schroeder_after_hz": 197.19173879767754,
+    "mid_before_s": 0.5279126707263524,
+    "mid_after_s": 0.34105132928006276,
+    "bass_ratio_before": 0.6427783784686537,
+    "bass_ratio_after": 0.7514628222131245,
+    "schroeder_before_hz": 229.16497282429577,
+    "schroeder_after_hz": 184.19467388356276,
     "reflections": [
       {
         "source": "left speaker",
@@ -583,36 +584,36 @@
     {
       "summary": "first-reflection panels (100 mm), 1 corner bass traps, ceiling cloud, 2 extra wall panels",
       "items": 5,
-      "mid_rt60_s": 0.3908796343976355,
-      "score": 63.97,
+      "mid_rt60_s": 0.34105132928006276,
+      "score": 40.07,
       "chosen": true
     },
     {
       "summary": "first-reflection panels (50 mm), 1 corner bass traps, ceiling cloud, 2 extra wall panels",
       "items": 5,
-      "mid_rt60_s": 0.3908796343976355,
-      "score": 64.14,
+      "mid_rt60_s": 0.34105132928006276,
+      "score": 40.17,
       "chosen": false
     },
     {
       "summary": "first-reflection panels (100 mm), ceiling cloud, 2 extra wall panels",
       "items": 4,
-      "mid_rt60_s": 0.43066732449518796,
-      "score": 86.14,
+      "mid_rt60_s": 0.3804282929910975,
+      "score": 54.47,
       "chosen": false
     },
     {
       "summary": "first-reflection panels (50 mm), ceiling cloud, 2 extra wall panels",
       "items": 4,
-      "mid_rt60_s": 0.43066732449518796,
-      "score": 86.38,
+      "mid_rt60_s": 0.3804282929910975,
+      "score": 54.63,
       "chosen": false
     },
     {
       "summary": "first-reflection panels (100 mm), 1 corner bass traps, 2 extra wall panels",
       "items": 4,
-      "mid_rt60_s": 0.449525764972462,
-      "score": 107.79,
+      "mid_rt60_s": 0.39905646019550434,
+      "score": 71.84,
       "chosen": false
     }
   ],
@@ -1327,10 +1328,10 @@
     "7 window(s), door(s) or fixture(s) the walls agent found are kept clear at their real size.",
     "The wall behind the listening position has an opening there; no rear treatment.",
     "The left speaker's reflection off the front wall lands on an opening; it cannot take a panel (a heavy curtain helps if it is a window).",
-    "The right speaker's reflection off the front wall lands on an opening; it cannot take a panel (a heavy curtain helps if it is a window).",
     "The left speaker's reflection off the left wall lands on an opening; it cannot take a panel (a heavy curtain helps if it is a window).",
-    "The right speaker's reflection off the left wall lands on an opening; it cannot take a panel (a heavy curtain helps if it is a window).",
     "The left speaker's reflection off the rear wall lands on an opening; it cannot take a panel (a heavy curtain helps if it is a window).",
+    "The right speaker's reflection off the front wall lands on an opening; it cannot take a panel (a heavy curtain helps if it is a window).",
+    "The right speaker's reflection off the left wall lands on an opening; it cannot take a panel (a heavy curtain helps if it is a window).",
     "The right speaker's reflection off the rear wall lands on an opening; it cannot take a panel (a heavy curtain helps if it is a window)."
   ],
   "assumptions": [
@@ -1344,7 +1345,7 @@
   ],
   "limitations": [
     "Every result is a simulation from geometry and typical absorption values, not a measurement. Measure the treated room (e.g. with REW and a measurement mic) to confirm.",
-    "Reverberation uses Sabine's formula with diffuse-field assumptions; small rooms below the Schroeder frequency (~240 Hz) behave modally and differ from it.",
+    "Reverberation uses Eyring's formula with air absorption (diffuse-field assumptions); small rooms below the Schroeder frequency (~229 Hz) behave modally and differ from it.",
     "Reflection points use first-order image sources off flat walls; furniture is not an obstacle in that calculation.",
     "Furniture and building overlaps use Matterport's meshes (furnished minus defurnished); thin objects under 7 cm deep (flat art) are only known when the walls agent saw them.",
     "Bass traps shorten modal ringing; they do not remove the modes themselves."
