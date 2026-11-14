@@ -13,6 +13,7 @@ from noise_scout.router import router as noise_scout_router
 from properties.custom import CustomRoom, custom_room_to_room
 from properties.matterport import MatterportError
 from properties.models import Property, Room
+from properties.router import router as viewer_router
 from properties.service import get_property, get_rooms, is_known, list_properties
 from suitability.router import router as suitability_router
 
@@ -28,6 +29,7 @@ app.include_router(noise_scout_router)
 app.include_router(suitability_router)
 app.include_router(costar_router)
 app.include_router(catalog_router)
+app.include_router(viewer_router)
 
 
 @app.get("/health")

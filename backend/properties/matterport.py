@@ -32,21 +32,26 @@ def fetch_model(sid: str, *, use_cache: bool = True) -> dict:
     if use_cache and cache.exists():
         return json.loads(cache.read_text())
 
-    key, token = os.environ.get("MATTERPORT_API_KEY"), os.environ.get("MATTERPORT_API_TOKEN")
-    if not key or not token:
-        raise MatterportError("MATTERPORT_API_KEY / MATTERPORT_API_TOKEN not set in .env")
-    resp = httpx.post(
-        ENDPOINT,
-        auth=(key, token),
-        json={"query": MODEL_QUERY, "variables": {"id": sid}},
-        timeout=60,
-    )
-    if resp.status_code != 200:
-        raise MatterportError(f"Matterport HTTP {resp.status_code} for {sid}")
-    body = resp.json()
+    body = graphql(MODEL_QUERY, {"id": sid})
     model = (body.get("data") or {}).get("model")
     if not model:
         raise MatterportError(f"model {sid} not found or not shared: {body.get('errors')}")
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
     cache.write_text(json.dumps(model))
     return model
+
+
+def graphql(query: str, variables: dict) -> dict:
+    """POST one query to the Matterport Model API with basic auth."""
+    key, token = os.environ.get("MATTERPORT_API_KEY"), os.environ.get("MATTERPORT_API_TOKEN")
+    if not key or not token:
+        raise MatterportError("MATTERPORT_API_KEY / MATTERPORT_API_TOKEN not set in .env")
+    try:
+        resp = httpx.post(
+            ENDPOINT, auth=(key, token), json={"query": query, "variables": variables}, timeout=60
+        )
+    except httpx.HTTPError as e:
+        raise MatterportError(f"Matterport unreachable: {e}") from e
+    if resp.status_code != 200:
+        raise MatterportError(f"Matterport HTTP {resp.status_code}")
+    return resp.json()

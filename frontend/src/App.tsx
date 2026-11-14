@@ -16,6 +16,7 @@ import { useReport } from './features/numbers/useReport'
 import { CustomRoomForm } from './features/rooms/CustomRoomForm'
 import { RoomPicker, type Slot } from './features/rooms/RoomPicker'
 import { SuitabilityPanel } from './features/suitability/SuitabilityPanel'
+import { ModelViewer } from './features/viewer/ModelViewer'
 import { customRoomToRoom, type CustomRoomSpec, type SlotRef } from './roomRef'
 import type { CatalogEntry, CatalogPoints, MaterialCatalog, MaterialSelection, Property, Room } from './types'
 import { Step, Stepper, Tag } from './ui/journey'
@@ -191,10 +192,10 @@ export default function App() {
             subtitle={
               selected
                 ? [entry?.type_label ?? entry?.kind, entry?.name, prop?.name].filter(Boolean).join(' · ')
-                : 'Facts from CoStar and the noise sources around it.'
+                : 'The 3D scan from Matterport, facts from CoStar and the noise sources around it.'
             }
-            aside={selected && <Tag>CoStar + OpenStreetMap</Tag>}
-            hint={selected ? 'Check the surroundings on the map, then pick a room below.' : undefined}
+            aside={selected && <Tag>Matterport + CoStar + OpenStreetMap</Tag>}
+            hint={selected ? 'Walk through the 3D model and check the surroundings on the map, then pick a room below.' : undefined}
           >
             {!selected ? (
               <Placeholder>Select a property on the map or from the list to see its facts and surroundings.</Placeholder>
@@ -226,6 +227,7 @@ export default function App() {
                     ))}
                   </div>
                 )}
+                <ModelViewer sid={selected} />
                 <FactsCard sid={selected} />
                 <NoisePanel noise={noise} />
                 <details>
