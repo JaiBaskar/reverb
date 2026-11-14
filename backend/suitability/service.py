@@ -120,6 +120,40 @@ def _checks(rep: AcousticReport, rules: dict) -> list[Check]:
                     ),
                 )
             )
+    if "hf_ratio" in rules:
+        hr = metrics.hf_ratio(rt, bands)
+        status, _ = _grade(hr, rules["hf_ratio"])
+        out.append(
+            Check(
+                id="hf_ratio",
+                label="High-frequency decay",
+                status=status,
+                treatable=True,
+                reason=(
+                    f"RT60 at 4 kHz is {hr:.2f}x the mid RT60 "
+                    f"(ideal {_fmt_range(rules['hf_ratio']['good'], 'x')}); lower means the "
+                    "room swallows string brightness. Sabine here ignores air absorption."
+                ),
+            )
+        )
+    if "reflection_gap_ms" in rules:
+        gap = metrics.reflection_gap_ms(rep.early_reflections)
+        if gap is not None:
+            status, _ = _grade(gap, rules["reflection_gap_ms"])
+            out.append(
+                Check(
+                    id="reflection_gap",
+                    label="Early reflections",
+                    status=status,
+                    treatable=False,
+                    reason=(
+                        f"First wall or ceiling reflection arrives {gap:.1f} ms after the "
+                        f"direct sound (ideal {_fmt_range(rules['reflection_gap_ms']['good'], ' ms')}"
+                        "); earlier ones comb-filter the tone. Default source and mic "
+                        "positions; the floor bounce is excluded."
+                    ),
+                )
+            )
     if "bass_ratio" in rules:
         br = metrics.bass_ratio(rt, bands)
         status, _ = _grade(br, rules["bass_ratio"])

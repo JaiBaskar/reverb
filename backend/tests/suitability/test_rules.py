@@ -3,7 +3,10 @@ import pytest
 from suitability.service import assess
 from tests.suitability.conftest import with_rt60
 
-USE_CASES = {"vocal", "instrument", "production", "mixing", "critical_listening", "podcasting"}
+USE_CASES = {
+    "vocal", "instrument", "production", "mixing", "critical_listening", "podcasting",
+    "acoustic_guitar", "electric_guitar",
+}  # fmt: skip
 
 
 def fit(report, use_case):

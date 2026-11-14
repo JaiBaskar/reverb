@@ -5,7 +5,9 @@ import type {
   MaterialSelection,
   Property,
   Room,
+  TourLayout,
 } from './types'
+import type { SuitabilityReport } from './features/suitability/types'
 
 async function get<T>(path: string): Promise<T> {
   const res = await fetch(`/api${path}`)
@@ -46,4 +48,16 @@ export async function compareRooms(
   })
   if (!res.ok) throw new Error(`compare: HTTP ${res.status}`)
   return res.json() as Promise<Comparison>
+}
+
+export const fetchTour = (sid: string) => get<TourLayout>(`/properties/${sid}/tour`)
+
+export async function assessSuitability(report: AcousticReport): Promise<SuitabilityReport> {
+  const res = await fetch('/api/suitability', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(report),
+  })
+  if (!res.ok) throw new Error(`suitability: HTTP ${res.status}`)
+  return res.json() as Promise<SuitabilityReport>
 }

@@ -10,7 +10,7 @@ def test_post_report(living_room):
     resp = client.post("/suitability", json=living_room.model_dump(mode="json"))
     assert resp.status_code == 200
     r = SuitabilityReport.model_validate(resp.json())
-    assert len(r.fits) == 6
+    assert len(r.fits) == 8
 
 
 def test_malformed_body_422():

@@ -34,6 +34,10 @@ Shared files are small on purpose: `contract/` (JSON shapes and fixtures), the b
 ### A5 — Integration and hardening (with B)
 - Run the full demo flow with B's features merged; fix failures; error and missing-data states.
 
+### A6 — Matterport 3D acoustic tour (post-MVP)
+- `GET /properties/{sid}/tour` (room outlines + sweeps from the Matterport Model API); Bundle SDK floor tints per room; room-level heatmap from `/rooms/analyze` + `/suitability` (fit for a use case, RT60, Schroeder); acoustic and electric guitar profiles; record/upload a take and hear it in whichever room the tour is in, on one playhead.
+- Verified on zvKHR9DHNjJ in the browser: tour, room tracking, navigation, aligned floor tints, room audio switching. Floor-only tint; no wall materials, no point-by-point field.
+
 ## Series B — Understand it
 
 ### B1 — Noise evidence (deterministic)

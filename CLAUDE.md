@@ -6,7 +6,9 @@ Read PRD.md, CONTEXT.md, SLICES.md (phases), WORKFLOW.md (ownership, git, prompt
 - Backend run: `cd backend && uvicorn app.main:app --port 8000`
 - Backend checks: `cd backend && ruff check . && ruff format . && pytest -q`
 - Frontend: `cd frontend && npm install && npm run dev` (http://localhost:5173, proxies `/api` to :8000)
-- Frontend checks: `cd frontend && npm run build && npm run lint`
+- Frontend checks: `cd frontend && npm run build && npm run lint && npm test`
+- Matterport Bundle SDK (3D floor tints): `cd frontend && npm run setup:matterport` (copies the licensed showcase bundle into git-ignored `public/matterport-bundle/`; never commit it). Without it the tour falls back to the Embed SDK with no 3D tint.
+- Vite proxy target: `REVERB_API=http://localhost:8010 npm run dev` when :8000 is taken.
 
 ## Rules
 - Secrets live in `.env` at the repo root (git-ignored; never commit, never echo). `data/` and `backend/.cache/` are git-ignored.
@@ -24,3 +26,6 @@ Read PRD.md, CONTEXT.md, SLICES.md (phases), WORKFLOW.md (ownership, git, prompt
 - MapLibre: call `setWorkerUrl` with `maplibre-gl/dist/maplibre-gl-worker.mjs?url` (Vite moves the bundle, so the default worker URL 404s and tiles never render), and `map.resize()` on container resize.
 - API tests run offline: `backend/tests/test_api.py` monkeypatches `properties.service.fetch_model` with a recorded Matterport response.
 - Noise Scout (Deep Agents): needs `OPENROUTER_API_KEY` (preferred, uses `openrouter:anthropic/claude-sonnet-5.5` + `haiku-5.5`) or `ANTHROPIC_API_KEY` in `.env`; override with `NOISE_SCOUT_MODEL` / `NOISE_SCOUT_SUBAGENT_MODEL`. The LLM never supplies facts: findings must cite OSM ids returned by tools in that run, and dB claims are rejected (`noise_scout/validate.py`).
+- Matterport 3D tour (A6): the browser gets only `MATTERPORT_SDK_KEY` (domain-restricted; injected by `vite.config.ts`). Model API key/token stay server-side. Model API positions are z-up; SDK/three.js is y-up: sdk `(x, y, z)` = model `(x, z, -y)` (verified on zvKHR9DHNjJ).
+- SDK `Room.current` follows the camera, so during a fly-through it reports every room on the path; only trust it once `Sweep.current.sid` is non-empty. `Sweep.current.roomInfo` was wrong on zvKHR9DHNjJ; use `Room.current` or the Model API sweep->room map.
+- Self-hosted bundle 26.5.4 stays in `appphase.loading` with its loading screen up although the view works; `revealBundleView` hides `#loading-gui` once the SDK reports a mode. Do not assign the iframe `src` twice (React StrictMode) or the Embed showcase can stay black.

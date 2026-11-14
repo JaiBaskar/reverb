@@ -26,5 +26,8 @@
 - CoStar kit unpacked at `data/costar-kit/kit/`. The join works: `MatterportModelId` in `residential-listings.csv` / `commercial-properties.csv` to `data/*.jsonl`.
 - Matterport units: metric; `lat` and `long` arrive as strings.
 
+- Matterport Model API also gives per-room wall outlines (`rooms.boundary.edges`) and tour sweeps (`rooms.locations` / `locations.room`). On zvKHR9DHNjJ, 8 usable rooms have sweeps; bathrooms, hallways and the closet have none.
+- Showcase SDK on localhost works with `MATTERPORT_SDK_KEY` (Embed and self-hosted Bundle 26.5.4). SDK room ids = Model API room ids; SDK sweep sids = Model API location ids. Bundle `Scene` objects are depth-tested against the scan (furniture hides the tint).
+
 ## Not yet verified
 Pyroomacoustics install and IR quality, Deep Agents and its LLM provider key, Overpass API performance, `models_index.csv` (the catalog of model coordinates; it is on the hackathon site and not yet downloaded).

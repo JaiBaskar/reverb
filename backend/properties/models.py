@@ -23,6 +23,41 @@ class Room(BaseModel):
     issues: list[str]
 
 
+class TourFloor(BaseModel):
+    id: str
+    label: str | None
+    index: int
+
+
+class TourSweep(BaseModel):
+    id: str  # Matterport location id == Showcase SDK sweep sid
+    room_id: str | None
+    floor_index: int | None
+    position: list[float]  # model space [x, y, z], metres, z up
+
+
+class TourRoom(BaseModel):
+    room_id: str  # same id as Room.id and the SDK's Room.current ids
+    label: str
+    usable: bool
+    floor_index: int | None
+    polygon: list[list[float]] | None  # [[x, y], ...] wall centrelines, model space
+    polygon_provenance: Provenance
+    sweep_ids: list[str]
+    entry_sweep_id: str | None
+    entry_sweep_provenance: Provenance
+    navigable: bool
+    issues: list[str]
+
+
+class TourLayout(BaseModel):
+    sid: str
+    coordinate_note: str
+    floors: list[TourFloor]
+    rooms: list[TourRoom]
+    sweeps: list[TourSweep]
+
+
 class Property(BaseModel):
     sid: str
     name: str

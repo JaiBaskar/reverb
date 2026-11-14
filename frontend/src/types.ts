@@ -99,3 +99,35 @@ export interface Comparison {
   bass_ratio: number[]
   statements: string[]
 }
+
+// Mirrors backend/properties/models.py (TourLayout). See contract/fixtures/tour_zvKHR9DHNjJ.json.
+// Positions are Matterport model space (metres, z up); the Showcase SDK uses (x, z, -y).
+export interface TourRoom {
+  room_id: string
+  label: string
+  usable: boolean
+  floor_index: number | null
+  /** [[x, y], ...] wall centrelines; null when Matterport gives no closed outline. */
+  polygon: number[][] | null
+  polygon_provenance: Provenance
+  sweep_ids: string[]
+  entry_sweep_id: string | null
+  entry_sweep_provenance: Provenance
+  navigable: boolean
+  issues: string[]
+}
+
+export interface TourSweep {
+  id: string
+  room_id: string | null
+  floor_index: number | null
+  position: number[]
+}
+
+export interface TourLayout {
+  sid: string
+  coordinate_note: string
+  floors: { id: string; label: string | null; index: number }[]
+  rooms: TourRoom[]
+  sweeps: TourSweep[]
+}

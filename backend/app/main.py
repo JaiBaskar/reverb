@@ -10,8 +10,9 @@ from ir.service import IrResponse, build_ir
 from noise.router import router as noise_router
 from noise_scout.router import router as noise_scout_router
 from properties.matterport import MatterportError
-from properties.models import Property, Room
+from properties.models import Property, Room, TourLayout
 from properties.service import get_property, get_rooms, list_properties, shortlist_ids
+from properties.tour import get_tour
 from suitability.router import router as suitability_router
 
 app = FastAPI(title="REVERB")
@@ -59,6 +60,15 @@ def rooms(sid: str) -> list[Room]:
     _require_shortlisted(sid)
     try:
         return get_rooms(sid)
+    except MatterportError as e:
+        raise HTTPException(502, str(e)) from e
+
+
+@app.get("/properties/{sid}/tour", response_model=TourLayout)
+def tour(sid: str) -> TourLayout:
+    _require_shortlisted(sid)
+    try:
+        return get_tour(sid)
     except MatterportError as e:
         raise HTTPException(502, str(e)) from e
 

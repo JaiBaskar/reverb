@@ -34,8 +34,53 @@ export async function fetchIr(
 }
 
 export async function decodeDry(file: File): Promise<AudioBuffer> {
-  const full = await audioCtx().decodeAudioData(await file.arrayBuffer())
-  return trim(full, MAX_DRY_SECONDS)
+  return (await decodeAudioBlob(file)).buffer
+}
+
+/** Decode an uploaded or recorded take; keeps the first MAX_DRY_SECONDS and reports the original length. */
+export async function decodeAudioBlob(blob: Blob): Promise<{ buffer: AudioBuffer; originalSeconds: number }> {
+  const full = await audioCtx().decodeAudioData(await blob.arrayBuffer())
+  return { buffer: trim(full, MAX_DRY_SECONDS), originalSeconds: full.duration }
+}
+
+/** Largest absolute sample across channels (0 for digital silence). */
+export function peakLevel(buf: AudioBuffer): number {
+  let peak = 0
+  for (let ch = 0; ch < buf.numberOfChannels; ch++) {
+    const d = buf.getChannelData(ch)
+    for (let i = 0; i < d.length; i++) peak = Math.max(peak, Math.abs(d[i]))
+  }
+  return peak
+}
+
+const irCache = new Map<string, Promise<LoadedIr>>()
+
+/** Default-material IR for a room, fetched once per session. Failed loads are not cached. */
+export function cachedIr(sid: string, roomId: string): Promise<LoadedIr> {
+  const key = `${sid}/${roomId}`
+  let p = irCache.get(key)
+  if (!p) {
+    p = fetchIr(sid, roomId).catch((e: Error) => {
+      irCache.delete(key)
+      throw e
+    })
+    irCache.set(key, p)
+  }
+  return p
+}
+
+const matchCache = new WeakMap<AudioBuffer, Map<AudioBuffer, Promise<number>>>()
+
+/** Loudness-matching gain for dry-through-IR, from an offline render (cached per pair). */
+export function matchGainFor(dry: AudioBuffer, ir: AudioBuffer): Promise<number> {
+  let m = matchCache.get(dry)
+  if (!m) matchCache.set(dry, (m = new Map()))
+  let p = m.get(ir)
+  if (!p) {
+    p = renderThroughIr(dry, ir).then((wet) => analyzeRender(dry, wet).matchGain)
+    m.set(ir, p)
+  }
+  return p
 }
 
 /** Synthetic test signal (decaying noise bursts), clearly not a recording. */

@@ -7,6 +7,7 @@ import { MaterialEditor } from './features/materials/MaterialEditor'
 import { NoisePanel } from './features/noise/NoisePanel'
 import { NoiseScoutPanel } from './features/noise-scout/NoiseScoutPanel'
 import { SuitabilityPanel } from './features/suitability/SuitabilityPanel'
+import { TourExperience } from './features/tour/TourExperience'
 import { Explanation } from './features/numbers/Explanation'
 import { NumbersPanel } from './features/numbers/NumbersPanel'
 import { useComparison } from './features/numbers/useComparison'
@@ -22,6 +23,7 @@ export default function App() {
   const [error, setError] = useState<string | null>(null)
   const [catalog, setCatalog] = useState<MaterialCatalog | null>(null)
   const [materials, setMaterials] = useState<Record<Slot, MaterialSelection>>({ A: {}, B: {} })
+  const [view, setView] = useState<'analysis' | 'tour'>('analysis')
 
   useEffect(() => {
     fetchProperties()
@@ -45,6 +47,7 @@ export default function App() {
     setError(null)
     setPicked({ A: null, B: null })
     setMaterials({ A: {}, B: {} })
+    setView('analysis')
   }
 
   const prop = properties.find((p) => p.sid === selected)
@@ -63,13 +66,31 @@ export default function App() {
 
   return (
     <div className="flex h-screen flex-col">
-      <header className="border-b border-zinc-800 px-4 py-2">
+      <header className="flex items-center gap-3 border-b border-zinc-800 px-4 py-2">
         <span className="text-lg font-bold tracking-wide">REVERB</span>
-        <span className="ml-3 text-sm text-zinc-400">
+        <span className="hidden text-sm text-zinc-400 md:inline">
           Hear your future studio before you move in. Room data from Matterport; acoustics are modeled.
         </span>
+        {prop && (
+          <nav className="ml-auto flex rounded-lg bg-zinc-900 p-0.5 text-xs ring-1 ring-zinc-800" aria-label="View">
+            {(['analysis', 'tour'] as const).map((v) => (
+              <button
+                key={v}
+                onClick={() => setView(v)}
+                aria-pressed={view === v}
+                className={`rounded-md px-3 py-1 font-medium ${view === v ? 'bg-zinc-100 text-zinc-900' : 'text-zinc-300 hover:bg-zinc-800'}`}
+                data-testid={`view-${v}`}
+              >
+                {v === 'analysis' ? 'Map & analysis' : '3D acoustic tour'}
+              </button>
+            ))}
+          </nav>
+        )}
       </header>
       {error && <div className="bg-red-900/50 px-4 py-2 text-sm">Error: {error}</div>}
+      {prop && view === 'tour' ? (
+        <TourExperience key={prop.sid} sid={prop.sid} title={prop.address ?? prop.name} />
+      ) : (
       <main className="min-h-0 flex-1 overflow-auto lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] lg:overflow-hidden">
         <section className="flex flex-col border-zinc-800 lg:min-h-0 lg:border-r">
           <div className="h-64 lg:h-auto lg:min-h-0 lg:flex-1">
@@ -99,8 +120,19 @@ export default function App() {
             <p className="text-zinc-400">Select a property on the map or list.</p>
           ) : (
             <>
-              <h2 className="text-lg font-semibold">{prop.address}</h2>
-              <p className="mb-3 text-xs text-zinc-400">{prop.name}</p>
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <h2 className="text-lg font-semibold">{prop.address}</h2>
+                  <p className="mb-3 text-xs text-zinc-400">{prop.name}</p>
+                </div>
+                <button
+                  onClick={() => setView('tour')}
+                  className="rounded-lg bg-sky-400 px-3 py-1.5 text-xs font-semibold text-zinc-950 hover:bg-sky-300"
+                  data-testid="open-tour"
+                >
+                  Open 3D acoustic tour →
+                </button>
+              </div>
               <FactsCard sid={prop.sid} />
               {rooms == null ? (
                 <p className="text-sm text-zinc-500">Loading rooms from Matterport…</p>
@@ -157,6 +189,7 @@ export default function App() {
           )}
         </section>
       </main>
+      )}
     </div>
   )
 }
