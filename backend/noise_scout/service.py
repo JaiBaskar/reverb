@@ -8,7 +8,7 @@ from pathlib import Path
 
 from costar.service import get_facts
 from noise.service import get_noise_report
-from noise_scout.agent import MAIN_MODEL, SUBAGENT_MODEL, build_agent
+from noise_scout.agent import build_agent, models
 from noise_scout.models import NoiseScoutResult, ScoutDraft, TraceInfo
 from noise_scout.tools import ScoutContext, build_tools
 from noise_scout.validate import count_tool_calls, subagents_used, validate_draft
@@ -16,7 +16,11 @@ from properties.service import get_property
 
 log = logging.getLogger(__name__)
 
-PROVIDER_KEYS = {"anthropic": "ANTHROPIC_API_KEY", "openai": "OPENAI_API_KEY"}
+PROVIDER_KEYS = {
+    "anthropic": "ANTHROPIC_API_KEY",
+    "openai": "OPENAI_API_KEY",
+    "openrouter": "OPENROUTER_API_KEY",
+}
 
 
 def default_cache_dir() -> Path:
@@ -29,7 +33,7 @@ def _now() -> datetime:
 
 
 def missing_key() -> str | None:
-    for model in (MAIN_MODEL, SUBAGENT_MODEL):
+    for model in models():
         env = PROVIDER_KEYS.get(model.split(":", 1)[0])
         if env and not os.environ.get(env):
             return env
@@ -76,7 +80,10 @@ def run_scout(sid: str, *, cache_dir: Path | None = None) -> NoiseScoutResult:
             sid=sid,
             status="unavailable",
             generated_at=_now(),
-            notes=[f"Noise Scout needs {env} in .env. The OpenStreetMap noise report still works."],
+            notes=[
+                f"Noise Scout needs {env} (or OPENROUTER_API_KEY) in .env. "
+                "The OpenStreetMap noise report still works."
+            ],
         )
     prop = get_property(sid)
     if prop.lat is None or prop.lon is None:
@@ -97,6 +104,7 @@ def run_scout(sid: str, *, cache_dir: Path | None = None) -> NoiseScoutResult:
         ],
         cache_dir=cache_dir,
     )
+    main_model, subagent_model = models()
     tools = build_tools(ctx)
     context_tools = [t for t in tools if t.name == "get_property_context"]
     research_tools = [t for t in tools if t.name != "get_property_context"]
@@ -128,8 +136,8 @@ def run_scout(sid: str, *, cache_dir: Path | None = None) -> NoiseScoutResult:
             sid=sid,
             status="error",
             generated_at=_now(),
-            model=MAIN_MODEL,
-            subagent_model=SUBAGENT_MODEL,
+            model=main_model,
+            subagent_model=subagent_model,
             trace=_trace(run_id),
             notes=[f"Noise Scout failed: {type(exc).__name__}: {str(exc)[:300]}"],
         )
@@ -142,8 +150,8 @@ def run_scout(sid: str, *, cache_dir: Path | None = None) -> NoiseScoutResult:
         sid=sid,
         status="ok",
         generated_at=_now(),
-        model=MAIN_MODEL,
-        subagent_model=SUBAGENT_MODEL,
+        model=main_model,
+        subagent_model=subagent_model,
         summary=draft.summary,
         findings=findings,
         recording_advice=draft.recording_advice,

@@ -10,3 +10,4 @@ deepagents
 langchain
 langchain-anthropic
 langsmith
+langchain-openrouter

@@ -188,6 +188,7 @@ def test_run_scout_without_key_is_unavailable_not_an_error(monkeypatch, tmp_path
 
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     result = svc.run_scout("zvKHR9DHNjJ", cache_dir=tmp_path)
     assert result.status == "unavailable"
     assert "API_KEY" in result.notes[0]
@@ -215,3 +216,19 @@ def test_agent_builds_with_three_subagents():
     tools = build_tools(ctx)
     agent = build_agent(tools[:1], tools[1:])
     assert agent is not None
+
+
+def test_models_prefer_openrouter_when_its_key_is_set(monkeypatch):
+    from noise_scout.agent import models
+
+    monkeypatch.delenv("NOISE_SCOUT_MODEL", raising=False)
+    monkeypatch.delenv("NOISE_SCOUT_SUBAGENT_MODEL", raising=False)
+    monkeypatch.setenv("OPENROUTER_API_KEY", "x")
+    assert models() == (
+        "openrouter:anthropic/claude-sonnet-5.5",
+        "openrouter:anthropic/claude-haiku-5.5",
+    )
+    monkeypatch.delenv("OPENROUTER_API_KEY")
+    assert models()[0].startswith("anthropic:")
+    monkeypatch.setenv("NOISE_SCOUT_MODEL", "openrouter:some/model")
+    assert models()[0] == "openrouter:some/model"

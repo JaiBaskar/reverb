@@ -11,8 +11,25 @@ from langchain_core.tools import BaseTool
 
 from noise_scout.models import ScoutDraft
 
-MAIN_MODEL = os.environ.get("NOISE_SCOUT_MODEL", "anthropic:claude-sonnet-5-5")
-SUBAGENT_MODEL = os.environ.get("NOISE_SCOUT_SUBAGENT_MODEL", "anthropic:claude-haiku-5-5")
+DEFAULTS = {
+    "openrouter": (
+        "openrouter:anthropic/claude-sonnet-5.5",
+        "openrouter:anthropic/claude-haiku-5.5",
+    ),
+    "anthropic": ("anthropic:claude-sonnet-5-5", "anthropic:claude-haiku-5-5"),
+}
+
+
+def models() -> tuple[str, str]:
+    """(coordinator, specialist) model strings. Explicit env vars win; otherwise use
+    OpenRouter when its key is set, else Anthropic directly."""
+    provider = "openrouter" if os.environ.get("OPENROUTER_API_KEY") else "anthropic"
+    main, sub = DEFAULTS[provider]
+    return (
+        os.environ.get("NOISE_SCOUT_MODEL", main),
+        os.environ.get("NOISE_SCOUT_SUBAGENT_MODEL", sub),
+    )
+
 
 RULES = """
 Hard rules:
@@ -72,17 +89,19 @@ it is general guidance, not a measurement.
 
 
 def build_agent(context_tools: list[BaseTool], research_tools: list[BaseTool]):
+    main_model, subagent_model = models()
+
     def specialist(name: str, description: str, prompt: str) -> SubAgent:
         return {
             "name": name,
             "description": description,
             "system_prompt": prompt,
             "tools": research_tools,
-            "model": SUBAGENT_MODEL,
+            "model": subagent_model,
         }
 
     return create_deep_agent(
-        model=MAIN_MODEL,
+        model=main_model,
         tools=context_tools,
         system_prompt=MAIN_PROMPT,
         subagents=[
