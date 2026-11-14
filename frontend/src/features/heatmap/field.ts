@@ -72,7 +72,13 @@ export const RELIEF_M = 0.55
  * smooth), and height raised where the sound is worse. Model space (z up) is converted to the
  * Showcase SDK's three.js space: sdk (x, y, z) = model (x, z, -y).
  */
-export function buildFieldMesh(f: RoomField, floorZ: number, metric: FieldMetric, range: [number, number]) {
+export function buildFieldMesh(
+  f: RoomField,
+  floorZ: number,
+  metric: FieldMetric,
+  range: [number, number],
+  relief = RELIEF_M,
+) {
   const values = f[metric]
   const positions: number[] = []
   const colors: number[] = []
@@ -82,7 +88,7 @@ export function buildFieldMesh(f: RoomField, floorZ: number, metric: FieldMetric
     const t = normalise(metric, v, range)
     const [r, g, b] = ramp(t)
     return {
-      p: [f.origin[0] + i * f.step, floorZ + BASE_LIFT_M + RELIEF_M * (1 - t), -(f.origin[1] + j * f.step)],
+      p: [f.origin[0] + i * f.step, floorZ + BASE_LIFT_M + relief * (1 - t), -(f.origin[1] + j * f.step)],
       c: [r / 255, g / 255, b / 255],
     }
   }

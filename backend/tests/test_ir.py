@@ -69,3 +69,23 @@ def test_generate_ir_is_deterministic_under_concurrent_requests():
         results = [f.result() for f in futures]
     for r in results:
         assert np.array_equal(r, alone)
+
+
+def test_effective_alphas_carry_furniture_and_outline_absorption_into_the_simulation():
+    from acoustics.furniture import default_furnishing
+    from acoustics.report import analyze_room
+    from ir.service import effective_alphas
+    from properties.models import Field, Room
+
+    f = lambda v: Field(value=v, provenance="verified")
+    room = Room(id="r", label="Living Room", label_confidence=None, area_m2=f(20.0),
+                width_m=f(5.0), depth_m=f(4.0), height_m=f(2.7), usable=True, issues=[])  # fmt: skip
+    rep = analyze_room("s", room, furniture=default_furnishing("Living Room"))
+    g = rep.geometry
+    w, d, h = g.equivalent_width_m, g.equivalent_depth_m, g.height_m.value
+    areas = {"floor": w * d, "ceiling": w * d, "walls": 2 * (w + d) * h}
+    alphas = effective_alphas(rep, (w, d, h))
+    for b, target in enumerate(rep.absorption_sabins):
+        got = sum(areas[s] * alphas[s][b] for s in areas)
+        assert got == pytest.approx(target, rel=1e-6)
+    assert all(0 < a < 1 for v in alphas.values() for a in v)

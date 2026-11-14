@@ -75,3 +75,16 @@ export async function assessSuitability(report: AcousticReport): Promise<Suitabi
 }
 
 export const fetchFurniture = () => get<FurnitureCatalog>('/furniture')
+
+export interface DemoSide {
+  sid: string
+  room_id: string
+  label: string
+  address: string
+  why: string
+}
+export interface DemoPair {
+  good: DemoSide
+  bad: DemoSide
+}
+export const fetchDemo = () => get<DemoPair>('/demo')

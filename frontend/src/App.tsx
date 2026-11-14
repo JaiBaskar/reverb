@@ -1,6 +1,8 @@
 import { type ReactNode, useEffect, useState } from 'react'
-import { fetchCatalogPoints, fetchMaterials, fetchProperty, fetchRooms, searchCatalog } from './api'
+import { fetchCatalogPoints, fetchDemo, fetchMaterials, fetchProperty, fetchRooms, searchCatalog, type DemoPair } from './api'
 import { AudioLab } from './features/audio/AudioLab'
+import { ambienceLayers } from './features/audio/ambience'
+import { HouseVerdict, VerdictRules } from './features/decide/HouseVerdict'
 import { DiscoveryPanel } from './features/discovery/DiscoveryPanel'
 import { FactsCard } from './features/facts/FactsCard'
 import { FurnitureEditor } from './features/furniture/FurnitureEditor'
@@ -50,6 +52,7 @@ export default function App() {
   const [dryName, setDryName] = useState<string | null>(null)
   const [active, setActive] = useState<StepId>('discover')
   const [view, setView] = useState<View>({ kind: 'journey' })
+  const [demo, setDemo] = useState<DemoPair | null>(null)
 
   useEffect(() => {
     fetchCatalogPoints()
@@ -58,6 +61,9 @@ export default function App() {
     fetchMaterials()
       .then(setCatalog)
       .catch((e: Error) => setError(`Material presets unavailable (${e.message}).`))
+    fetchDemo()
+      .then(setDemo)
+      .catch(() => setDemo(null))
     searchCatalog('', '', '', 50)
       .then((r) => setDemos(r.results.filter((e) => e.demo_pick)))
       .catch(() => setDemos([]))
@@ -99,6 +105,12 @@ export default function App() {
 
   const noise = useNoise(selected)
   const risk = useNoiseRisk(selected, noise.report != null)
+  const riskA = useNoiseRisk(picked.A?.sid ?? null, picked.A != null)
+  const riskB = useNoiseRisk(picked.B?.sid ?? null, picked.B != null)
+  const outside = {
+    A: ambienceLayers(riskA.risk?.ranked ?? []),
+    B: ambienceLayers(riskB.risk?.ranked ?? []),
+  }
   const repA = useReport(picked.A?.sid ?? null, picked.A?.roomId ?? null, materials.A)
   const repB = useReport(picked.B?.sid ?? null, picked.B?.roomId ?? null, materials.B)
   const cmp = useComparison(
@@ -158,6 +170,15 @@ export default function App() {
     document.getElementById('workspace')?.scrollTo({ top: 0 })
   }
   const openTour = (sid: string, heatmap: boolean, title: string) => setView({ kind: 'tour', sid, heatmap, title })
+  const runDemo = () => {
+    if (!demo) return
+    const ref = (d: DemoPair['good']) => ({ sid: d.sid, roomId: d.room_id, label: d.label, address: d.address })
+    setPicked({ A: ref(demo.good), B: ref(demo.bad) })
+    setMaterials({ A: {}, B: {} })
+    if (selected !== demo.good.sid) selectProperty(demo.good.sid)
+    setView({ kind: 'journey' })
+    go('audition')
+  }
   const activeTitle = STEPS.find((s) => s.id === active)?.title ?? ''
   const tourRoomA = picked.A && !parseCustomRoomId(picked.A.roomId) ? picked.A : null
 
@@ -190,9 +211,15 @@ export default function App() {
           key={`${view.sid}-${view.heatmap}`}
           sid={view.sid}
           title={view.title}
-          initialHeatmap={view.heatmap}
+          startChoosing={view.heatmap}
           onBack={() => setView({ kind: 'journey' })}
           backLabel={`Back to ${activeTitle}`}
+          onUseRoom={(slot, roomId, label) => {
+            setPicked((x) => ({ ...x, [slot]: { sid: view.sid, roomId, label, address: view.title } }))
+            setMaterials((m) => ({ ...m, [slot]: {} }))
+            setView({ kind: 'journey' })
+            go('analyze')
+          }}
         />
       ) : (
         <main className="min-h-0 flex-1 overflow-auto lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] lg:overflow-hidden">
@@ -224,7 +251,7 @@ export default function App() {
             <div className="flex-1 space-y-4 pb-4">
               {active === 'discover' && (
                 <>
-                  <Welcome demos={demos} onSelect={selectProperty} />
+                  <Welcome demos={demos} onSelect={selectProperty} demo={demo} onDemo={runDemo} />
                   {selected && (
                     <p className="rounded-lg bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">
                       Selected: {address || selected}. Press <b>Next</b> to explore it.
@@ -289,7 +316,7 @@ export default function App() {
                             className="rounded-lg bg-gradient-to-r from-rose-500 via-amber-400 to-cyan-400 px-3 py-1.5 text-xs font-semibold text-black"
                             data-testid="open-heatmap"
                           >
-                            Show acoustic heatmap in 3D
+                            Choose my music room (3D heatmap)
                           </button>
                         </div>
                       )}
@@ -430,7 +457,7 @@ export default function App() {
                           className="mb-3 w-full rounded-lg bg-gradient-to-r from-rose-500 via-amber-400 to-cyan-400 px-3 py-2 text-sm font-semibold text-black"
                           data-testid="analyze-heatmap"
                         >
-                          See where the sound is good or bad: 3D heatmap of {tourRoomA.address}
+                          Choose your music room in 3D and see where the sound is good or bad: {tourRoomA.address}
                         </button>
                       )}
                       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -489,7 +516,7 @@ export default function App() {
                   {!picked.A && !picked.B ? (
                     <Placeholder>Pick a room first (step 3); its impulse response is generated with Pyroomacoustics.</Placeholder>
                   ) : (
-                    <AudioLab a={picked.A} b={picked.B} materials={materials} onDry={setDryName} />
+                    <AudioLab a={picked.A} b={picked.B} materials={materials} onDry={setDryName} outside={outside} />
                   )}
                 </Step>
               )}
@@ -530,7 +557,28 @@ export default function App() {
                 >
                   {repA.report || repB.report ? (
                     <>
-                      <SuitabilityPanel a={repA.report} b={repB.report} />
+                      <div className="mb-3 grid grid-cols-1 gap-3 md:grid-cols-2" data-testid="house-verdicts">
+                        {(['A', 'B'] as Slot[])
+                          .filter((s) => picked[s])
+                          .map((slot) => (
+                            <HouseVerdict
+                              key={slot}
+                              slot={slot}
+                              address={picked[slot]!.address}
+                              roomLabel={picked[slot]!.label}
+                              report={reports[slot].report}
+                              risk={(slot === 'A' ? riskA : riskB).risk}
+                              riskLoading={(slot === 'A' ? riskA : riskB).loading}
+                            />
+                          ))}
+                      </div>
+                      <VerdictRules />
+                      <details className="mt-3">
+                        <summary className="cursor-pointer text-xs text-zinc-400 hover:text-zinc-200">
+                          Suitability for every use (vocals, instruments, mixing, podcasting, guitars)
+                        </summary>
+                        <SuitabilityPanel a={repA.report} b={repB.report} />
+                      </details>
                       {tourRoomA && (
                         <button
                           onClick={() => openTour(tourRoomA.sid, true, tourRoomA.address)}
@@ -566,7 +614,17 @@ function Placeholder({ children }: { children: ReactNode }) {
   )
 }
 
-function Welcome({ demos, onSelect }: { demos: CatalogEntry[]; onSelect: (sid: string) => void }) {
+function Welcome({
+  demos,
+  onSelect,
+  demo,
+  onDemo,
+}: {
+  demos: CatalogEntry[]
+  onSelect: (sid: string) => void
+  demo: DemoPair | null
+  onDemo: () => void
+}) {
   return (
     <div className="rounded-xl border border-zinc-800 bg-gradient-to-br from-zinc-900 to-zinc-950 p-5" data-testid="welcome">
       <h1 className="text-xl font-semibold text-zinc-100">Find a property, understand its acoustics, hear it.</h1>
@@ -592,6 +650,28 @@ function Welcome({ demos, onSelect }: { demos: CatalogEntry[]; onSelect: (sid: s
           </li>
         ))}
       </ol>
+      {demo && (
+        <div className="mt-4 rounded-lg border border-amber-400/40 bg-amber-400/5 p-3" data-testid="demo-pair">
+          <div className="text-sm font-semibold text-amber-200">Demo: a good house vs a bad house</div>
+          <div className="mt-1 grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
+            <div>
+              <span className="font-semibold text-sky-300">A · {demo.good.address}</span>
+              <div className="text-zinc-400">{demo.good.why}</div>
+            </div>
+            <div>
+              <span className="font-semibold text-fuchsia-300">B · {demo.bad.address}</span>
+              <div className="text-zinc-400">{demo.bad.why}</div>
+            </div>
+          </div>
+          <button
+            onClick={onDemo}
+            className="mt-2 rounded-md bg-amber-400 px-3 py-1.5 text-xs font-semibold text-black hover:bg-amber-300"
+            data-testid="run-demo"
+          >
+            Load both and listen →
+          </button>
+        </div>
+      )}
       {demos.length > 0 && (
         <div className="mt-4">
           <div className="mb-1.5 text-xs text-zinc-500">Start with a demo pick, or use the map and list on the left:</div>

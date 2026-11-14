@@ -25,8 +25,10 @@ import { roomFloorHeight } from '../matterport/geometry'
 interface Props {
   sid: string
   title: string
-  /** Open straight into the acoustic heatmap (dollhouse view). */
-  initialHeatmap?: boolean
+  /** Open straight into "choose your music room" (top-down view). */
+  startChoosing?: boolean
+  /** Make the chosen music room Room A or B in the journey. */
+  onUseRoom?: (slot: 'A' | 'B', roomId: string, label: string) => void
   onBack?: () => void
   backLabel?: string
 }
@@ -34,8 +36,12 @@ interface Props {
 type OverlayStatus = 'pending' | 'on' | 'unavailable' | 'error'
 
 /** Matterport tour + room-level acoustic heatmap + room audio, for one property. */
-export function TourExperience({ sid, title, initialHeatmap = false, onBack, backLabel }: Props) {
-  const [heat, setHeat] = useState(initialHeatmap)
+export function TourExperience({ sid, title, startChoosing = false, onBack, backLabel, onUseRoom }: Props) {
+  // Tour first; then "Choose my music room" switches to the top-down view, and the room you click
+  // gets the heatmap (one room only, so the rest of the model stays clean).
+  const [choosing, setChoosing] = useState(startChoosing)
+  const [musicRoom, setMusicRoom] = useState<string | null>(null)
+  const heat = musicRoom != null
   const [metric, setMetric] = useState<FieldMetric>('bass_spread_db')
   const [placing, setPlacing] = useState(false)
   const fieldOverlay = useRef<FieldOverlay | null>(null)
@@ -65,7 +71,10 @@ export function TourExperience({ sid, title, initialHeatmap = false, onBack, bac
   const layoutError = loaded?.sid === sid ? (loaded.error ?? null) : null
 
   const tour = useTourState(conn?.sdk ?? null)
-  const insights = useInsights(sid, heat)
+  const insights = useInsights(sid, heat || choosing)
+  // The showcase has settled into a view (its opening fly-in is a transition too); switching
+  // views before that makes Matterport throw ViewmodeActiveTransition.
+  const settled = tour.mode != null && tour.mode !== 'mode.transitioning'
   const acoustics = useHouseAcoustics(sid, layout?.rooms ?? null)
   const current = useMemo(
     () => (layout ? resolveCurrentRoom(tour.roomIds, tour.sweepId, layout) : null),
@@ -105,15 +114,15 @@ export function TourExperience({ sid, title, initialHeatmap = false, onBack, bac
   useEffect(() => {
     if (overlayStatus !== 'on') return
     const paints: Record<string, { color: string; selected: boolean; hidden?: boolean }> = {}
-    for (const [id, c] of Object.entries(classes)) paints[id] = { color: c.color, selected: id === selectedId, hidden: heat }
+    for (const [id, c] of Object.entries(classes)) paints[id] = { color: c.color, selected: id === selectedId, hidden: heat || choosing }
     overlay.current?.paint(paints)
-  }, [classes, selectedId, overlayStatus, heat])
+  }, [classes, selectedId, overlayStatus, heat, choosing])
 
   // Heatmap: dollhouse view + continuous field overlay (Bundle SDK). Created once per connection.
   useEffect(() => {
-    if (!conn || !heat) return
-    conn.sdk.Mode.moveTo(conn.sdk.Mode.Mode.DOLLHOUSE).catch(() => undefined)
-  }, [conn, heat])
+    if (!conn || !(heat || choosing) || !settled || tour.mode === 'mode.floorplan') return
+    conn.sdk.Mode.moveTo(conn.sdk.Mode.Mode.FLOORPLAN).catch(() => undefined)
+  }, [conn, heat, choosing, settled]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!conn) return
     let live = true
@@ -144,10 +153,10 @@ export function TourExperience({ sid, title, initialHeatmap = false, onBack, bac
     const meshes: Record<string, FieldMeshInput> = {}
     for (const r of layout.rooms) {
       const ins = fieldRooms[r.room_id]
-      if (!ins) continue
+      if (!ins || r.room_id !== musicRoom) continue
       const z = roomFloorHeight(r, layout)
-      const mesh = buildFieldMesh(ins.field, z, metric, range)
-      const top = z + 0.65
+      const mesh = buildFieldMesh(ins.field, z, metric, range, 0.12)
+      const top = z + 0.25
       meshes[r.room_id] = {
         ...mesh,
         markers: [
@@ -156,8 +165,9 @@ export function TourExperience({ sid, title, initialHeatmap = false, onBack, bac
         ],
       }
     }
+    for (const id of Object.keys(fieldRooms)) if (!meshes[id]) meshes[id] = { positions: [], colors: [], markers: [] }
     ctl.update(meshes)
-  }, [fieldRooms, metric, range, heat, layout, conn, fieldReady, tour.mode])
+  }, [fieldRooms, metric, range, heat, layout, conn, fieldReady, tour.mode, musicRoom])
 
   const onConnected = useCallback((sdk: MpSdk, variant: Variant) => {
     // Dev-only handle for inspecting the SDK from the browser console.
@@ -169,7 +179,15 @@ export function TourExperience({ sid, title, initialHeatmap = false, onBack, bac
   const selectRoom = (room: TourRoom) => {
     setPick({ id: room.room_id, whileIn: currentId })
     setNavError(null)
-    if (!conn || !room.entry_sweep_id || heat) return // heatmap: stay in dollhouse view
+    if (choosing || heat) {
+      if (room.usable) {
+        setMusicRoom(room.room_id)
+        setChoosing(false)
+        setPlacing(false)
+      }
+      return // stay in the top-down view
+    }
+    if (!conn || !room.entry_sweep_id) return
     conn.sdk.Sweep.moveTo(room.entry_sweep_id, { transition: conn.sdk.Sweep.Transition.FLY }).catch((e: Error) =>
       setNavError(`Could not move the tour to ${room.label}: ${e.message}`),
     )
@@ -192,17 +210,32 @@ export function TourExperience({ sid, title, initialHeatmap = false, onBack, bac
             )}
             <button
               onClick={() => {
-                setHeat((h) => !h)
-                setPlacing(false)
+                if (heat || choosing) {
+                  setMusicRoom(null)
+                  setChoosing(false)
+                  setPlacing(false)
+                  conn?.sdk.Mode.moveTo(conn.sdk.Mode.Mode.INSIDE).catch(() => undefined)
+                } else setChoosing(true)
               }}
-              aria-pressed={heat}
+              aria-pressed={heat || choosing}
               className={`rounded-md px-3 py-1 text-xs font-semibold ${
-                heat ? 'bg-amber-400 text-black' : 'bg-gradient-to-r from-rose-500 via-amber-400 to-cyan-400 text-black'
+                heat || choosing ? 'bg-zinc-200 text-black' : 'bg-gradient-to-r from-rose-500 via-amber-400 to-cyan-400 text-black'
               }`}
               data-testid="heatmap-toggle"
             >
-              {heat ? 'Hide acoustic heatmap' : 'Show acoustic heatmap'}
+              {heat || choosing ? 'Back to walking the tour' : 'Choose my music room'}
             </button>
+            {heat && (
+              <button
+                onClick={() => {
+                  setMusicRoom(null)
+                  setChoosing(true)
+                }}
+                className="rounded-md bg-zinc-800 px-2.5 py-1 text-xs hover:bg-zinc-700"
+              >
+                Pick another room
+              </button>
+            )}
             {heat ? (
               <MetricPicker metric={metric} onChange={setMetric} />
             ) : (
@@ -228,6 +261,12 @@ export function TourExperience({ sid, title, initialHeatmap = false, onBack, bac
         {layoutError && <div className="rounded bg-red-900/40 px-2 py-1 text-xs">Tour layout: {layoutError}</div>}
         {!layout && !layoutError && <div className="text-xs text-zinc-500">Loading rooms and tour locations…</div>}
 
+        {choosing && (
+          <div className="rounded-xl bg-amber-400/10 p-3 text-sm text-amber-100 ring-1 ring-amber-400/40" data-testid="choose-hint">
+            <b>Choose your music room.</b> Click a room in the plan below, in the list, or in the top-down view: it gets a
+            heatmap of where the sound is good or bad, and advice for using it as a studio.
+          </div>
+        )}
         {heat && (insights.loading || insights.error) && (
           <p className="text-xs text-zinc-400">
             {insights.error ? `Heatmap unavailable: ${insights.error}` : 'Calculating the acoustic field for every room…'}
@@ -237,7 +276,7 @@ export function TourExperience({ sid, title, initialHeatmap = false, onBack, bac
           <div className="h-64 rounded-xl bg-zinc-900/60 p-2 ring-1 ring-zinc-800">
             <FieldPlan
               layout={layout}
-              rooms={fieldRooms}
+              rooms={musicRoom && fieldRooms[musicRoom] ? { [musicRoom]: fieldRooms[musicRoom] } : {}}
               metric={metric}
               range={range}
               selectedId={selectedId}
@@ -255,10 +294,10 @@ export function TourExperience({ sid, title, initialHeatmap = false, onBack, bac
         )}
         {heat && conn && tour.mode === 'mode.inside' && (
           <button
-            onClick={() => conn.sdk.Mode.moveTo(conn.sdk.Mode.Mode.DOLLHOUSE).catch(() => undefined)}
+            onClick={() => conn.sdk.Mode.moveTo(conn.sdk.Mode.Mode.FLOORPLAN).catch(() => undefined)}
             className="w-full rounded-md bg-amber-400 px-3 py-1.5 text-xs font-semibold text-black"
           >
-            The 3D heatmap shows in dollhouse view: go back to it
+            The heatmap shows from above: back to the top-down view
           </button>
         )}
         {heat && fieldReady === null && conn && (
@@ -326,22 +365,37 @@ export function TourExperience({ sid, title, initialHeatmap = false, onBack, bac
           />
         </section>
 
-        {heat && selected && fieldRooms[selected.room_id] ? (
-          <section className="rounded-xl bg-zinc-900/60 p-3 ring-1 ring-zinc-800">
+        {heat && musicRoom && fieldRooms[musicRoom] ? (
+          <section className="space-y-3 rounded-xl bg-zinc-900/60 p-3 ring-1 ring-zinc-800" data-testid="music-room">
+            <div className="text-[11px] uppercase tracking-wider text-amber-300">Your music room</div>
             <InsightPanel
-              room={fieldRooms[selected.room_id]}
+              room={fieldRooms[musicRoom]}
               pending={insights.pending}
-              furnitureEdited={insights.overrides[selected.room_id]?.furniture !== undefined}
-              sourceMoved={insights.overrides[selected.room_id]?.source !== undefined}
+              furnitureEdited={insights.overrides[musicRoom]?.furniture !== undefined}
+              sourceMoved={insights.overrides[musicRoom]?.source !== undefined}
               placing={placing}
               onPlacing={setPlacing}
-              onFurniture={(items) => insights.setOverride(selected.room_id, { furniture: items })}
-              onResetSource={() => insights.setOverride(selected.room_id, { source: undefined })}
+              onFurniture={(items) => insights.setOverride(musicRoom, { furniture: items })}
+              onResetSource={() => insights.setOverride(musicRoom, { source: undefined })}
             />
+            {onUseRoom && (
+              <div className="flex flex-wrap gap-2 border-t border-zinc-800 pt-3">
+                {(['A', 'B'] as const).map((slot) => (
+                  <button
+                    key={slot}
+                    onClick={() => onUseRoom(slot, musicRoom, names[musicRoom] ?? fieldRooms[musicRoom].label)}
+                    className={`rounded-md px-3 py-1.5 text-xs font-semibold text-black ${slot === 'A' ? 'bg-sky-400' : 'bg-fuchsia-400'}`}
+                    data-testid={`use-room-${slot}`}
+                  >
+                    Analyze and listen as Room {slot} →
+                  </button>
+                ))}
+              </div>
+            )}
           </section>
-        ) : heat && layout && Object.keys(fieldRooms).length > 0 ? (
-          <p className="text-xs text-zinc-400">Pick a room (in the plan or the list) for its advice and furniture.</p>
-        ) : selected ? (
+        ) : heat && musicRoom && !fieldRooms[musicRoom] && !insights.loading ? (
+          <p className="text-xs text-amber-300">This room has no Matterport outline, so it has no heatmap; pick another.</p>
+        ) : selected && !choosing ? (
           <section>
             <h3 className="mb-2 text-sm font-semibold">{names[selected.room_id]}</h3>
             <RoomDetails

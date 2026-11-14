@@ -1,6 +1,7 @@
 """Synthetic room impulse responses with Pyroomacoustics (hybrid image-source + ray tracing).
 
-The IR is a modeled approximation of an empty shoebox room, not a measurement.
+The IR is a modeled approximation of a shoebox room, not a measurement. ir/service.py scales
+the surface absorption so the box matches the report's total (materials and furniture).
 """
 
 import io

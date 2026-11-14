@@ -29,10 +29,45 @@ class IrResponse(BaseModel):
     notes: list[str]
 
 
+MAX_ALPHA = 0.99
+
+
+def effective_alphas(
+    report: AcousticReport, box: tuple[float, float, float]
+) -> dict[str, list[float]]:
+    """Surface absorption for the simulated shoebox, scaled per band so its total absorption
+    equals the report's. The report's absorption includes furniture and, when known, the wall
+    area of the real outline; the shoebox has neither, so without this the IR would decay like
+    an empty box. Furniture is not placed as objects: its absorption is spread over the
+    surfaces in proportion to theirs (a Sabine-equivalent simplification)."""
+    w, d, h = box
+    areas = {"floor": w * d, "ceiling": w * d, "walls": 2 * (w + d) * h}
+    base = {m.surface: m.alpha for m in report.materials}
+    out = {s: list(base[s]) for s in areas}
+    for b, target in enumerate(report.absorption_sabins):
+        have = sum(areas[s] * base[s][b] for s in areas)
+        if have <= 0:
+            continue
+        k = target / have
+        scaled = {s: base[s][b] * k for s in areas}
+        over = sum(areas[s] * max(0.0, scaled[s] - MAX_ALPHA) for s in areas)
+        for s in areas:
+            scaled[s] = min(scaled[s], MAX_ALPHA)
+        if over > 0:  # hand the excess to surfaces still below the cap
+            room = {s: areas[s] * (MAX_ALPHA - scaled[s]) for s in areas}
+            free = sum(room.values())
+            for s, area in areas.items():
+                if free > 0:
+                    scaled[s] += min(room[s], over * room[s] / free) / area
+        for s in areas:
+            out[s][b] = scaled[s]
+    return out
+
+
 def build_ir(report: AcousticReport, seed: int = 1) -> IrResponse:
     g = report.geometry
     box = (g.equivalent_width_m, g.equivalent_depth_m, g.height_m.value)
-    alphas = {m.surface: m.alpha for m in report.materials}
+    alphas = effective_alphas(report, box)
     src, lis = tuple(report.source_position_m), tuple(report.listener_position_m)
     ir = generate_ir(box, alphas, src, lis, seed=seed)
 
@@ -58,8 +93,8 @@ def build_ir(report: AcousticReport, seed: int = 1) -> IrResponse:
             "listener_m": list(lis),
         },
         notes=[
-            "Modeled approximation of an empty room from geometry and assumed materials; "
-            "not a recording of the real space.",
+            "Modeled approximation from geometry, assumed materials and furniture (its absorption "
+            "spread over the surfaces); not a recording of the real space.",
             f"Surface scattering of {SCATTERING} is an assumption.",
             "The IR includes air absorption; the Sabine values do not.",
             f"IR decay below the Schroeder frequency (~{report.schroeder_hz:.0f} Hz) "

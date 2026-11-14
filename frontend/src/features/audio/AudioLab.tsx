@@ -10,6 +10,7 @@ import {
 import type { SlotRef } from '../../roomRef'
 import type { MaterialSelection } from '../../types'
 import { useIr } from './useIr'
+import { KIND_LABEL, synthAmbience, type AmbienceLayer, type AmbientKind } from './ambience'
 
 type Mode = 'orig' | 'A' | 'B'
 
@@ -19,15 +20,37 @@ interface Props {
   materials: Record<'A' | 'B', MaterialSelection>
   /** Called with the loaded recording's name (or null), so the journey knows step 5 is done. */
   onDry?: (name: string | null) => void
+  /** Illustrative outside noise per room's property, from its noise-risk ranking. */
+  outside?: { A: AmbienceLayer[]; B: AmbienceLayer[] }
+}
+
+const LOOP_S: Record<AmbientKind, number> = { traffic: 20, rail: 24, aircraft: 30, helicopter: 28, siren: 26, venue: 8, works: 12 }
+const AMB_SR = 22050
+const WALL_LOWPASS_HZ = 700 // heard from inside: walls and windows remove most of the highs
+const ambBuffers = new Map<AmbientKind, AudioBuffer>()
+function ambBuffer(c: BaseAudioContext, kind: AmbientKind): AudioBuffer {
+  let b = ambBuffers.get(kind)
+  if (!b) {
+    const data = synthAmbience(kind, AMB_SR, LOOP_S[kind])
+    b = c.createBuffer(1, data.length, AMB_SR)
+    b.getChannelData(0).set(data)
+    ambBuffers.set(kind, b)
+  }
+  return b
 }
 
 interface Graph {
   src: AudioBufferSourceNode
   dryG: GainNode
   wetG: { A: GainNode; B: GainNode }
+  amb: { A: GainNode; B: GainNode; srcs: AudioBufferSourceNode[] }
 }
 
-export function AudioLab({ a, b, materials, onDry }: Props) {
+export function AudioLab({ a, b, materials, onDry, outside }: Props) {
+  const [outsideOn, setOutsideOn] = useState(true)
+  const [outsideLevel, setOutsideLevel] = useState(100)
+  const outsideRef = useRef(outside)
+  outsideRef.current = outside
   const irA = useIr(a?.sid ?? null, a?.roomId ?? null, materials.A)
   const irB = useIr(b?.sid ?? null, b?.roomId ?? null, materials.B)
   const [dry, setDry] = useState<AudioBuffer | null>(null)
@@ -84,6 +107,12 @@ export function AudioLab({ a, b, materials, onDry }: Props) {
       g.dryG.disconnect()
       g.wetG.A.disconnect()
       g.wetG.B.disconnect()
+      for (const s of g.amb.srcs) {
+        s.stop()
+        s.disconnect()
+      }
+      g.amb.A.disconnect()
+      g.amb.B.disconnect()
       graph.current = null
     }
     setPlaying(false)
@@ -133,7 +162,25 @@ export function AudioLab({ a, b, materials, onDry }: Props) {
       conv.buffer = ir
       src.connect(conv).connect(wetG[slot]).connect(master.current)
     }
-    graph.current = { src, dryG, wetG }
+    const amb = { A: c.createGain(), B: c.createGain(), srcs: [] as AudioBufferSourceNode[] }
+    for (const slot of ['A', 'B'] as const) {
+      const lp = c.createBiquadFilter()
+      lp.type = 'lowpass'
+      lp.frequency.value = WALL_LOWPASS_HZ
+      amb[slot].gain.value = 0
+      amb[slot].connect(lp).connect(master.current)
+      for (const layer of outsideRef.current?.[slot] ?? []) {
+        const s = c.createBufferSource()
+        s.buffer = ambBuffer(c, layer.kind)
+        s.loop = true
+        const g = c.createGain()
+        g.gain.value = layer.gain
+        s.connect(g).connect(amb[slot])
+        s.start()
+        amb.srcs.push(s)
+      }
+    }
+    graph.current = { src, dryG, wetG, amb }
     applyGains()
     src.start(0, timing.current.offset % dry.duration)
     timing.current.startedAt = c.currentTime
@@ -151,6 +198,7 @@ export function AudioLab({ a, b, materials, onDry }: Props) {
       const match = renders[slot]?.matchGain ?? 1
       set(g.wetG[slot], mode === slot ? w * match : 0)
     }
+    for (const slot of ['A', 'B'] as const) set(g.amb[slot], outsideOn && mode === slot ? outsideLevel / 100 : 0)
     if (master.current) set(master.current, volume / 100)
   }
   useEffect(applyGains) // keep gains in sync with controls and render results
@@ -161,7 +209,7 @@ export function AudioLab({ a, b, materials, onDry }: Props) {
     stop()
     void play()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [irA.ir, irB.ir])
+  }, [irA.ir, irB.ir, JSON.stringify(outside)])
 
   const onFile = async (f: File | undefined) => {
     if (!f) return
@@ -288,6 +336,57 @@ export function AudioLab({ a, b, materials, onDry }: Props) {
         One playhead feeds both rooms, so switching keeps your place. Rooms are loudness-matched so you
         hear the room, not a volume change. Keys: 0 / 1 / 2 to switch, space to play.
       </p>
+
+      {outside && (
+        <div className="mt-3 rounded-lg border border-zinc-800 p-3 text-xs" data-testid="outside-noise">
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="flex cursor-pointer items-center gap-1.5 font-medium text-zinc-200">
+              <input type="checkbox" checked={outsideOn} onChange={(e) => setOutsideOn(e.target.checked)} />
+              Add the neighbourhood's outside noise
+            </label>
+            <label className="flex flex-1 items-center gap-2 text-zinc-400">
+              level
+              <input
+                type="range"
+                min={0}
+                max={200}
+                value={outsideLevel}
+                onChange={(e) => setOutsideLevel(+e.target.value)}
+                className="min-w-24 flex-1 accent-amber-400"
+              />
+            </label>
+            <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] uppercase text-amber-300">illustrative</span>
+          </div>
+          <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {(['A', 'B'] as const).map((slot) => {
+              const ref = slot === 'A' ? a : b
+              if (!ref) return null
+              const layers = outside[slot]
+              return (
+                <div key={slot} className={mode === slot ? 'text-zinc-200' : 'text-zinc-500'}>
+                  <div className="font-medium">Room {slot}&apos;s house</div>
+                  {layers.length === 0 ? (
+                    <div>No intrusive sources mapped nearby: quiet.</div>
+                  ) : (
+                    <ul>
+                      {layers.map((l) => (
+                        <li key={l.kind}>
+                          {KIND_LABEL[l.kind]}: {l.source}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+          <p className="mt-2 text-[11px] text-zinc-500">
+            Synthetic sounds for the kinds of sources mapped near each house (OpenStreetMap), heard through a wall. Their
+            loudness follows the relative risk ranking (intrusiveness x distance), not a measurement: a guide to what
+            you might live with, not a sound level.
+          </p>
+        </div>
+      )}
 
       <details className="mt-3 text-xs text-zinc-400" data-testid="verification">
         <summary className="cursor-pointer">

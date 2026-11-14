@@ -109,3 +109,12 @@ def test_analyze_requires_exactly_one_room_source(client):
     assert client.post("/rooms/analyze", json=both).status_code == 422
     bad = {"sid": SID, "custom_room": {"width_m": 4, "depth_m": 3, "height_m": 0.5}}
     assert client.post("/rooms/analyze", json=bad).status_code == 422
+
+
+def test_demo_pair_names_a_good_and_a_bad_room():
+    from fastapi.testclient import TestClient as TC
+
+    body = TC(app).get("/demo").json()
+    assert {"good", "bad"} <= set(body)
+    for side in ("good", "bad"):
+        assert body[side]["sid"] and body[side]["room_id"] and body[side]["why"]

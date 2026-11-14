@@ -1,3 +1,5 @@
+import json
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, model_validator
@@ -13,7 +15,7 @@ from ir.service import IrResponse, build_ir
 from noise.router import router as noise_router
 from noise_scout.router import router as noise_scout_router
 from properties.custom import CustomRoom, custom_room_to_room
-from properties.matterport import MatterportError
+from properties.matterport import ROOT, MatterportError
 from properties.models import Property, Room, TourLayout
 from properties.router import router as viewer_router
 from properties.service import get_property, get_rooms, is_known, list_properties
@@ -79,6 +81,13 @@ def tour(sid: str) -> TourLayout:
         return get_tour(sid)
     except MatterportError as e:
         raise HTTPException(502, str(e)) from e
+
+
+@app.get("/demo")
+def demo_pair() -> dict:
+    """A house with good acoustics and one with bad, for the one-click demo (shortlist.json)."""
+    pair = json.loads((ROOT / "shortlist.json").read_text()).get("demo_pair", {})
+    return {k: v for k, v in pair.items() if not k.startswith("_")}
 
 
 @app.get("/materials")

@@ -1,4 +1,27 @@
 {
   "_comment": "Matterport model IDs. Each needs >=2 rooms with area, width, depth and height. Add an ID to add a property.",
-  "properties": ["zvKHR9DHNjJ", "qRFURoCtFoy", "AhTroQ5o2fN", "hwunjJ37J65"]
+  "properties": [
+    "zvKHR9DHNjJ",
+    "iUcvMLNZUY1",
+    "qRFURoCtFoy",
+    "AhTroQ5o2fN",
+    "hwunjJ37J65"
+  ],
+  "demo_pair": {
+    "_comment": "Chosen from the modeled numbers and the noise-risk ranking (2026-11-14).",
+    "good": {
+      "sid": "zvKHR9DHNjJ",
+      "room_id": "xy2x8mpaaqknp7q2c3nnbw1ma",
+      "label": "Living Room (40 m3)",
+      "address": "5836 La Mirada Ave, Los Angeles",
+      "why": "Single-family house; no high-risk sources mapped nearby; a 40 m3 furnished living room with RT60 about 0.6 s."
+    },
+    "bad": {
+      "sid": "iUcvMLNZUY1",
+      "room_id": "613htqkzf66zz7hf7n8kzszed",
+      "label": "Kitchen / open plan (188 m3)",
+      "address": "5420 W Sunset Blvd, Los Angeles",
+      "why": "Sunset Blvd 32 m away and Western Ave 116 m (high risk), a venue 175 m away; a 188 m3 hard open-plan room with RT60 about 2 s."
+    }
+  }
 }
