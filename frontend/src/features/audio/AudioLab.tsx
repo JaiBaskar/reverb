@@ -7,15 +7,15 @@ import {
   syntheticClaps,
   type RoomRender,
 } from './engine'
+import type { SlotRef } from '../../roomRef'
 import type { MaterialSelection } from '../../types'
 import { useIr } from './useIr'
 
 type Mode = 'orig' | 'A' | 'B'
 
 interface Props {
-  sid: string
-  roomA: { id: string; label: string } | null
-  roomB: { id: string; label: string } | null
+  a: SlotRef | null
+  b: SlotRef | null
   materials: Record<'A' | 'B', MaterialSelection>
 }
 
@@ -25,9 +25,9 @@ interface Graph {
   wetG: { A: GainNode; B: GainNode }
 }
 
-export function AudioLab({ sid, roomA, roomB, materials }: Props) {
-  const irA = useIr(sid, roomA?.id ?? null, materials.A)
-  const irB = useIr(sid, roomB?.id ?? null, materials.B)
+export function AudioLab({ a, b, materials }: Props) {
+  const irA = useIr(a?.sid ?? null, a?.roomId ?? null, materials.A)
+  const irB = useIr(b?.sid ?? null, b?.roomId ?? null, materials.B)
   const [dry, setDry] = useState<AudioBuffer | null>(null)
   const [dryName, setDryName] = useState('')
   const [renders, setRenders] = useState<{ A?: RoomRender; B?: RoomRender }>({})
@@ -174,7 +174,7 @@ export function AudioLab({ sid, roomA, roomB, materials }: Props) {
     }
   }
 
-  const label = (slot: 'A' | 'B') => (slot === 'A' ? roomA : roomB)?.label ?? 'not chosen'
+  const label = (slot: 'A' | 'B') => (slot === 'A' ? a : b)?.label ?? 'not chosen'
   const ready = dry != null
 
   return (

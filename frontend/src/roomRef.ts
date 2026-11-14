@@ -40,3 +40,11 @@ export function customRoomToRoom(c: CustomRoomSpec): Room {
     issues: [],
   }
 }
+
+/** One side of the A/B comparison: a room of any property (or a hand-entered room). */
+export interface SlotRef {
+  sid: string
+  roomId: string
+  label: string
+  address: string
+}
