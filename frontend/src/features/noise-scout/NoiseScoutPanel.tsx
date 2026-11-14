@@ -124,7 +124,12 @@ function Result({ r }: { r: NoiseScoutResult }) {
       </ul>
       {r.recording_advice.length > 0 && (
         <div>
-          <div className="text-xs font-semibold text-zinc-400">Recording advice</div>
+          <div className="text-xs font-semibold text-zinc-400">
+            Recording advice{' '}
+            <span className="font-normal text-zinc-500">
+              (AI-written general guidance; only the findings above are citation-checked)
+            </span>
+          </div>
           <ul className="ml-4 list-disc text-zinc-300">
             {r.recording_advice.map((a) => (
               <li key={a}>{a}</li>
@@ -140,7 +145,7 @@ function Result({ r }: { r: NoiseScoutResult }) {
       )}
       <div className="rounded border border-zinc-800 p-2 text-xs text-zinc-400" data-testid="scout-run">
         Agent run: {r.subagents_used.length} specialists ({r.subagents_used.join(', ') || 'none'}) ·{' '}
-        {r.tool_calls} tool calls · {r.model} with {r.subagent_model} specialists ·{' '}
+        {r.tool_calls} coordinator tool calls · {r.model} with {r.subagent_model} specialists ·{' '}
         {r.trace.url ? (
           <a href={r.trace.url} target="_blank" rel="noreferrer" className="text-violet-300 hover:underline">
             open LangSmith trace

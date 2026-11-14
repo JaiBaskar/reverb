@@ -42,7 +42,7 @@ Shared files are small on purpose: `contract/` (JSON shapes and fixtures), the b
 - Done when: the sample property shows real nearby sources on the map and in a list.
 
 ### B2 — Noise Scout (Deep Agents)
-- **In progress (2026-11-14):** built in `backend/noise_scout/` and `frontend/src/features/noise-scout/`; compiles and is unit-tested, but has NOT been run live yet (needs `ANTHROPIC_API_KEY` in `.env`). Earlier note: deferred until after the MVP; B1 already provides the cited, deterministic noise report.
+- **In progress (2026-11-14):** built in `backend/noise_scout/` and `frontend/src/features/noise-scout/`; verified live 2026-11-14 on zvKHR9DHNjJ with free OpenRouter Nemotron models: 3 sub-agents, 12 cited findings, 0 rejected, LangSmith trace linked, ~4.6 min. Earlier note: deferred until after the MVP; B1 already provides the cited, deterministic noise report.
 - Deep Agent with three sub-agents (transport, nightlife/commercial, aviation/industrial), using B1's tools and a virtual filesystem for notes. Every claim needs a citation. Output validates against `NoiseReport`.
 - LangSmith tracing on; confirm a trace appears. The B1 report must still render if the agent fails.
 - Blocked on: an LLM provider key for the agent and a check of the Deep Agents API.
