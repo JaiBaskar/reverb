@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from acoustics.explain import Comparison, compare
 from acoustics.materials import DEFAULT_SELECTION, MATERIALS
 from acoustics.report import AcousticReport, UnknownMaterial, analyze_room
+from costar.router import router as costar_router
 from ir.service import IrResponse, build_ir
 from noise.router import router as noise_router
 from properties.matterport import MatterportError
@@ -21,6 +22,7 @@ app.add_middleware(
 )
 app.include_router(noise_router)
 app.include_router(suitability_router)
+app.include_router(costar_router)
 
 
 @app.get("/health")

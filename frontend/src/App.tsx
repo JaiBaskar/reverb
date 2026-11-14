@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { fetchMaterials, fetchProperties, fetchRooms } from './api'
 import { PropertyMap } from './features/map/PropertyMap'
 import { AudioLab } from './features/audio/AudioLab'
+import { FactsCard } from './features/facts/FactsCard'
 import { MaterialEditor } from './features/materials/MaterialEditor'
 import { NoisePanel } from './features/noise/NoisePanel'
 import { SuitabilityPanel } from './features/suitability/SuitabilityPanel'
@@ -99,6 +100,7 @@ export default function App() {
             <>
               <h2 className="text-lg font-semibold">{prop.address}</h2>
               <p className="mb-3 text-xs text-zinc-400">{prop.name}</p>
+              <FactsCard sid={prop.sid} />
               {rooms == null ? (
                 <p className="text-sm text-zinc-500">Loading rooms from Matterport…</p>
               ) : (
