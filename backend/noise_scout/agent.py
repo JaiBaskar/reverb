@@ -50,7 +50,8 @@ Hard rules:
 
 TRANSPORT_PROMPT = f"""You are the transport analyst for a property's noise research.
 Investigate road, rail, transit and emergency-vehicle noise around the property.
-Steps: call list_noise_sources for road_major, road_minor and rail; call search_nearby for
+Steps: call get_risk_ranking and research the transport rows in it first; call
+list_noise_sources for road_major, road_minor and rail; call search_nearby for
 rail_station, transit_stop, fire_station, hospital and police; call get_osm_tags on the nearest
 few relevant features to learn maxspeed, lanes, road class, railway usage or service.
 Return a concise markdown list: one bullet per notable source with its OSM id, distance,
@@ -61,7 +62,8 @@ traffic speed). End with what you could not determine.
 NIGHTLIFE_PROMPT = f"""You are the nightlife and commercial analyst for a property's noise
 research. Investigate bars, clubs, venues, restaurants, construction, schools, places of
 worship, sports and commercial activity.
-Steps: call list_noise_sources for venue and construction; call search_nearby for restaurant,
+Steps: call get_risk_ranking and research the venue, construction, school, worship,
+sports and food_drink rows in it first; call list_noise_sources for venue and construction; call search_nearby for restaurant,
 school, place_of_worship, sports, commercial and parking; call get_osm_tags on the nearest
 relevant features, especially to read opening_hours (when venues are loud) and construction
 details. Return a concise markdown list: one bullet per notable source with its OSM id,
@@ -71,7 +73,8 @@ recording. End with what you could not determine.
 
 AVIATION_PROMPT = f"""You are the aviation and industrial analyst for a property's noise
 research. Investigate airports, heliports, industrial land and works, and fuel stations.
-Steps: call list_noise_sources for airport, heliport and industrial; call search_nearby for
+Steps: call get_risk_ranking and research the airport, heliport and industrial rows in it
+first; call list_noise_sources for airport, heliport and industrial; call search_nearby for
 fuel; call get_osm_tags on what you find (e.g. aerodrome type, helipad use). If nothing is
 mapped nearby, say so plainly - that is a useful finding. Return a concise markdown list with
 OSM ids, distances, bearings and why each matters. End with what you could not determine.
@@ -80,8 +83,9 @@ OSM ids, distances, bearings and why each matters. End with what you could not d
 MAIN_PROMPT = f"""You are Noise Scout, a research coordinator helping a musician judge whether a
 property is quiet enough to record and mix in. You research the noise around ONE property.
 
-The property context (address, coordinates, building facts, exposure levels) is in the
-user's message; you do not need to look it up.
+The property context (address, coordinates, building facts, exposure levels) and the
+deterministic risk ranking of nearby sources are in the user's message; you do not need to
+look them up. The ranking is relative (intensity x proximity), not a sound level.
 
 Process:
 1. YOUR FIRST RESPONSE must be exactly three `task` tool calls, one per specialist:
@@ -89,7 +93,9 @@ Process:
    the address and coordinates. Do nothing else first.
 2. When they return, save each specialist's report with write_file to
    /findings/<specialist-name>.md.
-3. Combine them into the final structured report: the most important findings first, each
+3. Combine them into the final structured report: findings in the order of the risk
+   ranking (highest first) unless research changes the picture (for example a venue that
+   closes at 9 pm), each
    with the OSM ids that support it in `evidence`; practical recording advice grounded in the
    findings (for example, timing sessions around venue opening hours, or that sirens are
    likely from a nearby fire station); and the data gaps.

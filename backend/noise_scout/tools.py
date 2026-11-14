@@ -19,6 +19,7 @@ from noise.categories import BY_NAME
 from noise.models import NoiseReport
 from noise.overpass import USER_AGENT
 from noise.overpass import fetch as overpass_fetch
+from noise.risk import assess_risk
 from noise_scout.models import Evidence
 
 OSM_API = "https://api.openstreetmap.org/api/0.6"
@@ -154,10 +155,45 @@ def build_tools(ctx: ScoutContext) -> list[BaseTool]:
         return json.dumps(out)
 
     @tool
+    def get_risk_ranking(limit: int = 12) -> str:
+        """The mapped neighbours most likely to disturb a recording, highest risk first.
+        Risk = assumed intensity of that kind of source x proximity; a relative ranking, not
+        a sound level. Each row has the OSM id to cite, distance, bearing and a time-of-day
+        hint. Research the top rows first."""
+        rows = []
+        for r in assess_risk(ctx.noise.sources).ranked[: max(1, min(limit, 30))]:
+            ctx.ledger.add(
+                Evidence(
+                    id=r.id,
+                    name=r.name,
+                    kind=r.category,
+                    subtype=r.subtype,
+                    distance_m=r.distance_m,
+                    bearing_compass=r.bearing_compass,
+                    osm_url=r.osm_url,
+                    source_tool="get_risk_ranking",
+                )
+            )
+            rows.append(
+                {
+                    "id": r.id,
+                    "name": r.name,
+                    "category": r.category,
+                    "subtype": r.subtype,
+                    "distance_m": round(r.distance_m),
+                    "bearing": r.bearing_compass,
+                    "risk": r.risk,
+                    "level": r.level,
+                    "when": r.when,
+                }
+            )
+        return json.dumps(rows) if rows else "No mapped noise sources near this property."
+
+    @tool
     def get_osm_tags(osm_id: str) -> str:
         """All OpenStreetMap tags of one feature (e.g. maxspeed, lanes, opening_hours,
-        railway usage). Only for OSM ids already returned by list_noise_sources or
-        search_nearby."""
+        railway usage). Only for OSM ids already returned by get_risk_ranking,
+        list_noise_sources or search_nearby."""
         if not re.fullmatch(r"(node|way|relation)/\d+", osm_id):
             return "osm_id must look like 'way/123'."
         if osm_id not in ctx.ledger:
@@ -234,4 +270,10 @@ def build_tools(ctx: ScoutContext) -> list[BaseTool]:
             }
         )
 
-    return [get_property_context, list_noise_sources, get_osm_tags, search_nearby]
+    return [
+        get_property_context,
+        get_risk_ranking,
+        list_noise_sources,
+        get_osm_tags,
+        search_nearby,
+    ]

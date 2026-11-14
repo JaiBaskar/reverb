@@ -108,3 +108,13 @@ def test_fetch_all_fail_raises():
     transport = httpx.MockTransport(lambda r: httpx.Response(429))
     with httpx.Client(transport=transport) as c, pytest.raises(overpass.OverpassError):
         overpass.fetch("q", c)
+
+
+def test_noise_risk_ranks_sources_and_returns_heat(client):
+    r = client.get("/properties/zvKHR9DHNjJ/noise-risk")
+    assert r.status_code == 200
+    body = r.json()
+    risks = [s["risk"] for s in body["ranked"]]
+    assert risks == sorted(risks, reverse=True) and risks
+    assert body["heat"]["features"]
+    assert body["location_provenance"] == "verified"

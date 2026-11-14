@@ -9,6 +9,7 @@ from concurrent.futures import TimeoutError as FutureTimeout
 from datetime import UTC, datetime
 from pathlib import Path
 
+from catalog.service import entry_for
 from costar.service import get_facts
 from noise.service import get_noise_report
 from noise_scout.agent import build_agent, models
@@ -92,17 +93,21 @@ def run_scout(sid: str, *, cache_dir: Path | None = None) -> NoiseScoutResult:
             ],
         )
     prop = get_property(sid)
-    if prop.lat is None or prop.lon is None:
+    lat, lon, prov = prop.lat, prop.lon, "verified"
+    if lat is None or lon is None:  # same fallback as the noise endpoint: CoStar coordinates
+        entry = entry_for(sid)
+        lat, lon, prov = (entry.lat, entry.lon, "estimated") if entry else (None, None, prov)
+    if lat is None or lon is None:
         return NoiseScoutResult(
             sid=sid, status="unavailable", generated_at=_now(), notes=["No geolocation."]
         )
-    noise = get_noise_report(prop.lat, prop.lon, sid, "verified")
+    noise = get_noise_report(lat, lon, sid, prov)
     facts = get_facts(sid)
     ctx = ScoutContext(
         sid=sid,
         address=prop.address,
-        lat=prop.lat,
-        lon=prop.lon,
+        lat=lat,
+        lon=lon,
         noise=noise,
         facts=[
             {"label": f.label, "value": f.value, "unit": f.unit, "provenance": f.provenance}
@@ -113,9 +118,12 @@ def run_scout(sid: str, *, cache_dir: Path | None = None) -> NoiseScoutResult:
     main_model, subagent_model = models()
     tools = build_tools(ctx)
     context_tool = next(t for t in tools if t.name == "get_property_context")
+    ranking_tool = next(t for t in tools if t.name == "get_risk_ranking")
     research_tools = [t for t in tools if t.name != "get_property_context"]
     agent = build_agent([], research_tools)
-    context = context_tool.invoke({})  # deterministic; handed to the coordinator up front
+    # Deterministic; handed to the coordinator up front (also registers the cited ids).
+    context = context_tool.invoke({})
+    ranking = ranking_tool.invoke({"limit": 12})
 
     run_id = uuid.uuid4()
     try:
@@ -126,9 +134,11 @@ def run_scout(sid: str, *, cache_dir: Path | None = None) -> NoiseScoutResult:
                     {
                         "role": "user",
                         "content": f"Research the noise around {prop.address} "
-                        f"(lat {prop.lat}, lon {prop.lon}) for a musician who wants to "
+                        f"(lat {lat}, lon {lon}) for a musician who wants to "
                         "record and mix there.\n\nProperty context (from tools, verified):\n"
-                        + json.dumps(json.loads(context), indent=1),
+                        + json.dumps(json.loads(context), indent=1)
+                        + "\n\nRisk ranking of nearby sources (relative, not sound levels):\n"
+                        + ranking,
                     }
                 ]
             },

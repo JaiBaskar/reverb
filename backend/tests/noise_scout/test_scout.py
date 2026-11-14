@@ -232,3 +232,12 @@ def test_models_prefer_openrouter_when_its_key_is_set(monkeypatch):
     assert models()[0].startswith("anthropic:")
     monkeypatch.setenv("NOISE_SCOUT_MODEL", "openrouter:some/model")
     assert models()[0] == "openrouter:some/model"
+
+
+def test_risk_ranking_tool_orders_by_risk_and_records_evidence(ctx):
+    out = json.loads(tool(build_tools(ctx), "get_risk_ranking").invoke({"limit": 5}))
+    assert 0 < len(out) <= 5
+    risks = [r["risk"] for r in out]
+    assert risks == sorted(risks, reverse=True)
+    assert all(r["id"] in ctx.ledger for r in out)  # citable in findings
+    assert all("dB" not in json.dumps(r) for r in out)

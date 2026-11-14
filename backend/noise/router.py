@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException
 
 from catalog.service import entry_for
 from noise.models import NoiseReport
+from noise.risk import NoiseRisk, assess_risk
 from noise.service import get_noise_report
 from properties.matterport import MatterportError
 from properties.service import get_property, is_known
@@ -37,3 +38,28 @@ def property_noise(sid: str, refresh: bool = False) -> NoiseReport:
     if COSTAR_NOTE not in report.notes:
         report = report.model_copy(update={"notes": [COSTAR_NOTE, *report.notes]})
     return report
+
+
+class NoiseRiskResponse(NoiseRisk):
+    sid: str
+    status: str
+    lat: float
+    lon: float
+    location_provenance: str
+
+
+@router.get("/properties/{sid}/noise-risk", response_model=NoiseRiskResponse)
+def property_noise_risk(sid: str) -> NoiseRiskResponse:
+    """Nearby sources ranked by relative risk, plus heat points along their geometry."""
+    report = property_noise(sid)
+    risk = assess_risk(report.sources if report.status == "ok" else [])
+    return NoiseRiskResponse(
+        sid=sid,
+        status=report.status,
+        lat=report.lat,
+        lon=report.lon,
+        location_provenance=report.location_provenance,
+        ranked=risk.ranked,
+        heat=risk.heat,
+        notes=[*risk.notes, *(report.notes if report.status != "ok" else [])],
+    )
