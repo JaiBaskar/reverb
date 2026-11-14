@@ -10,6 +10,7 @@ from noise.router import router as noise_router
 from properties.matterport import MatterportError
 from properties.models import Property, Room
 from properties.service import get_property, get_rooms, list_properties, shortlist_ids
+from suitability.router import router as suitability_router
 
 app = FastAPI(title="REVERB")
 app.add_middleware(
@@ -19,6 +20,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(noise_router)
+app.include_router(suitability_router)
 
 
 @app.get("/health")

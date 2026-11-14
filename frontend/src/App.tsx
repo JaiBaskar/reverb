@@ -4,6 +4,7 @@ import { PropertyMap } from './features/map/PropertyMap'
 import { AudioLab } from './features/audio/AudioLab'
 import { MaterialEditor } from './features/materials/MaterialEditor'
 import { NoisePanel } from './features/noise/NoisePanel'
+import { SuitabilityPanel } from './features/suitability/SuitabilityPanel'
 import { Explanation } from './features/numbers/Explanation'
 import { NumbersPanel } from './features/numbers/NumbersPanel'
 import { useComparison } from './features/numbers/useComparison'
@@ -143,6 +144,7 @@ export default function App() {
                 ))}
               </div>
               <Explanation {...cmp} />
+              <SuitabilityPanel a={repA.report} b={repB.report} />
               <NoisePanel sid={prop.sid} />
               <p className="mt-3 text-xs text-zinc-500">
                 All acoustic values are modeled approximations from room geometry and assumed materials, not measurements.
