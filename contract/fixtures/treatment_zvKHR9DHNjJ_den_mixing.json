@@ -1,0 +1,1352 @@
+{
+  "sid": "zvKHR9DHNjJ",
+  "room_id": "xy2x8mpaaqknp7q2c3nnbw1ma",
+  "label": "Living Room",
+  "objective": {
+    "id": "mixing",
+    "label": "Mixing",
+    "layout": "monitoring",
+    "needs_rfz": true,
+    "rfz_db": 10.0,
+    "allow_diffusion": true,
+    "basis": "EBU Tech 3276 reverberation limits; reflection-free zone (10 dB, ITU-R BS.1116)"
+  },
+  "scenario": "as_scanned",
+  "layout": {
+    "kind": "monitoring",
+    "listener": [
+      0.8482133539174866,
+      2.9836911106024355,
+      1.2251613348749535
+    ],
+    "sources": [
+      [
+        2.4051884268201786,
+        3.8869234297538586,
+        1.2251613348749535
+      ],
+      [
+        2.408923024273099,
+        2.086927303985288,
+        1.2251613348749535
+      ]
+    ],
+    "source_names": [
+      "left speaker",
+      "right speaker"
+    ],
+    "facing": [
+      0.9999978476492061,
+      0.0020747763627335047
+    ],
+    "front_wall": 0,
+    "note": "Speakers 1.8 m apart facing down the room's long axis (3.9 m), listener 2.0 m from the front wall (50% of the length), equilateral triangle, ear height 1.2 m."
+  },
+  "items": [
+    {
+      "key": "fr1",
+      "product_id": "panel_100",
+      "group": "first_reflection",
+      "center": [
+        1.8772369785318894,
+        1.158961920626601,
+        1.2251613348749535
+      ],
+      "normal": [
+        -0.0020747763627335047,
+        0.9999978476492061,
+        0.0
+      ],
+      "up": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "width_m": 0.6,
+      "height_m": 1.2,
+      "depth_m": 0.1,
+      "wall": 3,
+      "where": "right wall, 3.00 m along it, centred 1.20 m up",
+      "reason": "First reflection of the right speaker: arrives 4.2 ms after the direct sound at -5.3 dB.",
+      "status": "blocked",
+      "adjustment": null,
+      "blocked_by": [
+        {
+          "id": "f6",
+          "label": "a piece of furniture",
+          "kind": "furniture",
+          "min": [
+            0.585,
+            1.162,
+            0.092
+          ],
+          "max": [
+            2.7,
+            3.317,
+            1.257
+          ]
+        },
+        {
+          "id": "w3-0",
+          "label": "artwork",
+          "kind": "wall_object",
+          "min": [
+            1.9830870216833567,
+            1.109181686931418,
+            1.5104635953903198
+          ],
+          "max": [
+            2.6310720659367552,
+            1.1705257264548972,
+            2.267741516940575
+          ]
+        },
+        {
+          "id": "w3-1",
+          "label": "artwork",
+          "kind": "wall_object",
+          "min": [
+            1.3044008645642604,
+            1.1077735619041338,
+            1.5104635953903198
+          ],
+          "max": [
+            2.089865902159289,
+            1.1694028422820855,
+            2.3951856432258447
+          ]
+        }
+      ]
+    },
+    {
+      "key": "trap0",
+      "product_id": "bass_trap",
+      "group": "corner",
+      "center": [
+        2.604584374309712,
+        1.2589636424613049,
+        1.3851613491800683
+      ],
+      "normal": [
+        -0.7085723493866753,
+        0.7056381690956401,
+        0.0
+      ],
+      "up": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "width_m": 0.6,
+      "height_m": 2.7200000286102295,
+      "depth_m": 0.42,
+      "wall": null,
+      "where": "Corner between the right wall and the front wall, floor to ceiling",
+      "reason": "Every room mode has a pressure maximum in the corners, so a trap there damps all of them at once.",
+      "status": "blocked",
+      "adjustment": null,
+      "blocked_by": [
+        {
+          "id": "f6",
+          "label": "a piece of furniture",
+          "kind": "furniture",
+          "min": [
+            0.585,
+            1.162,
+            0.092
+          ],
+          "max": [
+            2.7,
+            3.317,
+            1.257
+          ]
+        },
+        {
+          "id": "w0-1",
+          "label": "artwork",
+          "kind": "wall_object",
+          "min": [
+            2.6918762652892316,
+            1.291337639468439,
+            1.432758967601992
+          ],
+          "max": [
+            2.7530096899897125,
+            1.8378095689999432,
+            2.167101858660283
+          ]
+        },
+        {
+          "id": "w3-0",
+          "label": "artwork",
+          "kind": "wall_object",
+          "min": [
+            1.9830870216833567,
+            1.109181686931418,
+            1.5104635953903198
+          ],
+          "max": [
+            2.6310720659367552,
+            1.1705257264548972,
+            2.267741516940575
+          ]
+        }
+      ]
+    },
+    {
+      "key": "cloud",
+      "product_id": "cloud_100",
+      "group": "ceiling",
+      "center": [
+        1.6276345397320626,
+        2.9853082387360046,
+        2.545161363485183
+      ],
+      "normal": [
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "up": [
+        0.9999978476492061,
+        0.0020747763627335047,
+        0.0
+      ],
+      "width_m": 1.2,
+      "height_m": 1.8,
+      "depth_m": 0.1,
+      "wall": null,
+      "where": "Ceiling, centred over the reflection points between the speakers and the listener, hung 150 mm down",
+      "reason": "Ceiling reflection: left speaker 5.1 ms at -6.0 dB, right speaker 5.1 ms at -6.0 dB.",
+      "status": "ok",
+      "adjustment": null,
+      "blocked_by": []
+    },
+    {
+      "key": "cv2",
+      "product_id": "panel_50_square",
+      "group": "coverage",
+      "center": [
+        2.7272390844240464,
+        1.662850732659717,
+        0.9251613348749534
+      ],
+      "normal": [
+        -0.9999978476391712,
+        -0.0020747811992964187,
+        0.0
+      ],
+      "up": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "width_m": 0.6,
+      "height_m": 0.6,
+      "depth_m": 0.05,
+      "wall": 0,
+      "where": "front wall, 0.60 m along it, centred 1.2 m up",
+      "reason": "Adds broadband absorption to bring the overall reverberation time to the target.",
+      "status": "replaced",
+      "adjustment": "replaced by a half-size panel moved 0.3 m lower to clear artwork",
+      "blocked_by": []
+    },
+    {
+      "key": "cv1",
+      "product_id": "panel_50",
+      "group": "coverage",
+      "center": [
+        -1.0545731303794776,
+        4.304487476542343,
+        1.2251613348749535
+      ],
+      "normal": [
+        0.9999978489407472,
+        0.002074153774118129,
+        0.0
+      ],
+      "up": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "width_m": 0.6,
+      "height_m": 1.2,
+      "depth_m": 0.05,
+      "wall": 2,
+      "where": "rear wall, 0.60 m along it, centred 1.2 m up",
+      "reason": "Adds broadband absorption to bring the overall reverberation time to the target.",
+      "status": "blocked",
+      "adjustment": null,
+      "blocked_by": [
+        {
+          "id": "f1",
+          "label": "a piece of furniture",
+          "kind": "furniture",
+          "min": [
+            -1.042,
+            3.559,
+            0.071
+          ],
+          "max": [
+            -0.401,
+            4.808,
+            1.184
+          ]
+        },
+        {
+          "id": "w2-2",
+          "label": "artwork",
+          "kind": "wall_object",
+          "min": [
+            -1.0804508086638998,
+            3.6106478259823658,
+            1.1352062124813675
+          ],
+          "max": [
+            -1.0181341799941273,
+            4.727735143995924,
+            2.247182665229664
+          ]
+        }
+      ]
+    }
+  ],
+  "groups": [
+    {
+      "group": "first_reflection",
+      "product_id": "panel_100",
+      "product": "Broadband panel, 100 mm, 0.6 x 1.2 m",
+      "count": 1,
+      "why": "Absorb the first reflections from the side walls before they reach you"
+    },
+    {
+      "group": "corner",
+      "product_id": "bass_trap",
+      "product": "Corner bass trap, 100 mm, floor to ceiling, 0.6 m face",
+      "count": 1,
+      "why": "Damp the room's bass resonances where they are strongest"
+    },
+    {
+      "group": "ceiling",
+      "product_id": "cloud_100",
+      "product": "Ceiling cloud, 100 mm, 1.2 x 1.8 m, hung 150 mm down",
+      "count": 1,
+      "why": "Absorb the reflection off the ceiling between the speakers and you"
+    },
+    {
+      "group": "coverage",
+      "product_id": "panel_50_square",
+      "product": "Broadband panel, 50 mm, 0.6 x 0.6 m",
+      "count": 1,
+      "why": "Bring the overall reverberation time down to the target"
+    },
+    {
+      "group": "coverage",
+      "product_id": "panel_50",
+      "product": "Broadband panel, 50 mm, 0.6 x 1.2 m",
+      "count": 1,
+      "why": "Bring the overall reverberation time down to the target"
+    }
+  ],
+  "problems": [
+    {
+      "id": "reverb",
+      "title": "Too much reverberation",
+      "detail": "Mid-band RT60 is 0.58 s; mixing wants 0.13-0.23 s. Notes smear into each other and you hear the room more than the source.",
+      "severity": "high",
+      "addressed_by": [
+        "coverage",
+        "first_reflection",
+        "ceiling",
+        "corner"
+      ],
+      "after": "Predicted 0.39 s after treatment."
+    },
+    {
+      "id": "bass",
+      "title": "Bass resonances (room modes)",
+      "detail": "Below ~240 Hz the room's modes dominate. Lowest axial modes: 44, 45, 63, 88, 91, 126 Hz; modes nearly on top of each other at 44/45 Hz, 88/91 Hz, 132/136 Hz boom on those notes; the biggest gap between modes is 40 Hz, so some notes are weak. 125 Hz rings for 0.29 s.",
+      "severity": "medium",
+      "addressed_by": [
+        "corner"
+      ],
+      "after": "125 Hz decay predicted 0.26 s. Traps shorten the ringing; the modes stay where they are."
+    },
+    {
+      "id": "reflections",
+      "title": "Strong early reflections",
+      "detail": "10 reflections reach the listening position within 15 ms and less than 10 dB below the direct sound (worst: left speaker off the front wall, 1.8 ms, -2.7 dB). They blur the stereo image and colour the tone (comb filtering).",
+      "severity": "high",
+      "addressed_by": [
+        "first_reflection",
+        "ceiling"
+      ],
+      "after": "See the reflection table for each one after treatment."
+    },
+    {
+      "id": "flutter0-2",
+      "title": "Parallel front wall and rear wall",
+      "detail": "They face each other 3.8 m apart over 3.9 m: a clap can ring back and forth (flutter echo).",
+      "severity": "low",
+      "addressed_by": [
+        "coverage"
+      ],
+      "after": "Panels on one of them break up the flutter."
+    },
+    {
+      "id": "flutter1-3",
+      "title": "Parallel left wall and right wall",
+      "detail": "They face each other 3.9 m apart over 3.8 m: a clap can ring back and forth (flutter echo).",
+      "severity": "low",
+      "addressed_by": [
+        "first_reflection"
+      ],
+      "after": "Panels on one of them break up the flutter."
+    },
+    {
+      "id": "hazard0",
+      "title": "Window onto the street or neighbours (front wall)",
+      "detail": "Large window with blinds facing outside, potential source of external noise. Glass is the weakest part of a wall for outside noise; heavy curtains or a window plug help, panels do not.",
+      "severity": "high",
+      "addressed_by": [],
+      "after": "Seen by the surroundings agent (90% confidence); not something panels fix."
+    },
+    {
+      "id": "hazard1",
+      "title": "Thin single glazing (front wall)",
+      "detail": "Windows appear to be single pane, offering minimal sound insulation. Lets traffic and voices in; secondary glazing or a window plug is the fix.",
+      "severity": "high",
+      "addressed_by": [],
+      "after": "Seen by the surroundings agent (60% confidence); not something panels fix."
+    },
+    {
+      "id": "hazard2",
+      "title": "Large bare hard surfaces (left wall)",
+      "detail": "Hardwood floors throughout the room reflect sound. Strong reflections; the plan places absorption, a rug helps the floor.",
+      "severity": "low",
+      "addressed_by": [],
+      "after": "Seen by the surroundings agent (90% confidence); not something panels fix."
+    },
+    {
+      "id": "hazard3",
+      "title": "Open to another space (right wall)",
+      "detail": "Open doorway to adjacent living space allows sound transfer. Sound leaks both ways and the bigger connected volume rings longer than this room alone.",
+      "severity": "medium",
+      "addressed_by": [],
+      "after": "Seen by the surroundings agent (90% confidence); not something panels fix."
+    },
+    {
+      "id": "furniture",
+      "title": "Furniture is in the way of some treatment",
+      "detail": "3 item(s) sit where the acoustics need them but a piece of furniture, artwork stand in the way (shown see-through in the 3D view).",
+      "severity": "medium",
+      "addressed_by": [
+        "corner",
+        "coverage",
+        "first_reflection"
+      ],
+      "after": "Move that furniture, or accept slightly less effect from those items."
+    }
+  ],
+  "prediction": {
+    "bands_hz": [
+      125,
+      250,
+      500,
+      1000,
+      2000,
+      4000
+    ],
+    "before_rt60_s": [
+      0.29139728250482255,
+      0.4838832863536722,
+      0.5651128606754053,
+      0.5960488543327388,
+      0.5418666798805047,
+      0.5084216834648391
+    ],
+    "after_rt60_s": [
+      0.25793404135531267,
+      0.35162184678441216,
+      0.38434727220260967,
+      0.3974119965926613,
+      0.3752192646328438,
+      0.36368375250672474
+    ],
+    "target_low_s": [
+      0.13452216543121825,
+      0.13452216543121825,
+      0.13452216543121825,
+      0.13452216543121825,
+      0.13452216543121825,
+      0.13452216543121825
+    ],
+    "target_high_s": [
+      0.3845221654312183,
+      0.2345221654312183,
+      0.2345221654312183,
+      0.2345221654312183,
+      0.2345221654312183,
+      0.2345221654312183
+    ],
+    "mid_before_s": 0.5805808575040721,
+    "mid_after_s": 0.3908796343976355,
+    "bass_ratio_before": 0.6676766541971779,
+    "bass_ratio_after": 0.779723263248391,
+    "schroeder_before_hz": 240.32477870140607,
+    "schroeder_after_hz": 197.19173879767754,
+    "reflections": [
+      {
+        "source": "left speaker",
+        "surface": "front wall",
+        "delay_ms": 1.8002665259757513,
+        "before_db": -2.7391363895971135,
+        "after_db": -2.7391363895971135,
+        "treated_by": null
+      },
+      {
+        "source": "right speaker",
+        "surface": "front wall",
+        "delay_ms": 1.8002665658991583,
+        "before_db": -2.73913643879779,
+        "after_db": -2.73913643879779,
+        "treated_by": null
+      },
+      {
+        "source": "left speaker",
+        "surface": "left wall",
+        "delay_ms": 4.125653180381689,
+        "before_db": -5.215724685005604,
+        "after_db": -5.215724685005604,
+        "treated_by": null
+      },
+      {
+        "source": "right speaker",
+        "surface": "right wall",
+        "delay_ms": 4.232436773660308,
+        "before_db": -5.314115939665287,
+        "after_db": -18.14712822670078,
+        "treated_by": "fr1"
+      },
+      {
+        "source": "right speaker",
+        "surface": "ceiling",
+        "delay_ms": 5.052276512877676,
+        "before_db": -6.034540294162244,
+        "after_db": -18.867552581197735,
+        "treated_by": "cloud"
+      },
+      {
+        "source": "left speaker",
+        "surface": "ceiling",
+        "delay_ms": 5.052276512877677,
+        "before_db": -6.034540294162244,
+        "after_db": -18.867552581197735,
+        "treated_by": "cloud"
+      },
+      {
+        "source": "right speaker",
+        "surface": "left wall",
+        "delay_ms": 8.94530986162675,
+        "before_db": -8.81927946436023,
+        "after_db": -8.81927946436023,
+        "treated_by": null
+      },
+      {
+        "source": "left speaker",
+        "surface": "right wall",
+        "delay_ms": 9.060823702057386,
+        "before_db": -8.889685358568457,
+        "after_db": -21.72269764560395,
+        "treated_by": "fr1"
+      },
+      {
+        "source": "left speaker",
+        "surface": "rear wall",
+        "delay_ms": 10.738472298641465,
+        "before_db": -9.852671378210873,
+        "after_db": -9.852671378210873,
+        "treated_by": null
+      },
+      {
+        "source": "right speaker",
+        "surface": "rear wall",
+        "delay_ms": 10.738474592724698,
+        "before_db": -9.852672624663784,
+        "after_db": -9.852672624663784,
+        "treated_by": null
+      }
+    ]
+  },
+  "alternatives": [
+    {
+      "summary": "first-reflection panels (100 mm), 1 corner bass traps, ceiling cloud, 2 extra wall panels",
+      "items": 5,
+      "mid_rt60_s": 0.3908796343976355,
+      "score": 63.97,
+      "chosen": true
+    },
+    {
+      "summary": "first-reflection panels (50 mm), 1 corner bass traps, ceiling cloud, 2 extra wall panels",
+      "items": 5,
+      "mid_rt60_s": 0.3908796343976355,
+      "score": 64.14,
+      "chosen": false
+    },
+    {
+      "summary": "first-reflection panels (100 mm), ceiling cloud, 2 extra wall panels",
+      "items": 4,
+      "mid_rt60_s": 0.43066732449518796,
+      "score": 86.14,
+      "chosen": false
+    },
+    {
+      "summary": "first-reflection panels (50 mm), ceiling cloud, 2 extra wall panels",
+      "items": 4,
+      "mid_rt60_s": 0.43066732449518796,
+      "score": 86.38,
+      "chosen": false
+    },
+    {
+      "summary": "first-reflection panels (100 mm), 1 corner bass traps, 2 extra wall panels",
+      "items": 4,
+      "mid_rt60_s": 0.449525764972462,
+      "score": 107.79,
+      "chosen": false
+    }
+  ],
+  "viewpoint": {
+    "scan_id": "0up626zz41smhfgmc7rczku6c",
+    "position": [
+      -0.6244824528694153,
+      2.145115613937378,
+      1.5104635953903198
+    ],
+    "yaw_deg": 10.0,
+    "pitch_deg": -1.1297779355464659,
+    "hfov_deg": 75.0,
+    "items_in_view": [
+      "fr1",
+      "trap0",
+      "cloud",
+      "cv2"
+    ],
+    "floor_in_view": 0.3511111111111111,
+    "corner_distance_m": 1.1999334530692942,
+    "reason": "Scan position 1.2 m from a corner, looking at 4 of 5 treatment items with 35% of the floor in view."
+  },
+  "room": {
+    "polygon": [
+      [
+        2.8110482615561665,
+        1.0630233273197482
+      ],
+      [
+        2.8030614600011843,
+        4.912481943588205
+      ],
+      [
+        -1.1336387340174512,
+        4.904324772607721
+      ],
+      [
+        -1.1256543256893066,
+        1.0548555322646593
+      ]
+    ],
+    "floor_z": 0.025161334874953444,
+    "height_m": 2.7200000286102295,
+    "height_provenance": "verified",
+    "area_m2": 15.154255182113934,
+    "volume_m3": 40.20921566341781,
+    "geometry_source": "mesh+outline",
+    "walls": [
+      {
+        "index": 0,
+        "name": "front wall",
+        "length_m": 3.85,
+        "coverage": 0.998375,
+        "openings": [],
+        "surface_offset_m": 0.058
+      },
+      {
+        "index": 1,
+        "name": "left wall",
+        "length_m": 3.94,
+        "coverage": 0.9805625,
+        "openings": [],
+        "surface_offset_m": 0.069
+      },
+      {
+        "index": 2,
+        "name": "rear wall",
+        "length_m": 3.85,
+        "coverage": 0.99125,
+        "openings": [],
+        "surface_offset_m": 0.053
+      },
+      {
+        "index": 3,
+        "name": "right wall",
+        "length_m": 3.94,
+        "coverage": 0.9163125,
+        "openings": [
+          [
+            1.0,
+            1.5
+          ]
+        ],
+        "surface_offset_m": 0.048
+      }
+    ],
+    "materials": [
+      {
+        "surface": "floor",
+        "material_id": "hardwood",
+        "label": "Hardwood floor",
+        "alpha": [
+          0.15,
+          0.11,
+          0.1,
+          0.07,
+          0.06,
+          0.07
+        ],
+        "provenance": "observed",
+        "confidence": 0.95,
+        "basis": "Seen by the walls agent: Polished wood planks"
+      },
+      {
+        "surface": "walls",
+        "material_id": "painted_drywall",
+        "label": "Painted drywall / plaster",
+        "alpha": [
+          0.29,
+          0.1,
+          0.05,
+          0.04,
+          0.07,
+          0.09
+        ],
+        "provenance": "observed",
+        "confidence": 0.95,
+        "basis": "Seen by the walls agent: most of the wall area"
+      },
+      {
+        "surface": "ceiling",
+        "material_id": "painted_drywall",
+        "label": "Painted drywall / plaster",
+        "alpha": [
+          0.29,
+          0.1,
+          0.05,
+          0.04,
+          0.07,
+          0.09
+        ],
+        "provenance": "observed",
+        "confidence": 0.95,
+        "basis": "Seen by the walls agent: Smooth white painted ceiling"
+      }
+    ],
+    "furniture": [
+      {
+        "id": "sofa",
+        "count": 1,
+        "provenance": "observed"
+      },
+      {
+        "id": "cushions",
+        "count": 3,
+        "provenance": "observed"
+      },
+      {
+        "id": "desk",
+        "count": 1,
+        "provenance": "observed"
+      },
+      {
+        "id": "office_chair",
+        "count": 1,
+        "provenance": "observed"
+      },
+      {
+        "id": "table",
+        "count": 2,
+        "provenance": "observed"
+      },
+      {
+        "id": "bookshelf",
+        "count": 1,
+        "provenance": "observed"
+      }
+    ],
+    "furniture_basis": "Furniture seen by the furniture agent (by kind and covering, confidence 0.5 or more).",
+    "vision_status": "ok",
+    "vision_reason": null,
+    "agents": [
+      {
+        "agent": "furniture",
+        "status": "ok",
+        "model": "openrouter:nvidia/nemotron-3.5-super-vl:free",
+        "seconds": 74.6,
+        "reason": null,
+        "created": "2026-11-14T22:27:21+00:00"
+      },
+      {
+        "agent": "surroundings",
+        "status": "ok",
+        "model": "openrouter:nvidia/nemotron-3.5-super-vl:free",
+        "seconds": 35.5,
+        "reason": null,
+        "created": "2026-11-14T22:26:42+00:00"
+      },
+      {
+        "agent": "walls",
+        "status": "ok",
+        "model": "openrouter:nvidia/nemotron-3.5-super-vl:free",
+        "seconds": 30.8,
+        "reason": null,
+        "created": "2026-11-14T22:26:37+00:00"
+      }
+    ],
+    "wall_findings": [
+      {
+        "wall": 0,
+        "material_id": "painted_drywall",
+        "finish": "Yellow painted wall",
+        "confidence": 0.95,
+        "features": [
+          {
+            "kind": "window",
+            "category": "building",
+            "along": [
+              0.9892102232264172,
+              3.5313410315130818
+            ],
+            "z": [
+              0.7282122754385875,
+              2.266833744317546
+            ],
+            "covering": "blinds",
+            "confidence": 0.95
+          },
+          {
+            "kind": "artwork",
+            "category": "movable",
+            "along": [
+              0.22855872467504607,
+              0.7749073432739578
+            ],
+            "z": [
+              1.4075976327270385,
+              2.1419405237853297
+            ],
+            "covering": "unknown",
+            "confidence": 0.95
+          }
+        ],
+        "name": "front wall"
+      },
+      {
+        "wall": 1,
+        "material_id": "painted_drywall",
+        "finish": "Yellow painted wall",
+        "confidence": 0.95,
+        "features": [
+          {
+            "kind": "window",
+            "category": "building",
+            "along": [
+              2.6798245180171887,
+              3.744131967895364
+            ],
+            "z": [
+              0.7958156366446438,
+              2.2100845496754653
+            ],
+            "covering": "blinds",
+            "confidence": 0.95
+          },
+          {
+            "kind": "window",
+            "category": "building",
+            "along": [
+              0.06422835269068211,
+              1.2457196292272505
+            ],
+            "z": [
+              0.7202399621370656,
+              2.287459645004653
+            ],
+            "covering": "blinds",
+            "confidence": 0.95
+          },
+          {
+            "kind": "artwork",
+            "category": "movable",
+            "along": [
+              1.3799393248895802,
+              2.5139224094651507
+            ],
+            "z": [
+              1.6553106124620987,
+              2.1227426072322095
+            ],
+            "covering": "unknown",
+            "confidence": 0.95
+          },
+          {
+            "kind": "artwork",
+            "category": "movable",
+            "along": [
+              1.3551900720060612,
+              2.5364745483888713
+            ],
+            "z": [
+              0.8957072074279925,
+              1.6261019108815056
+            ],
+            "covering": "unknown",
+            "confidence": 0.95
+          }
+        ],
+        "name": "left wall"
+      },
+      {
+        "wall": 2,
+        "material_id": "painted_drywall",
+        "finish": "Yellow painted wall",
+        "confidence": 0.95,
+        "features": [
+          {
+            "kind": "open_doorway",
+            "category": "building",
+            "along": [
+              2.3081771471371155,
+              3.166966882381802
+            ],
+            "z": [
+              0.4660981346044176,
+              2.308899325379902
+            ],
+            "covering": "unknown",
+            "confidence": 0.95
+          },
+          {
+            "kind": "door",
+            "category": "building",
+            "along": [
+              1.4889403909689318,
+              2.4272520384599683
+            ],
+            "z": [
+              0.21063745002246312,
+              2.189380722003584
+            ],
+            "covering": "unknown",
+            "confidence": 0.95
+          },
+          {
+            "kind": "artwork",
+            "category": "movable",
+            "along": [
+              0.17682401765190178,
+              1.293789289097495
+            ],
+            "z": [
+              1.110044877606414,
+              2.2220213303547105
+            ],
+            "covering": "unknown",
+            "confidence": 0.95
+          }
+        ],
+        "name": "rear wall"
+      },
+      {
+        "wall": 3,
+        "material_id": "painted_drywall",
+        "finish": "Yellow painted wall",
+        "confidence": 0.95,
+        "features": [
+          {
+            "kind": "artwork",
+            "category": "movable",
+            "along": [
+              3.1089718572061615,
+              3.7568338093039833
+            ],
+            "z": [
+              1.4853022605153663,
+              2.2425801820656215
+            ],
+            "covering": "unknown",
+            "confidence": 0.95
+          },
+          {
+            "kind": "artwork",
+            "category": "movable",
+            "along": [
+              2.4302842393132322,
+              3.2156264806584938
+            ],
+            "z": [
+              1.4853022605153663,
+              2.3700243083508914
+            ],
+            "covering": "unknown",
+            "confidence": 0.95
+          },
+          {
+            "kind": "artwork",
+            "category": "movable",
+            "along": [
+              1.9116919742957352,
+              2.4302842393132322
+            ],
+            "z": [
+              1.4853022605153663,
+              2.263747658465049
+            ],
+            "covering": "unknown",
+            "confidence": 0.95
+          },
+          {
+            "kind": "open_doorway",
+            "category": "building",
+            "along": [
+              0.7861509624433634,
+              1.7093624405949046
+            ],
+            "z": [
+              0.4077483002955141,
+              2.3649381464091235
+            ],
+            "covering": "unknown",
+            "confidence": 0.95
+          },
+          {
+            "kind": "door",
+            "category": "building",
+            "along": [
+              0.0,
+              0.8016005192144913
+            ],
+            "z": [
+              0.6770960365368375,
+              2.2951281362453555
+            ],
+            "covering": "unknown",
+            "confidence": 0.95
+          }
+        ],
+        "name": "right wall"
+      }
+    ],
+    "pieces": [
+      {
+        "kind": "sofa",
+        "covering": "fabric",
+        "label": "green sofa",
+        "count": 1,
+        "furniture_id": "sofa",
+        "position": [
+          0.4872196532836406,
+          3.434300072628843
+        ],
+        "width_m": 1.7913099618261665,
+        "height_m": 1.0562173069739962,
+        "confidence": 0.95
+      },
+      {
+        "kind": "cushions",
+        "covering": "fabric",
+        "label": "sofa cushions",
+        "count": 3,
+        "furniture_id": "cushions",
+        "position": null,
+        "width_m": null,
+        "height_m": null,
+        "confidence": 0.9
+      },
+      {
+        "kind": "desk",
+        "covering": "wood",
+        "label": "wooden desk",
+        "count": 1,
+        "furniture_id": "desk",
+        "position": [
+          2.2540355271473507,
+          2.501918197989074
+        ],
+        "width_m": 1.046241604981911,
+        "height_m": 0.9241907448951096,
+        "confidence": 0.95
+      },
+      {
+        "kind": "office_chair",
+        "covering": "wood",
+        "label": "wooden office chair",
+        "count": 1,
+        "furniture_id": "office_chair",
+        "position": [
+          1.6624837052475443,
+          2.3358236432078234
+        ],
+        "width_m": 0.7432030692683032,
+        "height_m": 0.6317226088780578,
+        "confidence": 0.95
+      },
+      {
+        "kind": "table",
+        "covering": "wood",
+        "label": "pink coffee table",
+        "count": 1,
+        "furniture_id": "table",
+        "position": [
+          0.6121541062330829,
+          2.8933411648955962
+        ],
+        "width_m": 1.0404842969756245,
+        "height_m": 0.801805164790635,
+        "confidence": 0.95
+      },
+      {
+        "kind": "table",
+        "covering": "wood",
+        "label": "console table",
+        "count": 1,
+        "furniture_id": "table",
+        "position": [
+          1.160159544280057,
+          1.3374810167495221
+        ],
+        "width_m": 1.2853825432634907,
+        "height_m": 0.9565368504433123,
+        "confidence": 0.9
+      },
+      {
+        "kind": "bookshelf",
+        "covering": "wood",
+        "label": "wooden bookshelf",
+        "count": 1,
+        "furniture_id": "bookshelf",
+        "position": [
+          -0.7445081810721356,
+          3.7139712830113334
+        ],
+        "width_m": 0.7174228148447391,
+        "height_m": 1.140482188945624,
+        "confidence": 0.95
+      },
+      {
+        "kind": "curtains",
+        "covering": "mixed",
+        "label": "window blinds",
+        "count": 3,
+        "furniture_id": null,
+        "position": null,
+        "width_m": null,
+        "height_m": null,
+        "confidence": 0.9
+      },
+      {
+        "kind": "lamp",
+        "covering": "mixed",
+        "label": "table lamp",
+        "count": 1,
+        "furniture_id": null,
+        "position": null,
+        "width_m": null,
+        "height_m": null,
+        "confidence": 0.9
+      },
+      {
+        "kind": "lamp",
+        "covering": "mixed",
+        "label": "floor lamp",
+        "count": 1,
+        "furniture_id": null,
+        "position": null,
+        "width_m": 0.1660700960288752,
+        "height_m": 2.0952010432175103,
+        "confidence": 0.9
+      }
+    ],
+    "hazards": [
+      {
+        "kind": "street_facing_window",
+        "note": "Large window with blinds facing outside, potential source of external noise.",
+        "wall": 0,
+        "bearing_deg": 10.977411600616168,
+        "confidence": 0.9,
+        "wall_name": "front wall"
+      },
+      {
+        "kind": "single_glazing",
+        "note": "Windows appear to be single pane, offering minimal sound insulation.",
+        "wall": 0,
+        "bearing_deg": 10.977411600616168,
+        "confidence": 0.6,
+        "wall_name": "front wall"
+      },
+      {
+        "kind": "hard_bare_surfaces",
+        "note": "Hardwood floors throughout the room reflect sound.",
+        "wall": 1,
+        "bearing_deg": 62.04052803006019,
+        "confidence": 0.9,
+        "wall_name": "left wall"
+      },
+      {
+        "kind": "open_plan_connection",
+        "note": "Open doorway to adjacent living space allows sound transfer.",
+        "wall": 3,
+        "bearing_deg": -97.31536436394887,
+        "confidence": 0.9,
+        "wall_name": "right wall"
+      }
+    ],
+    "furniture_objects": [
+      {
+        "id": "f1",
+        "min": [
+          -1.042,
+          3.559,
+          0.071
+        ],
+        "max": [
+          -0.401,
+          4.808,
+          1.184
+        ],
+        "points": 2555,
+        "mounting": "floor",
+        "label": "wooden bookshelf",
+        "named_by": "furniture_agent"
+      },
+      {
+        "id": "f2",
+        "min": [
+          -1.02,
+          1.181,
+          0.075
+        ],
+        "max": [
+          -0.493,
+          1.646,
+          2.333
+        ],
+        "points": 636,
+        "mounting": "floor",
+        "label": "a tall piece of furniture",
+        "named_by": "geometry"
+      },
+      {
+        "id": "f3",
+        "min": [
+          -1.005,
+          2.689,
+          0.073
+        ],
+        "max": [
+          -0.401,
+          3.328,
+          0.297
+        ],
+        "points": 448,
+        "mounting": "floor",
+        "label": "wooden bookshelf",
+        "named_by": "furniture_agent"
+      },
+      {
+        "id": "f4",
+        "min": [
+          -0.311,
+          2.998,
+          0.08
+        ],
+        "max": [
+          2.684,
+          4.793,
+          0.87
+        ],
+        "points": 7963,
+        "mounting": "floor",
+        "label": "green sofa",
+        "named_by": "furniture_agent"
+      },
+      {
+        "id": "f5",
+        "min": [
+          0.434,
+          2.952,
+          2.07
+        ],
+        "max": [
+          0.593,
+          3.13,
+          2.381
+        ],
+        "points": 149,
+        "mounting": "ceiling",
+        "label": "a ceiling fixture",
+        "named_by": "geometry"
+      },
+      {
+        "id": "f6",
+        "min": [
+          0.585,
+          1.162,
+          0.092
+        ],
+        "max": [
+          2.7,
+          3.317,
+          1.257
+        ],
+        "points": 7400,
+        "mounting": "floor",
+        "label": "wooden desk",
+        "named_by": "furniture_agent"
+      }
+    ],
+    "absorption_notes": [
+      "window on wall 0: 3.9 m2",
+      "window on wall 1: 1.5 m2",
+      "window on wall 1: 1.9 m2",
+      "open doorway on wall 2: 1.6 m2",
+      "door on wall 2: 1.9 m2",
+      "open doorway on wall 3: 1.8 m2",
+      "door on wall 3: 1.3 m2"
+    ]
+  },
+  "notes": [
+    "7 window(s), door(s) or fixture(s) the walls agent found are kept clear at their real size.",
+    "The wall behind the listening position has an opening there; no rear treatment.",
+    "The left speaker's reflection off the front wall lands on an opening; it cannot take a panel (a heavy curtain helps if it is a window).",
+    "The right speaker's reflection off the front wall lands on an opening; it cannot take a panel (a heavy curtain helps if it is a window).",
+    "The left speaker's reflection off the left wall lands on an opening; it cannot take a panel (a heavy curtain helps if it is a window).",
+    "The right speaker's reflection off the left wall lands on an opening; it cannot take a panel (a heavy curtain helps if it is a window).",
+    "The left speaker's reflection off the rear wall lands on an opening; it cannot take a panel (a heavy curtain helps if it is a window).",
+    "The right speaker's reflection off the rear wall lands on an opening; it cannot take a panel (a heavy curtain helps if it is a window)."
+  ],
+  "assumptions": [
+    "Room: 40.2 m3 from the Matterport outline (15.2 m2) and a 2.72 m ceiling (verified).",
+    "Floor: Hardwood floor (observed, confidence 95%)",
+    "Walls: Painted drywall / plaster (observed, confidence 95%)",
+    "Ceiling: Painted drywall / plaster (observed, confidence 95%)",
+    "Furniture: Furniture seen by the furniture agent (by kind and covering, confidence 0.5 or more).",
+    "Treatment absorption is typical for each kind of product (acoustics/products.py), not a specific brand.",
+    "Targets: EBU Tech 3276 reverberation limits; reflection-free zone (10 dB, ITU-R BS.1116)."
+  ],
+  "limitations": [
+    "Every result is a simulation from geometry and typical absorption values, not a measurement. Measure the treated room (e.g. with REW and a measurement mic) to confirm.",
+    "Reverberation uses Sabine's formula with diffuse-field assumptions; small rooms below the Schroeder frequency (~240 Hz) behave modally and differ from it.",
+    "Reflection points use first-order image sources off flat walls; furniture is not an obstacle in that calculation.",
+    "Furniture and building overlaps use Matterport's meshes (furnished minus defurnished); thin objects under 7 cm deep (flat art) are only known when the walls agent saw them.",
+    "Bass traps shorten modal ringing; they do not remove the modes themselves."
+  ]
+}
