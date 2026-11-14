@@ -84,7 +84,7 @@ export type Surface = 'floor' | 'walls' | 'ceiling'
 export interface FurnitureItem {
   id: string
   count: number
-  provenance?: 'assumed' | 'user'
+  provenance?: 'assumed' | 'observed' | 'user'
 }
 export type FurnitureCatalog = Record<string, { label: string; sabins: number[] }>
 
@@ -93,7 +93,15 @@ export type FurnitureCatalog = Record<string, { label: string; sabins: number[] 
  * (absent = the typical furnishing for the room type, marked assumed by the backend).
  * Kept in one object so every hook that keys on it re-runs when either changes.
  */
-export type MaterialSelection = Partial<Record<Surface, string>> & { furniture?: FurnitureItem[] }
+export type MaterialSelection = Partial<Record<Surface, string>> & {
+  furniture?: FurnitureItem[]
+  /** Install REVERB's treatment plan for this use (objective id) before modelling the room. */
+  treatment?: string
+  /** Walls the treatment plan must keep clear (indices from the plan). */
+  treatment_avoid?: number[]
+  /** Model the room with what the scan and the vision agents found (height, windows, doors, finishes). */
+  room_model?: boolean
+}
 
 export interface MaterialCatalog {
   materials: Record<string, { label: string; alpha: number[] }>

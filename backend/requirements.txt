@@ -11,3 +11,5 @@ langchain
 langchain-anthropic
 langsmith
 langchain-openrouter
+trimesh
+pillow

@@ -22,6 +22,8 @@ interface Props {
   onDry?: (name: string | null) => void
   /** Illustrative outside noise per room's property, from its noise-risk ranking. */
   outside?: { A: AmbienceLayer[]; B: AmbienceLayer[] }
+  /** False while the lab is kept mounted but hidden: keyboard shortcuts are off. */
+  active?: boolean
 }
 
 const LOOP_S: Record<AmbientKind, number> = { traffic: 20, rail: 24, aircraft: 30, helicopter: 28, siren: 26, venue: 8, works: 12 }
@@ -46,7 +48,7 @@ interface Graph {
   amb: { A: GainNode; B: GainNode; srcs: AudioBufferSourceNode[] }
 }
 
-export function AudioLab({ a, b, materials, onDry, outside }: Props) {
+export function AudioLab({ a, b, materials, onDry, outside, active = true }: Props) {
   const [outsideOn, setOutsideOn] = useState(true)
   const [outsideLevel, setOutsideLevel] = useState(100)
   const outsideRef = useRef(outside)
@@ -230,13 +232,14 @@ export function AudioLab({ a, b, materials, onDry, outside }: Props) {
   const ready = dry != null
 
   // Keyboard: 0 = dry, 1 = Room A, 2 = Room B, space = play/pause (ignored while typing).
-  const keys = useRef({ play, stop, playing, irA: irA.ir, irB: irB.ir })
-  keys.current = { play, stop, playing, irA: irA.ir, irB: irB.ir }
+  const keys = useRef({ play, stop, playing, irA: irA.ir, irB: irB.ir, active })
+  keys.current = { play, stop, playing, irA: irA.ir, irB: irB.ir, active }
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target instanceof HTMLElement ? e.target : null
       if (t?.closest('input, select, textarea, [contenteditable]') || e.metaKey || e.ctrlKey || e.altKey) return
       const k = keys.current
+      if (!k.active) return
       if (e.key === '0') setMode('orig')
       else if (e.key === '1' && k.irA) setMode('A')
       else if (e.key === '2' && k.irB) setMode('B')
@@ -253,7 +256,7 @@ export function AudioLab({ a, b, materials, onDry, outside }: Props) {
     <div className="text-sm" data-testid="audio-lab">
       <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-zinc-700 bg-zinc-950/50 p-3">
         <label className="cursor-pointer rounded-md bg-zinc-100 px-3 py-1.5 text-xs font-semibold text-black hover:bg-white">
-          {dry ? 'Replace recording' : 'Upload dry recording'}
+          {dry ? 'Replace recording' : 'Upload a dry take'}
           <input
             type="file"
             accept="audio/*"
@@ -271,7 +274,7 @@ export function AudioLab({ a, b, materials, onDry, outside }: Props) {
             setDryName('synthetic test claps (generated in browser)')
           }}
         >
-          or use synthetic test claps
+          or use test claps
         </button>
         <span className="min-w-0 truncate text-xs text-zinc-400" data-testid="dry-name">
           {dryName || 'WAV, MP3 or M4A; a close-miked, dry take works best (first 30 s used).'}
@@ -333,8 +336,8 @@ export function AudioLab({ a, b, materials, onDry, outside }: Props) {
         )}
       </div>
       <p className="mt-2 text-[11px] text-zinc-500">
-        One playhead feeds both rooms, so switching keeps your place. Rooms are loudness-matched so you
-        hear the room, not a volume change. Keys: 0 / 1 / 2 to switch, space to play.
+        Rooms are loudness-matched, so you hear the room, not a volume change. Keys: 0 / 1 / 2 to switch, space
+        to play.
       </p>
 
       {outside && (
@@ -342,93 +345,51 @@ export function AudioLab({ a, b, materials, onDry, outside }: Props) {
           <div className="flex flex-wrap items-center gap-3">
             <label className="flex cursor-pointer items-center gap-1.5 font-medium text-zinc-200">
               <input type="checkbox" checked={outsideOn} onChange={(e) => setOutsideOn(e.target.checked)} />
-              Add the neighbourhood's outside noise
+              Add outside noise
             </label>
-            <label className="flex flex-1 items-center gap-2 text-zinc-400">
-              level
-              <input
-                type="range"
-                min={0}
-                max={200}
-                value={outsideLevel}
-                onChange={(e) => setOutsideLevel(+e.target.value)}
-                className="min-w-24 flex-1 accent-amber-400"
-              />
-            </label>
+            <input
+              type="range"
+              min={0}
+              max={200}
+              value={outsideLevel}
+              onChange={(e) => setOutsideLevel(+e.target.value)}
+              aria-label="Outside noise level"
+              className="min-w-24 flex-1 accent-amber-400"
+            />
             <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] uppercase text-amber-300">illustrative</span>
           </div>
-          <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {(['A', 'B'] as const).map((slot) => {
-              const ref = slot === 'A' ? a : b
-              if (!ref) return null
-              const layers = outside[slot]
-              return (
-                <div key={slot} className={mode === slot ? 'text-zinc-200' : 'text-zinc-500'}>
-                  <div className="font-medium">Room {slot}&apos;s house</div>
-                  {layers.length === 0 ? (
-                    <div>No intrusive sources mapped nearby: quiet.</div>
-                  ) : (
-                    <ul>
-                      {layers.map((l) => (
-                        <li key={l.kind}>
-                          {KIND_LABEL[l.kind]}: {l.source}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-          <p className="mt-2 text-[11px] text-zinc-500">
-            Synthetic sounds for the kinds of sources mapped near each house (OpenStreetMap), heard through a wall. Their
-            loudness follows the relative risk ranking (intrusiveness x distance), not a measurement: a guide to what
-            you might live with, not a sound level.
-          </p>
-        </div>
-      )}
-
-      <details className="mt-3 text-xs text-zinc-400" data-testid="verification">
-        <summary className="cursor-pointer">
-          Processing check
-          {ready && (renders.A || renders.B) ? (
-            <span className="text-zinc-500">
-              {' '}
-              ·{' '}
-              {(['A', 'B'] as const)
-                .filter((s) => renders[s])
-                .map((s) => `Room ${s} rings ${renders[s]!.ringOutS.toFixed(2)} s after the take stops`)
-                .join(' · ')}
-            </span>
-          ) : null}
-        </summary>
-        <div className="mt-2 space-y-1">
-          {ready && (renders.A || renders.B) ? (
-            <div>The audio was rendered offline through each generated impulse response to set the loudness match.</div>
-          ) : (
-            <div>Choose rooms and load audio to process it through their impulse responses.</div>
-          )}
-          {(irA.ir || irB.ir) && (
-            <div data-testid="ir-rt60">
-              <div>RT60 of the modeled impulse response vs the Sabine estimate (500 Hz / 1 kHz / 2 kHz):</div>
-              {(['A', 'B'] as const).map((s) => {
-                const m = (s === 'A' ? irA : irB).ir?.meta
-                if (!m) return null
-                const f = (v: number | null) => (v == null ? '—' : v.toFixed(2))
+          <details className="mt-2 text-zinc-400">
+            <summary className="cursor-pointer">What you hear from outside</summary>
+            <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {(['A', 'B'] as const).map((slot) => {
+                const ref = slot === 'A' ? a : b
+                if (!ref) return null
+                const layers = outside[slot]
                 return (
-                  <div key={s} title={m.notes.join(' ')}>
-                    Room {s}: IR {[2, 3, 4].map((i) => f(m.ir_rt60_s[i])).join(' / ')} s · Sabine{' '}
-                    {[2, 3, 4].map((i) => f(m.sabine_rt60_s[i])).join(' / ')} s
+                  <div key={slot}>
+                    <div className="font-medium text-zinc-300">Room {slot}&apos;s place</div>
+                    {layers.length === 0 ? (
+                      <div>Nothing intrusive mapped nearby.</div>
+                    ) : (
+                      <ul>
+                        {layers.map((l) => (
+                          <li key={l.kind}>
+                            {KIND_LABEL[l.kind]}: {l.source}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 )
               })}
-              <div className="text-zinc-500">
-                {irA.ir?.meta.notes.slice(1).join(' ') ?? irB.ir?.meta.notes.slice(1).join(' ')}
-              </div>
             </div>
-          )}
+            <p className="mt-2 text-[11px] text-zinc-500">
+              Synthetic sounds for the kinds of sources mapped nearby (OpenStreetMap), heard through a wall. Loudness
+              follows a relative risk ranking, not a measured sound level.
+            </p>
+          </details>
         </div>
-      </details>
+      )}
       {(irA.error || irB.error) && <div className="mt-2 text-xs text-red-300">{irA.error ?? irB.error}</div>}
     </div>
   )

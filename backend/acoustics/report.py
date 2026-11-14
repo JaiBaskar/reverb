@@ -93,6 +93,8 @@ def analyze_room(
     selection: dict[str, str] | None = None,
     furniture: list[FurnitureItem] | None = None,
     outline: list | None = None,
+    extra_sabins: list[float] | None = None,
+    extra_note: str | None = None,
 ) -> AcousticReport:
     """furniture None means an empty room. outline: the room's floor polygon (metres); when
     given, wall area comes from its perimeter instead of the equivalent box."""
@@ -115,6 +117,8 @@ def analyze_room(
         wall_source = "outline"
     items = furniture or []
     extra = furniture_absorption(items)
+    if extra_sabins is not None:  # per-wall findings (windows, doors, finishes) vs uniform walls
+        extra = [e + x for e, x in zip(extra, extra_sabins, strict=True)]
 
     geo_note = None
     if wall_source == "outline":
@@ -148,6 +152,7 @@ def analyze_room(
             )
             + extra[i]
         )
+        a = max(a, 0.01)  # per-wall corrections can lower it; it can never reach zero
         absorption.append(a)
         rt60.append(sabine_rt60(vol, a))
 
@@ -187,7 +192,8 @@ def analyze_room(
             if items
             else "Room is empty (no furniture, people or curtains)."
         ),
-        "Walls, floor and ceiling are single uniform materials; doors and windows are ignored.",
+        extra_note
+        or "Walls, floor and ceiling are single uniform materials; doors and windows are ignored.",
         "Sabine RT60 values ignore air absorption; the impulse response you hear includes it, so its 2-4 kHz decay is somewhat shorter.",
         (
             f"Source at ({src[0]:.2f}, {src[1]:.2f}, {src[2]:.2f}) m and listener at "

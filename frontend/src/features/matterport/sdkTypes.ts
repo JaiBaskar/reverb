@@ -31,6 +31,13 @@ export interface RoomCurrent {
   rooms: { id: string; label?: string }[]
 }
 
+export interface CameraPose {
+  position: Vec3
+  rotation: { x: number; y: number }
+  sweep: string
+  mode: string
+}
+
 export type ModeValue =
   | 'mode.inside'
   | 'mode.outside'
@@ -61,7 +68,7 @@ export interface ThreeLike {
 export interface SceneComponent<I = Record<string, unknown>> {
   inputs: I
   outputs: { objectRoot?: any }
-  context: { three: ThreeLike }
+  context: { three: ThreeLike; renderer?: any; scene?: any; camera?: any }
   onInit?(): void
   onInputsUpdated?(previous: I): void
   onDestroy?(): void
@@ -87,7 +94,10 @@ export interface MpSdk {
   App: { state: Observable<AppState> }
   Sweep: {
     current: Observable<SweepCurrent>
-    moveTo(sid: string, options?: { transition?: string; transitionTime?: number }): Promise<string>
+    moveTo(
+      sid: string,
+      options?: { transition?: string; transitionTime?: number; rotation?: { x: number; y: number } },
+    ): Promise<string>
     Transition: { FLY: string; INSTANT: string; FADEOUT: string }
   }
   Room: { current: Observable<RoomCurrent> }
@@ -95,6 +105,14 @@ export interface MpSdk {
     current: Observable<ModeValue>
     moveTo(mode: string): Promise<string>
     Mode: { INSIDE: string; DOLLHOUSE: string; FLOORPLAN: string }
+  }
+  Camera: {
+    pose: Observable<CameraPose>
+    setRotation(rotation: { x: number; y: number }, options?: { speed?: number }): Promise<void>
+  }
+  Renderer: {
+    /** JPEG data URI; with no visibility argument, tags and sweep markers are hidden. */
+    takeScreenShot(resolution?: { width: number; height: number }): Promise<string>
   }
   Scene?: SceneApi
   disconnect?(): void

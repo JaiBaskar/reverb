@@ -96,9 +96,26 @@ def compare(a: AcousticReport, b: AcousticReport) -> Comparison:
             + "."
         )
     else:
-        s.append(
-            "Both rooms use the same material assumptions, so the difference is geometry only."
-        )
+        treated = [
+            n
+            for n, r in (("A", a), ("B", b))
+            if any(x.startswith("Treatment installed") for x in r.assumptions)
+        ]
+        furn_a = sorted((i.id, i.count) for i in a.furniture)
+        furn_b = sorted((i.id, i.count) for i in b.furniture)
+        causes = (
+            [f"the acoustic treatment installed in {' and '.join(treated)}"] if treated else []
+        ) + (["their furniture"] if furn_a != furn_b else [])
+        if causes:
+            s.append(
+                "Both rooms use the same surface materials; the difference comes from "
+                + " and ".join(causes)
+                + "."
+            )
+        else:
+            s.append(
+                "Both rooms use the same material assumptions, so the difference is geometry only."
+            )
 
     fs_a, fs_b = a.schroeder_hz, b.schroeder_hz
     low_txt = ", ".join(

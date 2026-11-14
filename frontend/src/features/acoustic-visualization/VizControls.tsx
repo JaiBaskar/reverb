@@ -15,7 +15,8 @@ interface Props {
   basis: FitBasis
   onMode: (m: VizMode) => void
   onUseCase: (u: string) => void
-  onBasis: (b: FitBasis) => void
+  /** Omit to hide the as-modeled / room-shape toggle. */
+  onBasis?: (b: FitBasis) => void
 }
 
 const seg = (on: boolean) =>
@@ -46,6 +47,7 @@ export function VizControls({ mode, useCase, basis, onMode, onUseCase, onBasis }
               </option>
             ))}
           </select>
+          {onBasis && (
           <div className="flex rounded-lg bg-zinc-900/90 p-0.5 ring-1 ring-zinc-800" role="radiogroup" aria-label="Fit basis">
             <button
               role="radio"
@@ -66,6 +68,7 @@ export function VizControls({ mode, useCase, basis, onMode, onUseCase, onBasis }
               Room shape only
             </button>
           </div>
+          )}
         </>
       )}
     </div>

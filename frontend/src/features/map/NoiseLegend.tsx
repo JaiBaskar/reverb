@@ -11,7 +11,7 @@ interface Props {
 
 /** Toggle noise-source categories on the main map. */
 export function NoiseLegend({ report, enabled, onChange, heat }: Props) {
-  const [open, setOpen] = useState(() => typeof window === 'undefined' || window.innerWidth >= 640)
+  const [open, setOpen] = useState(false)
   if (!open)
     return (
       <button

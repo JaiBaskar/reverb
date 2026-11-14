@@ -7,7 +7,6 @@ import { RoomDetails } from '../acoustic-visualization/RoomDetails'
 import { useHouseAcoustics } from '../acoustic-visualization/useHouseAcoustics'
 import { USE_CASES } from '../acoustic-visualization/useCases'
 import { HeatmapLegend, VizControls } from '../acoustic-visualization/VizControls'
-import { RoomAudio } from '../audio/RoomAudio'
 import type { Variant } from '../matterport/connect'
 import { polygonArea, resolveCurrentRoom } from '../matterport/geometry'
 import { MatterportViewer } from '../matterport/MatterportViewer'
@@ -50,7 +49,7 @@ export function TourExperience({ sid, title, startChoosing = false, onBack, back
   const [conn, setConn] = useState<{ sdk: MpSdk; variant: Variant } | null>(null)
   const [mode, setMode] = useState<VizMode>('fit')
   const [useCase, setUseCase] = useState('acoustic_guitar')
-  const [basis, setBasis] = useState<FitBasis>('modeled')
+  const basis: FitBasis = 'modeled'
   // A manual pick holds until the visitor walks into another room (when following the tour).
   const [pick, setPick] = useState<{ id: string; whileIn: string | null } | null>(null)
   const [follow, setFollow] = useState(true)
@@ -239,10 +238,10 @@ export function TourExperience({ sid, title, startChoosing = false, onBack, back
             {heat ? (
               <MetricPicker metric={metric} onChange={setMetric} />
             ) : (
-              <VizControls mode={mode} useCase={useCase} basis={basis} onMode={setMode} onUseCase={setUseCase} onBasis={setBasis} />
+              <VizControls mode={mode} useCase={useCase} basis={basis} onMode={setMode} onUseCase={setUseCase} />
             )}
           </div>
-          <TrackingPill conn={conn} current={current} names={names} overlayStatus={overlayStatus} tourMode={tour.mode} />
+          <TrackingPill conn={conn} current={current} names={names} tourMode={tour.mode} />
         </div>
         <div className="relative h-[60vh] lg:h-auto lg:min-h-0 lg:flex-1">
           <MatterportViewer sid={sid} onConnected={onConnected} onDisconnected={onDisconnected} />
@@ -352,18 +351,11 @@ export function TourExperience({ sid, title, startChoosing = false, onBack, back
                 )
               })}
             </div>
-            <p className="mt-1.5 text-[11px] text-zinc-500">⌀ no tour location: analysis and audio only. Picking a room flies the tour there.</p>
+            <p className="mt-1.5 text-[11px] text-zinc-500">Click a room to go there. ⌀ = not reachable in the tour.</p>
             {navError && <p className="mt-1 text-xs text-red-300">{navError}</p>}
           </section>
         )}
 
-        <section className="rounded-xl bg-zinc-900/60 p-3 ring-1 ring-zinc-800">
-          <RoomAudio
-            sid={sid}
-            room={selected ? { id: selected.room_id, label: names[selected.room_id], usable: selected.usable } : null}
-            prefetchRoomIds={rooms.filter((r) => r.usable && r.navigable).map((r) => r.room_id)}
-          />
-        </section>
 
         {heat && musicRoom && fieldRooms[musicRoom] ? (
           <section className="space-y-3 rounded-xl bg-zinc-900/60 p-3 ring-1 ring-zinc-800" data-testid="music-room">
@@ -387,7 +379,7 @@ export function TourExperience({ sid, title, startChoosing = false, onBack, back
                     className={`rounded-md px-3 py-1.5 text-xs font-semibold text-black ${slot === 'A' ? 'bg-sky-400' : 'bg-fuchsia-400'}`}
                     data-testid={`use-room-${slot}`}
                   >
-                    Analyze and listen as Room {slot} →
+                    Use as Room {slot} and listen →
                   </button>
                 ))}
               </div>
@@ -398,6 +390,20 @@ export function TourExperience({ sid, title, startChoosing = false, onBack, back
         ) : selected && !choosing ? (
           <section>
             <h3 className="mb-2 text-sm font-semibold">{names[selected.room_id]}</h3>
+            {onUseRoom && selected.usable && (
+              <div className="mb-3 flex flex-wrap gap-2">
+                {(['A', 'B'] as const).map((slot) => (
+                  <button
+                    key={slot}
+                    onClick={() => onUseRoom(slot, selected.room_id, names[selected.room_id] ?? selected.label)}
+                    className={`rounded-md px-3 py-1.5 text-xs font-semibold text-black ${slot === 'A' ? 'bg-sky-400' : 'bg-fuchsia-400'}`}
+                    data-testid={`pick-room-${slot}`}
+                  >
+                    Use as Room {slot} and listen →
+                  </button>
+                ))}
+              </div>
+            )}
             <RoomDetails
               room={selected}
               data={acoustics[selected.room_id]}
@@ -411,8 +417,7 @@ export function TourExperience({ sid, title, startChoosing = false, onBack, back
         )}
 
         <p className="text-[11px] text-zinc-500">
-          Acoustic values are modeled from Matterport room geometry and assumed materials (empty rooms, equivalent
-          rectangular box), not measured. Fit levels are rules of thumb, not standards.
+          Modeled from the scan's room geometry and typical materials, not measured. Fit levels are rules of thumb.
         </p>
       </aside>
     </div>
@@ -423,13 +428,11 @@ function TrackingPill({
   conn,
   current,
   names,
-  overlayStatus,
   tourMode,
 }: {
   conn: { variant: Variant } | null
   current: ReturnType<typeof resolveCurrentRoom> | null
   names: Record<string, string>
-  overlayStatus: OverlayStatus
   tourMode: string | null
 }) {
   if (!conn) return null
@@ -438,19 +441,10 @@ function TrackingPill({
   else if (current?.roomId)
     where = `You are in: ${names[current.roomId]}${current.source === 'sweep' ? ' (from tour location)' : ''}${current.ambiguous ? ' (overlapping rooms)' : ''}`
   else where = 'This spot is not inside a mapped room'
-  const overlayNote =
-    overlayStatus === 'on'
-      ? 'Floor tint on'
-      : overlayStatus === 'unavailable'
-        ? 'Embed SDK: no 3D tint (run npm run setup:matterport)'
-        : overlayStatus === 'error'
-          ? '3D tint failed; floor plan still shows the heatmap'
-          : null
   return (
     <div className="flex items-center gap-2 text-xs" data-testid="tracking">
       <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
       <span className="font-medium">{where}</span>
-      {overlayNote && <span className="text-zinc-500">· {overlayNote}</span>}
     </div>
   )
 }

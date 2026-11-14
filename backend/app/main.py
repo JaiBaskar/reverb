@@ -21,6 +21,7 @@ from properties.router import router as viewer_router
 from properties.service import get_property, get_rooms, is_known, list_properties
 from properties.tour import get_tour
 from suitability.router import router as suitability_router
+from treatment.router import router as treatment_router
 
 app = FastAPI(title="REVERB")
 app.add_middleware(
@@ -36,6 +37,7 @@ app.include_router(costar_router)
 app.include_router(catalog_router)
 app.include_router(viewer_router)
 app.include_router(acoustics_router)
+app.include_router(treatment_router)
 
 
 @app.get("/health")
@@ -107,11 +109,19 @@ class AnalyzeRequest(BaseModel):
     furniture: list[FurnitureItem] | None = None
     furnished: bool = False  # False keeps the room empty unless furniture is given
     use_outline: bool = False  # wall area from the Matterport outline when available
+    # The same room with REVERB's treatment plan for this use installed (Matterport rooms only).
+    treatment_objective: str | None = None
+    treatment_avoid_walls: list[int] = []
+    # Model the room from REVERB's room model: the scan's real height plus the windows, doors,
+    # openings and per-wall finishes it found (what the treatment plan uses).
+    use_room_model: bool = False
 
     @model_validator(mode="after")
     def _one_room_source(self) -> "AnalyzeRequest":
         if (self.room_id is None) == (self.custom_room is None):
             raise ValueError("give exactly one of room_id or custom_room")
+        if self.treatment_objective is not None and self.room_id is None:
+            raise ValueError("a treatment plan needs a Matterport room (room_id)")
         return self
 
 
@@ -128,6 +138,10 @@ def analyze(req: AnalyzeRequest) -> AcousticReport:
     if room is None:
         raise HTTPException(404, f"room {req.room_id} not found in {req.sid}")
     try:
+        if req.treatment_objective is not None:
+            return treated(req, room)
+        if req.use_room_model and req.room_id is not None:
+            return from_room_model(req, room)
         return analyze_room(
             req.sid,
             room,
@@ -139,6 +153,36 @@ def analyze(req: AnalyzeRequest) -> AcousticReport:
         raise HTTPException(422, str(e)) from e
     except ValueError as e:
         raise HTTPException(422, str(e)) from e
+
+
+def from_room_model(req: AnalyzeRequest, room: Room) -> AcousticReport:
+    from roomintel.model import build_room_model
+    from treatment.service import base_report
+
+    rm = build_room_model(req.sid, room.id)
+    sel = {**DEFAULT_SELECTION, **(req.materials or {})}
+    return base_report(rm, room, "as_scanned", sel, furnishing(req, room) or [])
+
+
+def treated(req: AnalyzeRequest, room: Room) -> AcousticReport:
+    """The room as the untreated request describes it, with the treatment plan installed."""
+    from treatment.objectives import OBJECTIVES
+    from treatment.service import make_plan, treated_report
+
+    if req.treatment_objective not in OBJECTIVES:
+        raise ValueError(f"unknown objective '{req.treatment_objective}'")
+    sel = {**DEFAULT_SELECTION, **(req.materials or {})}
+    plan, rep = make_plan(
+        req.sid,
+        room.id,
+        req.treatment_objective,
+        "as_scanned",
+        sel,
+        furnishing(req, room) or [],
+        room=room,
+        avoid_walls=req.treatment_avoid_walls,
+    )
+    return treated_report(rep, plan)
 
 
 def furnishing(req: AnalyzeRequest, room: Room) -> list[FurnitureItem] | None:
