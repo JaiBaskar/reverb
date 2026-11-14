@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import type { AcousticReport } from '../../types'
-import type { Check, Fit, FitLevel, SuitabilityReport } from './types'
+import type { Check, Fit, FitLevel, SuitabilityReport, UseCaseVerdict } from './types'
 import { useSuitability } from './useSuitability'
+import { useVerdicts } from './useVerdicts'
 
 const LEVEL: Record<FitLevel, string> = {
   good: 'bg-emerald-900/60 text-emerald-200',
@@ -23,6 +24,7 @@ interface Props {
 export function SuitabilityPanel({ a, b }: Props) {
   const sa = useSuitability(a)
   const sb = useSuitability(b)
+  const verdicts = useVerdicts(a, b)
   const [open, setOpen] = useState<string | null>(null)
   const rows = sa.suitability?.fits ?? sb.suitability?.fits ?? []
   if (!a && !b) return null
@@ -35,8 +37,9 @@ export function SuitabilityPanel({ a, b }: Props) {
       </div>
       {(sa.error || sb.error) && <div className="text-red-300">{sa.error ?? sb.error}</div>}
       <p className="mb-2 text-xs text-zinc-400">
-        <b>As modeled</b>: the empty room with the assumed materials. <b>Room shape</b>: size, height and
-        bass modes, which treatment cannot change. Click a row for the reasons.
+        <b>Best achievable</b>: what the room can reach with a practical amount of acoustic panels; its
+        size, height and bass modes cannot be changed. <b>Empty</b>: the room as modeled, with no
+        treatment or furniture. Panel counts are Sabine estimates. Click a row for the reasons.
       </p>
       <table className="w-full text-xs">
         <thead className="text-left text-zinc-400">
@@ -44,6 +47,7 @@ export function SuitabilityPanel({ a, b }: Props) {
             <th className="py-1 font-normal">Use</th>
             <th className="font-normal">Room A{a ? ` · ${a.label}` : ''}</th>
             <th className="font-normal">Room B{b ? ` · ${b.label}` : ''}</th>
+            {verdicts && <th className="font-normal">Better</th>}
           </tr>
         </thead>
         <tbody>
@@ -57,6 +61,8 @@ export function SuitabilityPanel({ a, b }: Props) {
                 label={row.label}
                 fa={fa}
                 fb={fb}
+                verdict={verdicts?.find((v) => v.use_case === row.use_case)}
+                showVerdict={verdicts !== undefined}
                 open={isOpen}
                 onToggle={() => setOpen(isOpen ? null : row.use_case)}
               />
@@ -73,12 +79,16 @@ function FitRow({
   label,
   fa,
   fb,
+  verdict,
+  showVerdict,
   open,
   onToggle,
 }: {
   label: string
   fa?: Fit
   fb?: Fit
+  verdict?: UseCaseVerdict
+  showVerdict: boolean
   open: boolean
   onToggle: () => void
 }) {
@@ -95,12 +105,22 @@ function FitRow({
         </td>
         <td className="py-1.5">{fa ? <Levels fit={fa} /> : <span className="text-zinc-600">—</span>}</td>
         <td className="py-1.5">{fb ? <Levels fit={fb} /> : <span className="text-zinc-600">—</span>}</td>
+        {showVerdict && (
+          <td className="py-1.5 font-semibold" title={verdict?.reason}>
+            {verdict?.better ? (
+              <span className={verdict.better === 'A' ? 'text-sky-300' : 'text-fuchsia-300'}>Room {verdict.better}</span>
+            ) : (
+              <span className="text-zinc-500">tie</span>
+            )}
+          </td>
+        )}
       </tr>
       {open && (
         <tr>
           <td />
           <td className="pb-2 pr-2 align-top">{fa && <Reasons fit={fa} />}</td>
           <td className="pb-2 align-top">{fb && <Reasons fit={fb} />}</td>
+          {showVerdict && <td className="pb-2 align-top text-zinc-300">{verdict?.reason}</td>}
         </tr>
       )}
     </>
@@ -108,16 +128,18 @@ function FitRow({
 }
 
 function Levels({ fit }: { fit: Fit }) {
+  const t = fit.treatment
   return (
-    <div className="flex flex-wrap gap-1">
-      <span className={`rounded px-1.5 py-0.5 ${LEVEL[fit.level]}`} title="As modeled">
-        {fit.level}
+    <div className="flex flex-wrap items-center gap-1">
+      <span className={`rounded px-1.5 py-0.5 font-semibold ${LEVEL[fit.potential_level]}`} title="Best achievable with practical treatment">
+        {fit.potential_level}
       </span>
-      {fit.shape_level && (
-        <span className={`rounded px-1.5 py-0.5 opacity-80 ${LEVEL[fit.shape_level]}`} title="Room shape">
-          shape: {fit.shape_level}
-        </span>
-      )}
+      <span className={`rounded px-1.5 py-0.5 opacity-70 ${LEVEL[fit.level]}`} title="Empty room as modeled">
+        empty: {fit.level}
+      </span>
+      {t && t.verdict === 'add_absorption' && <span className="text-zinc-400">~{t.panels} panels</span>}
+      {t && t.verdict === 'impractical' && <span className="text-red-300">too much treatment</span>}
+      {t && t.verdict === 'too_dead' && <span className="text-amber-300">too dead</span>}
     </div>
   )
 }
@@ -125,6 +147,11 @@ function Levels({ fit }: { fit: Fit }) {
 function Reasons({ fit }: { fit: Fit }) {
   return (
     <ul className="space-y-1">
+      {fit.treatment && (
+        <li className="text-violet-200">
+          Treatment: {fit.treatment.reason}
+        </li>
+      )}
       {fit.checks.map((c) => (
         <li key={c.id}>
           <span className={STATUS[c.status]}>{c.status}</span> <span className="text-zinc-300">{c.label}</span>

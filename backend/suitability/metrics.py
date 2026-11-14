@@ -3,6 +3,7 @@
 import itertools
 from dataclasses import dataclass, field
 
+from acoustics import physics
 from acoustics.report import Mode
 
 
@@ -16,8 +17,8 @@ def mid_rt60(rt60: list[float], bands: list[int]) -> float:
 
 
 def bass_ratio(rt60: list[float], bands: list[int]) -> float:
-    """RT60 at 125 Hz relative to mid RT60; >1 means the bass rings longer."""
-    return _band(rt60, bands, 125) / mid_rt60(rt60, bands)
+    """Beranek bass ratio, shared with the comparison explanation (acoustics.physics)."""
+    return physics.bass_ratio(rt60, bands)
 
 
 def bs1116_target(volume_m3: float) -> float:

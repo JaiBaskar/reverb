@@ -84,3 +84,9 @@ def test_equivalent_box_preserves_footprint_area_and_aspect_ratio():
 
 def test_bands_are_octaves_125_to_4k():
     assert BANDS_HZ == [125, 250, 500, 1000, 2000, 4000]
+
+
+def test_bass_ratio_is_beranek_definition():
+    from acoustics.physics import bass_ratio
+
+    assert bass_ratio([0.6, 0.5, 0.4, 0.4, 0.3, 0.3], BANDS_HZ) == pytest.approx(1.1 / 0.8)

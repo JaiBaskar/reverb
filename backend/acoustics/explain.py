@@ -7,7 +7,7 @@ import math
 
 from pydantic import BaseModel
 
-from acoustics.physics import SABINE_CONSTANT
+from acoustics.physics import SABINE_CONSTANT, bass_ratio
 from acoustics.report import AcousticReport
 
 SIMILAR_RATIO = 1.15  # mid-band RT60 within 15% is described as similar
@@ -38,7 +38,7 @@ def _mid_rt60(r: AcousticReport) -> float:
 
 
 def _bass_ratio(r: AcousticReport) -> float:
-    return (r.rt60_s[0] + r.rt60_s[1]) / (r.rt60_s[2] + r.rt60_s[3])
+    return bass_ratio(r.rt60_s, r.bands_hz)
 
 
 def compare(a: AcousticReport, b: AcousticReport) -> Comparison:

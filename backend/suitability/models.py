@@ -2,6 +2,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from suitability.treatment import Treatment
+
 CheckStatus = Literal["pass", "caution", "fail"]
 FitLevel = Literal["good", "workable", "poor"]
 
@@ -24,6 +26,12 @@ class Fit(BaseModel):
         description="From the checks treatment cannot change (size, height, bass modes)"
     )
     checks: list[Check]
+    treatment: Treatment | None = Field(
+        default=None, description="Absorption needed to reach the use case's target RT60"
+    )
+    potential_level: FitLevel = Field(
+        default="poor", description="Best fit reachable with practical treatment"
+    )
 
 
 class SuitabilityReport(BaseModel):
