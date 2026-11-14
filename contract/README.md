@@ -10,3 +10,4 @@ Source of truth for A1 shapes: `backend/properties/models.py`. Later phases add 
 - `AcousticReport` (A2): `fixtures/acoustic_report_zvKHR9DHNjJ_living_room.json` (from `POST /rooms/analyze`)
 - `IrResponse` (A3): `fixtures/ir_response_zvKHR9DHNjJ_living_room.json` (from `POST /rooms/ir`; the real response carries the IR as base64 float32 WAV, omitted in the fixture)
 - `Comparison` (A4): `fixtures/comparison_zvKHR9DHNjJ_living_room_vs_tiled_bathroom.json` (from `POST /rooms/compare`)
+- `NoiseReport` (B1): `fixtures/noise_report_zvKHR9DHNjJ.json` (from `GET /properties/{sid}/noise`; source of truth `backend/noise/models.py`). Sources from OpenStreetMap with distance/bearing to the nearest point; `exposure` levels are relative by distance, never dB. `status: "error"` means Overpass failed and `sources` is empty.
