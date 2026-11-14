@@ -5,10 +5,11 @@ interface Props {
   report: NoiseReport
   enabled: string[]
   onChange: (enabled: string[]) => void
+  heat?: { on: boolean; onChange: (on: boolean) => void }
 }
 
 /** Toggle noise-source categories on the main map. */
-export function NoiseLegend({ report, enabled, onChange }: Props) {
+export function NoiseLegend({ report, enabled, onChange, heat }: Props) {
   const counts = Object.fromEntries(report.exposure.map((e) => [e.category, e.count]))
   const cats = report.exposure.filter((e) => e.count > 0)
   return (
@@ -27,6 +28,13 @@ export function NoiseLegend({ report, enabled, onChange }: Props) {
           </button>
         </span>
       </div>
+      {heat && (
+        <label className="mb-1 flex cursor-pointer items-center gap-1.5 border-b border-zinc-800 pb-1 font-medium text-zinc-200">
+          <input type="checkbox" checked={heat.on} onChange={(e) => heat.onChange(e.target.checked)} data-testid="risk-heat-toggle" />
+          <span className="inline-block h-2.5 w-6 rounded-sm bg-gradient-to-r from-yellow-400 via-orange-500 to-red-600" />
+          Noise-risk heatmap
+        </label>
+      )}
       {cats.map((c) => (
         <label key={c.category} className="flex cursor-pointer items-center gap-1.5 py-0.5 text-zinc-300">
           <input
@@ -45,7 +53,7 @@ export function NoiseLegend({ report, enabled, onChange }: Props) {
       ))}
       {cats.length === 0 && <div className="text-zinc-500">None mapped nearby.</div>}
       <div className="mt-1 text-zinc-500">
-        Dashed rings: 100, 250, 500 m. Mapped proximity from OpenStreetMap, not measured noise.
+        Dashed rings: 100, 250, 500 m. Heat = mapped sources weighted by how intrusive that kind usually is (assumed); not measured noise.
       </div>
     </div>
   )

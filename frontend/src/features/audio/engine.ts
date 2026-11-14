@@ -1,4 +1,4 @@
-import { roomPayload } from '../../roomRef'
+import { roomBody } from '../../roomRef'
 import type { IrResponse, MaterialSelection } from '../../types'
 
 export const MAX_DRY_SECONDS = 30
@@ -26,7 +26,7 @@ export async function fetchIr(
   const res = await fetch('/api/rooms/ir', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ sid, ...roomPayload(roomId), materials }),
+    body: JSON.stringify(roomBody(sid, roomId, materials)),
   })
   if (!res.ok) throw new Error(`ir: HTTP ${res.status}`)
   const meta = (await res.json()) as IrResponse

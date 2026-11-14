@@ -1,4 +1,4 @@
-import type { Room } from './types'
+import type { MaterialSelection, Room } from './types'
 
 /** A room entered by hand (metres). Mirrors backend/properties/custom.py. */
 export interface CustomRoomSpec {
@@ -47,4 +47,21 @@ export interface SlotRef {
   roomId: string
   label: string
   address: string
+}
+
+/**
+ * Request body for /rooms/analyze, /rooms/ir and /rooms/compare. Every room is modeled with its
+ * furniture (typical for the room type unless edited) and, for Matterport rooms, the wall area of
+ * its real outline.
+ */
+export function roomBody(sid: string, roomId: string, sel?: MaterialSelection) {
+  const { furniture, ...materials } = sel ?? {}
+  return {
+    sid,
+    ...roomPayload(roomId),
+    materials,
+    furnished: true,
+    use_outline: true,
+    ...(furniture ? { furniture } : {}),
+  }
 }

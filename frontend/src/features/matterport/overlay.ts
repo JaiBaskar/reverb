@@ -15,6 +15,8 @@ import type { MpSdk, SceneComponent, SceneObject } from './sdkTypes'
 export interface RoomPaint {
   color: string
   selected: boolean
+  /** Hidden while the acoustic field heatmap is shown. */
+  hidden?: boolean
 }
 
 interface Inputs {
@@ -22,6 +24,7 @@ interface Inputs {
   floorY: number
   color: string
   selected: boolean
+  hidden: boolean
 }
 
 const COMPONENT = 'reverb.roomTint'
@@ -32,9 +35,9 @@ const LIFT = 0.015 // above the scanned floor to avoid z-fighting
 
 function tintFactory(): Partial<SceneComponent<Inputs>> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let fillMat: any, skirtMat: any, skirt: any
+  let fillMat: any, skirtMat: any, skirt: any, fill: any
   return {
-    inputs: { polygon: [], floorY: 0, color: '#888888', selected: false },
+    inputs: { polygon: [], floorY: 0, color: '#888888', selected: false, hidden: false },
     outputs: {},
     onInit(this: SceneComponent<Inputs>) {
       const T = this.context.three
@@ -53,7 +56,7 @@ function tintFactory(): Partial<SceneComponent<Inputs>> {
         polygonOffset: true,
         polygonOffsetFactor: -2,
       })
-      const fill = new T.Mesh(fillGeo, fillMat)
+      fill = new T.Mesh(fillGeo, fillMat)
       fill.position.y = floorY + LIFT
       fill.renderOrder = 1
       group.add(fill)
@@ -83,7 +86,8 @@ function tintFactory(): Partial<SceneComponent<Inputs>> {
       fillMat.color = new T.Color(this.inputs.color)
       fillMat.opacity = this.inputs.selected ? FILL_OPACITY_SELECTED : FILL_OPACITY
       skirtMat.color = new T.Color(this.inputs.color)
-      skirt.visible = this.inputs.selected
+      fill.visible = !this.inputs.hidden
+      skirt.visible = this.inputs.selected && !this.inputs.hidden
     },
     onDestroy() {
       fillMat?.dispose?.()
@@ -118,6 +122,7 @@ export async function createRoomOverlay(sdk: MpSdk, layout: TourLayout): Promise
         floorY: roomFloorHeight(r, layout),
         color: '#71717a',
         selected: false,
+        hidden: false,
       }),
     )
   }
@@ -131,6 +136,7 @@ export async function createRoomOverlay(sdk: MpSdk, layout: TourLayout): Promise
         if (!p) continue
         if (comp.inputs.color !== p.color) comp.inputs.color = p.color
         if (comp.inputs.selected !== p.selected) comp.inputs.selected = p.selected
+        if (comp.inputs.hidden !== !!p.hidden) comp.inputs.hidden = !!p.hidden
       }
     },
     dispose() {

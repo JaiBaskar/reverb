@@ -129,3 +129,46 @@ export function setNoiseFilter(m: MapLibreMap, enabled: string[]) {
     }
   }
 }
+
+/** Continuous risk heat from noise-risk points (weighted by category intensity). */
+export function addRiskLayer(m: MapLibreMap, beforeId: string) {
+  m.addSource('risk', { type: 'geojson', data: EMPTY })
+  m.addLayer(
+    {
+      id: 'risk-heat',
+      type: 'heatmap',
+      source: 'risk',
+      maxzoom: 19,
+      paint: {
+        'heatmap-weight': ['get', 'weight'],
+        'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 12, 0.6, 16, 1.4],
+        'heatmap-radius': ['interpolate', ['exponential', 1.6], ['zoom'], 12, 10, 15, 28, 18, 70],
+        'heatmap-opacity': 0.72,
+        'heatmap-color': [
+          'interpolate',
+          ['linear'],
+          ['heatmap-density'],
+          0,
+          'rgba(0,0,0,0)',
+          0.15,
+          'rgba(250,204,21,0.35)',
+          0.4,
+          'rgba(249,115,22,0.6)',
+          0.7,
+          'rgba(239,68,68,0.75)',
+          1,
+          'rgba(190,18,60,0.85)',
+        ] as unknown as ExpressionSpecification,
+      },
+    },
+    beforeId,
+  )
+}
+
+export function setRiskData(m: MapLibreMap, heat: { type: 'FeatureCollection'; features: unknown[] } | null) {
+  ;(m.getSource('risk') as GeoJSONSource | undefined)?.setData((heat ?? EMPTY) as never)
+}
+
+export function setRiskVisible(m: MapLibreMap, on: boolean) {
+  if (m.getLayer('risk-heat')) m.setLayoutProperty('risk-heat', 'visibility', on ? 'visible' : 'none')
+}

@@ -39,8 +39,8 @@ export function SuitabilityPanel({ a, b }: Props) {
       {verdicts && verdicts.length > 0 && <Verdict verdicts={verdicts} a={a?.label} b={b?.label} />}
       <p className="mb-2 text-xs text-zinc-400">
         <b>Best achievable</b>: what the room can reach with a practical amount of acoustic panels; its
-        size, height and bass modes cannot be changed. <b>Empty</b>: the room as modeled, with no
-        treatment or furniture. Panel counts are Sabine estimates. Click a row for the reasons.
+        size, height and bass modes cannot be changed. <b>As is</b>: the room as modeled now, with its
+        furniture (assumed unless you edited it) and no acoustic treatment. Panel counts are Sabine estimates. Click a row for the reasons.
       </p>
       <table className="w-full text-xs">
         <thead className="text-left text-zinc-400">
@@ -135,8 +135,8 @@ function Levels({ fit }: { fit: Fit }) {
       <span className={`rounded px-1.5 py-0.5 font-semibold ${LEVEL[fit.potential_level]}`} title="Best achievable with practical treatment">
         {fit.potential_level}
       </span>
-      <span className={`rounded px-1.5 py-0.5 opacity-70 ${LEVEL[fit.level]}`} title="Empty room as modeled">
-        empty: {fit.level}
+      <span className={`rounded px-1.5 py-0.5 opacity-70 ${LEVEL[fit.level]}`} title="The room as modeled now: furniture included, no acoustic treatment">
+        as is: {fit.level}
       </span>
       {t && t.verdict === 'add_absorption' && <span className="text-zinc-400">~{t.panels} panels</span>}
       {t && t.verdict === 'impractical' && <span className="text-red-300">too much treatment</span>}

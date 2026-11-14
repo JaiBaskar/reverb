@@ -10,7 +10,8 @@ import { useEffect, useRef, useState } from 'react'
 import type { CatalogPoints } from '../../types'
 import type { NoiseReport } from '../noise/types'
 import { NoiseLegend } from './NoiseLegend'
-import { addNoiseLayers, setNoiseData, setNoiseFilter } from './noiseLayers'
+import { addNoiseLayers, addRiskLayer, setNoiseData, setNoiseFilter, setRiskData, setRiskVisible } from './noiseLayers'
+import type { NoiseRisk } from '../risk/types'
 
 // MapLibre resolves its worker next to its own bundle, which Vite moves; point it at the real file.
 setWorkerUrl(workerUrl)
@@ -23,10 +24,12 @@ interface Props {
   flyTo: { lon: number; lat: number; zoom: number; key: number } | null
   onSelect: (sid: string) => void
   noise: NoiseReport | null
+  risk?: NoiseRisk | null
 }
 
 /** All CoStar properties with a Matterport scan, clustered; click to select. */
-export function PropertyMap({ points, selected, flyTo, onSelect, noise }: Props) {
+export function PropertyMap({ points, selected, flyTo, onSelect, noise, risk }: Props) {
+  const [heatOn, setHeatOn] = useState(true)
   const [enabled, setEnabled] = useState<string[] | null>(null)
   const el = useRef<HTMLDivElement>(null)
   const map = useRef<MapLibreMap | null>(null)
@@ -114,6 +117,7 @@ export function PropertyMap({ points, selected, flyTo, onSelect, noise }: Props)
           'circle-stroke-width': 3,
         },
       })
+      addRiskLayer(m, 'clusters')
       addNoiseLayers(m, 'clusters')
       loaded.current = true
 
@@ -198,6 +202,17 @@ export function PropertyMap({ points, selected, flyTo, onSelect, noise }: Props)
     else m.once('load', apply)
   }, [noise])
 
+  useEffect(() => {
+    const m = map.current
+    if (!m) return
+    const apply = () => {
+      setRiskData(m, risk?.heat ?? null)
+      setRiskVisible(m, heatOn)
+    }
+    if (loaded.current) apply()
+    else m.once('load', apply)
+  }, [risk, heatOn])
+
   const shown = enabled ?? (noise?.exposure ?? []).map((e) => e.category)
   useEffect(() => {
     const m = map.current
@@ -214,7 +229,14 @@ export function PropertyMap({ points, selected, flyTo, onSelect, noise }: Props)
   return (
     <div className="relative h-full w-full">
       <div ref={el} className="h-full w-full" data-testid="map" />
-      {noise?.status === 'ok' && <NoiseLegend report={noise} enabled={shown} onChange={setEnabled} />}
+      {noise?.status === 'ok' && (
+        <NoiseLegend
+          report={noise}
+          enabled={shown}
+          onChange={setEnabled}
+          heat={risk ? { on: heatOn, onChange: setHeatOn } : undefined}
+        />
+      )}
       <div className="pointer-events-none absolute bottom-8 left-2 z-10 hidden rounded-md sm:block bg-zinc-950/85 px-2 py-1.5 text-[11px] text-zinc-300">
         <div className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-amber-500" />Demo pick</div>
         <div className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />Home (CoStar residential)</div>

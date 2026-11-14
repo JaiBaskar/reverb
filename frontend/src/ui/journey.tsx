@@ -1,35 +1,37 @@
 import type { ReactNode } from 'react'
 import { STEPS, type StepId, type StepState } from './steps'
 
-const scrollTo = (id: StepId) =>
-  document.getElementById(`step-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-
-/** The seven-step journey; the first unfinished step is "current". */
-export function Stepper({ done }: { done: Record<StepId, boolean> }) {
-  const current = STEPS.find((s) => !done[s.id])?.id
+/** The seven steps. One is open at a time; finished ones show a tick; any can be opened. */
+export function Stepper({
+  done,
+  active,
+  onSelect,
+}: {
+  done: Record<StepId, boolean>
+  active: StepId
+  onSelect: (id: StepId) => void
+}) {
   return (
-    <ol className="flex min-w-0 gap-1 overflow-x-auto text-xs" aria-label="Progress" data-testid="stepper">
+    <ol className="flex min-w-0 items-center gap-0.5 overflow-x-auto text-xs" aria-label="Progress" data-testid="stepper">
       {STEPS.map((s, i) => {
-        const state: StepState = done[s.id] ? 'done' : s.id === current ? 'current' : 'todo'
+        const on = s.id === active
         return (
-          <li key={s.id}>
+          <li key={s.id} className="flex items-center">
+            {i > 0 && <span className={`mx-0.5 h-px w-3 ${done[STEPS[i - 1].id] ? 'bg-emerald-500/60' : 'bg-zinc-700'}`} />}
             <button
-              onClick={() => scrollTo(s.id)}
-              aria-current={state === 'current' ? 'step' : undefined}
+              onClick={() => onSelect(s.id)}
+              aria-current={on ? 'step' : undefined}
               className={`flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 transition ${
-                state === 'current'
-                  ? 'bg-amber-400 font-semibold text-black'
-                  : state === 'done'
-                    ? 'text-zinc-200 hover:bg-zinc-800'
-                    : 'text-zinc-500 hover:bg-zinc-800'
+                on ? 'bg-amber-400 font-semibold text-black' : done[s.id] ? 'text-zinc-200 hover:bg-zinc-800' : 'text-zinc-500 hover:bg-zinc-800'
               }`}
+              data-testid={`stepper-${s.id}`}
             >
               <span
                 className={`grid h-4 w-4 place-items-center rounded-full text-[10px] ${
-                  state === 'done' ? 'bg-emerald-500 text-black' : state === 'current' ? 'bg-black/20' : 'bg-zinc-800'
+                  done[s.id] && !on ? 'bg-emerald-500 text-black' : on ? 'bg-black/20' : 'bg-zinc-800'
                 }`}
               >
-                {state === 'done' ? '✓' : i + 1}
+                {done[s.id] && !on ? '✓' : i + 1}
               </span>
               {s.title}
             </button>
@@ -37,6 +39,53 @@ export function Stepper({ done }: { done: Record<StepId, boolean> }) {
         )
       })}
     </ol>
+  )
+}
+
+/** Back / Next bar at the bottom of the workspace: where you are and what the next step needs. */
+export function StepNav({
+  active,
+  need,
+  onGo,
+}: {
+  active: StepId
+  /** Why Next is not possible yet (null when it is). */
+  need: string | null
+  onGo: (id: StepId) => void
+}) {
+  const i = STEPS.findIndex((s) => s.id === active)
+  const prev = STEPS[i - 1]
+  const next = STEPS[i + 1]
+  return (
+    <nav
+      className="sticky bottom-0 z-10 -mx-4 mt-2 flex items-center gap-3 border-t border-zinc-800 bg-zinc-950/95 px-4 py-2.5 backdrop-blur"
+      aria-label="Step navigation"
+      data-testid="step-nav"
+    >
+      {prev ? (
+        <button onClick={() => onGo(prev.id)} className="rounded-md bg-zinc-800 px-3 py-1.5 text-xs hover:bg-zinc-700" data-testid="step-back">
+          ← {prev.title}
+        </button>
+      ) : (
+        <span />
+      )}
+      <span className="min-w-0 flex-1 truncate text-center text-xs text-zinc-400" data-testid="step-need">
+        Step {i + 1} of {STEPS.length}
+        {need ? ` · ${need}` : ''}
+      </span>
+      {next ? (
+        <button
+          onClick={() => onGo(next.id)}
+          disabled={need != null}
+          className="rounded-md bg-amber-400 px-4 py-1.5 text-xs font-semibold text-black hover:bg-amber-300 disabled:cursor-not-allowed disabled:bg-zinc-800 disabled:text-zinc-500"
+          data-testid="step-next"
+        >
+          Next: {next.title} →
+        </button>
+      ) : (
+        <span className="text-xs text-emerald-300">Done</span>
+      )}
+    </nav>
   )
 }
 

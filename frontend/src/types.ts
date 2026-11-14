@@ -46,9 +46,11 @@ export interface AcousticReport {
     equivalent_depth_m: number
     volume_m3: number
     note: string | null
+    wall_source?: 'box' | 'outline'
   }
   surfaces: { floor_m2: number; ceiling_m2: number; walls_m2: number }
   materials: { surface: string; id: string; label: string; alpha: number[]; provenance: string }[]
+  furniture: FurnitureItem[]
   absorption_sabins: number[]
   rt60_s: number[]
   schroeder_hz: number
@@ -78,7 +80,20 @@ export interface IrResponse {
 }
 
 export type Surface = 'floor' | 'walls' | 'ceiling'
-export type MaterialSelection = Partial<Record<Surface, string>>
+/** One furniture entry; mirrors backend/acoustics/furniture.py (FurnitureItem). */
+export interface FurnitureItem {
+  id: string
+  count: number
+  provenance?: 'assumed' | 'user'
+}
+export type FurnitureCatalog = Record<string, { label: string; sabins: number[] }>
+
+/**
+ * A room's settings: surface materials, plus its furniture when the user edited it
+ * (absent = the typical furnishing for the room type, marked assumed by the backend).
+ * Kept in one object so every hook that keys on it re-runs when either changes.
+ */
+export type MaterialSelection = Partial<Record<Surface, string>> & { furniture?: FurnitureItem[] }
 
 export interface MaterialCatalog {
   materials: Record<string, { label: string; alpha: number[] }>
