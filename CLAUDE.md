@@ -21,3 +21,5 @@ Read PRD.md, CONTEXT.md, SLICES.md (phases), WORKFLOW.md (ownership, git, prompt
 - Write failing tests first for calculations and data transforms; run the real app before calling a phase done.
 - Pyroomacoustics: seed with `pra.random.seed(n)` (not `np.random.seed`) or IRs are not reproducible. Pure-specular rays (scattering 0) give RT60 40-50% above Sabine; we assume scattering 0.5. Below ~250 Hz the IR is modal and will not match Sabine.
 - Web Audio: set `ConvolverNode.normalize = false` BEFORE assigning `.buffer`. One source feeding both rooms' convolvers keeps A/B switching on one playhead.
+- MapLibre: call `setWorkerUrl` with `maplibre-gl/dist/maplibre-gl-worker.mjs?url` (Vite moves the bundle, so the default worker URL 404s and tiles never render), and `map.resize()` on container resize.
+- API tests run offline: `backend/tests/test_api.py` monkeypatches `properties.service.fetch_model` with a recorded Matterport response.

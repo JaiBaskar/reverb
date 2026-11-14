@@ -1,6 +1,10 @@
-import { LngLatBounds, Map as MapLibreMap, Marker } from 'maplibre-gl'
+import { LngLatBounds, Map as MapLibreMap, Marker, setWorkerUrl } from 'maplibre-gl'
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
 import { useEffect, useRef } from 'react'
 import type { Property } from '../../types'
+
+// MapLibre resolves its worker next to its own bundle, which Vite moves; point it at the real file.
+setWorkerUrl(workerUrl)
 
 interface Props {
   properties: Property[]
@@ -35,6 +39,9 @@ export function PropertyMap({ properties, selected, onSelect }: Props) {
     })
     map.current = m
     const dots = markers.current
+    // MapLibre only sizes its canvas at creation; follow layout changes (stacked <-> side by side).
+    const ro = new ResizeObserver(() => m.resize())
+    ro.observe(el.current)
     located.forEach((p) => {
       const dot = document.createElement('div')
       dot.dataset.sid = p.sid
@@ -51,6 +58,7 @@ export function PropertyMap({ properties, selected, onSelect }: Props) {
       m.fitBounds(b, { padding: 60, maxZoom: 17, animate: false })
     }
     return () => {
+      ro.disconnect()
       m.remove()
       map.current = null
       dots.clear()
