@@ -42,6 +42,7 @@ Shared files are small on purpose: `contract/` (JSON shapes and fixtures), the b
 - Done when: the sample property shows real nearby sources on the map and in a list.
 
 ### B2 — Noise Scout (Deep Agents)
+- **Deferred (2026-11-14):** postponed until after the MVP (A1–A5, B1, B3, B4). Needs an LLM API key; B1 already provides the cited, deterministic noise report.
 - Deep Agent with three sub-agents (transport, nightlife/commercial, aviation/industrial), using B1's tools and a virtual filesystem for notes. Every claim needs a citation. Output validates against `NoiseReport`.
 - LangSmith tracing on; confirm a trace appears. The B1 report must still render if the agent fails.
 - Blocked on: an LLM provider key for the agent and a check of the Deep Agents API.
