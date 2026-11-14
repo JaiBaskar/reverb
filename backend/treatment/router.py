@@ -102,3 +102,20 @@ def photoreal(req: PhotorealRequest):
         raise HTTPException(422, str(e)) from e
     except RuntimeError as e:
         raise HTTPException(502, str(e)) from e
+
+
+@router.get("/properties/{sid}/treatment")
+def whole_house(sid: str, objective: str = "mixing", scenario: str = "as_scanned"):
+    """A treatment plan for every room with a wall outline (parallel; first call can take a while)."""
+    from treatment.house import HouseTreatment, house_plan
+
+    _check(sid)
+    if objective not in OBJECTIVES:
+        raise HTTPException(422, f"unknown objective '{objective}'")
+    if scenario not in ("as_scanned", "empty"):
+        raise HTTPException(422, f"unknown scenario '{scenario}'")
+    try:
+        out: HouseTreatment = house_plan(sid, objective, scenario)  # type: ignore[arg-type]
+        return out
+    except MatterportError as e:
+        raise HTTPException(502, str(e)) from e

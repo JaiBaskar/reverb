@@ -70,6 +70,7 @@ class _State(TypedDict, total=False):
     sid: str
     room_id: str
     use_vision: bool
+    skip_reason: str
     room: Room
     geometry: RoomGeometry
     scans: list[ScanPosition]
@@ -204,7 +205,7 @@ def agent_surroundings(state: _State) -> _State:
 
 
 def _skipped(state: _State) -> _State:
-    why = "Inspection not requested."
+    why = state.get("skip_reason") or "Inspection not requested."
     return {
         "runs": [
             agents.AgentRun(agent=a, status="unavailable", reason=why)
@@ -341,12 +342,34 @@ def _graph():
 
 
 _PIPELINE = None
+_MODELS: dict[tuple[str, str, bool], RoomModel] = {}
 
 
-def build_room_model(sid: str, room_id: str, use_vision: bool = True) -> RoomModel:
+AGENTS = ("walls", "furniture", "surroundings")
+
+
+def inspected(sid: str, room_id: str) -> bool:
+    """Have all three agents already answered for this room (cached on disk)?"""
+    return all(agents.cache_path(sid, room_id, a).exists() for a in AGENTS)
+
+
+def build_room_model(
+    sid: str, room_id: str, use_vision: bool = True, fresh: bool = False, cache_only: bool = False
+) -> RoomModel:
+    """The room model; kept in memory per process (agent answers are also cached on disk).
+    cache_only: use the agents only if this room was already inspected (no new model calls).
+    Returns a copy, so callers may edit it."""
     global _PIPELINE
-    if _PIPELINE is None:
-        _PIPELINE = _graph()
-    return _PIPELINE.invoke(
-        {"sid": sid, "room_id": room_id, "use_vision": use_vision, "runs": [], "issues": []}
-    )["model"]
+    skip = None
+    if cache_only and use_vision and not inspected(sid, room_id):
+        use_vision = False
+        skip = "Not inspected yet (whole-house plans reuse inspections; open this room's own plan to inspect it)."
+    key = (sid, room_id, use_vision)
+    if fresh or key not in _MODELS or (skip and _MODELS[key].vision_reason != skip):
+        if _PIPELINE is None:
+            _PIPELINE = _graph()
+        state = {"sid": sid, "room_id": room_id, "use_vision": use_vision, "runs": [], "issues": []}
+        if skip:
+            state["skip_reason"] = skip
+        _MODELS[key] = _PIPELINE.invoke(state)["model"]
+    return _MODELS[key].model_copy(deep=True)

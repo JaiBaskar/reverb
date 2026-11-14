@@ -40,7 +40,7 @@ export function SuitabilityPanel({ a, b }: Props) {
       <p className="mb-2 text-xs text-zinc-400">
         <b>Best achievable</b>: what the room can reach with a practical amount of acoustic panels; its
         size, height and bass modes cannot be changed. <b>As is</b>: the room as modeled now, with its
-        furniture (assumed unless you edited it) and no acoustic treatment. Panel counts are Sabine estimates. Click a row for the reasons.
+        furniture (assumed unless you edited it) and no acoustic treatment. Panel counts are Eyring estimates. Click a row for the reasons.
       </p>
       <table className="w-full text-xs">
         <thead className="text-left text-zinc-400">

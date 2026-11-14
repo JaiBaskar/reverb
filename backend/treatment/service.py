@@ -229,11 +229,12 @@ def make_plan(
     furniture: list[FurnitureItem] | None = None,
     room: Room | None = None,
     avoid_walls: list[int] | None = None,
+    cache_only: bool = False,
 ) -> tuple[TreatmentPlan, AcousticReport]:
     from properties.service import get_rooms
 
     objective = OBJECTIVES[objective_id]
-    rm = build_room_model(sid, room_id).model_copy(deep=True)
+    rm = build_room_model(sid, room_id, cache_only=cache_only)
     clear_notes, wall_objects = keep_clear(rm, sorted(set(avoid_walls or [])))
     room = room or next(r for r in get_rooms(sid) if r.id == room_id)
     rep = base_report(rm, room, scenario, materials, furniture)
@@ -258,8 +259,15 @@ def make_plan(
         )
 
     cands = candidates(geo, layout, wall_alpha[3], objective.allow_diffusion)
-    obs = obstacles.for_room(sid, geo.polygon, geo.floor_z, geo.height.value)
-    if obs is None:
+    located = geo.source != "box"  # a box room is in its own frame, not the scan's
+    obs = obstacles.for_room(sid, geo.polygon, geo.floor_z, geo.height.value) if located else None
+    if not located:
+        notes.append(
+            "Matterport has no wall outline for this room, so it is modeled as a rectangle of its "
+            "measured size whose position in the scan is unknown: positions are relative to that "
+            "rectangle, and there is no 3D preview or furniture check."
+        )
+    elif obs is None:
         notes.append(
             "No scan mesh: items could not be checked against the building and the furniture."
         )
@@ -269,8 +277,9 @@ def make_plan(
         )
     cands = fit_candidates(cands, geo, obs, wall_objects)
     notes += cands.notes
+    surface = rep.surfaces.floor_m2 + rep.surfaces.ceiling_m2 + rep.surfaces.walls_m2
     best, ranked = optimise(
-        cands, objective, tg, rep.absorption_sabins, rep.geometry.volume_m3, wall_alpha
+        cands, objective, tg, rep.absorption_sabins, rep.geometry.volume_m3, wall_alpha, surface
     )
     items = best.items
     after = best.rt60_s
@@ -288,7 +297,7 @@ def make_plan(
         + _site_problems(rm, items, layout),
         prediction=_prediction(rep, after, tg, cands, items),
         alternatives=_alternatives(best, ranked),
-        viewpoint=choose(geo, rm.scans, items),
+        viewpoint=choose(geo, rm.scans, items) if geo.source != "box" else None,
         room=_summary(rm, rep, layout),
         notes=notes,
         assumptions=[
@@ -312,7 +321,7 @@ def make_plan(
         limitations=[
             "Every result is a simulation from geometry and typical absorption values, not a measurement. "
             "Measure the treated room (e.g. with REW and a measurement mic) to confirm.",
-            "Reverberation uses Sabine's formula with diffuse-field assumptions; small rooms below the "
+            "Reverberation uses Eyring's formula with air absorption (diffuse-field assumptions); small rooms below the "
             f"Schroeder frequency (~{rep.schroeder_hz:.0f} Hz) behave modally and differ from it.",
             "Reflection points use first-order image sources off flat walls; furniture is not an obstacle in that calculation.",
             "Furniture and building overlaps use Matterport's meshes (furnished minus defurnished); thin objects under 7 cm deep (flat art) are only known when the walls agent saw them.",

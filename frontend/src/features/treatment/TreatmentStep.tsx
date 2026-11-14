@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { fetchObjectives } from '../../api'
 import type { SlotRef } from '../../roomRef'
 import { RtChart } from './RtChart'
 import { TreatmentView } from './TreatmentView'
-import type { Objective, TreatmentPlan } from './types'
-import { usePlan } from './usePlan'
+import type { HouseTreatment, Objective, TreatmentPlan } from './types'
+import { useHousePlan, usePlan } from './usePlan'
 
 type Scenario = 'as_scanned' | 'empty'
 
@@ -45,6 +45,16 @@ export function TreatmentStep({ room, objective, onObjective, onHearTreated }: P
   // The last plan stays on screen while a new one is worked out, so the 3D view is not reloaded.
   const [shown, setShown] = useState<TreatmentPlan | undefined>(undefined)
   if (plan && plan !== shown) setShown(plan)
+  const [wholeHouse, setWholeHouse] = useState(false)
+  const house = useHousePlan(room.sid, objective, scenario, wholeHouse)
+  // memoised: the 3D scene is rebuilt whenever this array changes identity
+  const extraItems = useMemo(
+    () =>
+      wholeHouse
+        ? (house.house?.rooms ?? []).filter((r) => r.status === 'ok' && r.room_id !== room.roomId).flatMap((r) => r.items)
+        : [],
+    [house.house, room.roomId, wholeHouse],
+  )
   const toggleWall = (i: number) => setAvoid((a) => (a.includes(i) ? a.filter((x) => x !== i) : [...a, i].sort((x, y) => x - y)))
 
   useEffect(() => {
@@ -78,6 +88,26 @@ export function TreatmentStep({ room, objective, onObjective, onHearTreated }: P
           </div>
         </div>
         <div>
+          <div className="mb-1.5 text-sm text-zinc-400">Show treatment for</div>
+          <div className="mb-3 flex flex-wrap gap-2" role="radiogroup" aria-label="Scope">
+            {(
+              [
+                [false, `Just ${room.label}`],
+                [true, 'The whole house'],
+              ] as const
+            ).map(([on, label]) => (
+              <button
+                key={String(on)}
+                role="radio"
+                aria-checked={wholeHouse === on}
+                onClick={() => setWholeHouse(on)}
+                className={`rounded-full px-3 py-1.5 text-sm ${wholeHouse === on ? 'bg-zinc-100 font-semibold text-black' : 'bg-zinc-800 hover:bg-zinc-700'}`}
+                data-testid={`scope-${on ? 'house' : 'room'}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
           <div className="mb-1.5 text-sm text-zinc-400">Furniture</div>
           <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Furniture scenario">
             {(
@@ -132,7 +162,12 @@ export function TreatmentStep({ room, objective, onObjective, onHearTreated }: P
 
           <section>
             <h2 className="mb-2 text-lg font-semibold">See it in the room</h2>
-            <TreatmentView plan={shown} avoidWalls={avoid} />
+            {wholeHouse && house.loading && (
+              <p className="mb-2 text-sm text-amber-300">Planning every room of the house (about 10-30 s the first time)…</p>
+            )}
+            {wholeHouse && house.error && <p className="mb-2 text-sm text-red-300">Whole-house plan failed: {house.error}</p>}
+            <TreatmentView plan={shown} avoidWalls={avoid} extraItems={extraItems} />
+            {wholeHouse && house.house && <HouseTable house={house.house} current={room.roomId} />}
             <div className="mt-3 rounded-xl border border-zinc-800 p-3" data-testid="keep-clear">
               <div className="text-sm text-zinc-300">
                 Keep a wall clear <span className="text-zinc-500">(a window, door or built-in REVERB could not see)</span>
@@ -398,6 +433,66 @@ function Found({ plan }: { plan: TreatmentPlan }) {
           </>
         )}
       </div>
+    </div>
+  )
+}
+
+function HouseTable({ house, current }: { house: HouseTreatment; current: string }) {
+  const ok = house.rooms.filter((r) => r.status === 'ok')
+  const skipped = house.rooms.filter((r) => r.status !== 'ok')
+  return (
+    <div className="mt-3 rounded-xl border border-zinc-800 p-3 text-sm" data-testid="house-table">
+      <div className="mb-2 font-medium">
+        Every room: {house.total_items} items in {ok.length} rooms
+      </div>
+      <table className="w-full text-xs tabular-nums">
+        <thead className="text-zinc-500">
+          <tr>
+            <th className="py-1 text-left">Room</th>
+            <th className="text-right">RT60 now</th>
+            <th className="text-right">With plan</th>
+            <th className="text-right">Target</th>
+            <th className="text-right">Items</th>
+            <th className="text-right">Furniture in the way</th>
+            <th className="text-right">Inspected</th>
+          </tr>
+        </thead>
+        <tbody>
+          {ok.map((r) => (
+            <tr key={r.room_id} className={`border-t border-zinc-800 ${r.room_id === current ? 'text-amber-200' : ''}`}>
+              <td className="py-1">
+                {r.label}
+                {r.area_m2 ? <span className="text-zinc-500"> · {r.area_m2.toFixed(0)} m²</span> : null}
+              </td>
+              <td className="text-right">{r.mid_before_s?.toFixed(2)} s</td>
+              <td className="text-right text-emerald-300">{r.mid_after_s?.toFixed(2)} s</td>
+              <td className="text-right text-zinc-400">
+                {r.target_mid ? `${r.target_mid[0].toFixed(2)}–${r.target_mid[1].toFixed(2)}` : '—'}
+              </td>
+              <td className="text-right">{r.item_count}</td>
+              <td className="text-right">{r.blocked ? <span className="text-orange-300">{r.blocked}</span> : '—'}</td>
+              <td className="text-right">{r.vision_status === 'ok' ? '✓' : <span className="text-zinc-500">assumed</span>}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {skipped.length > 0 && (
+        <details className="mt-2 text-xs text-zinc-500">
+          <summary className="cursor-pointer">{skipped.length} spaces not planned</summary>
+          <ul className="mt-1 space-y-0.5">
+            {skipped.map((r) => (
+              <li key={r.room_id}>
+                {r.label}: {r.reason}
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+      <p className="mt-2 text-xs text-zinc-500">
+        Each room is planned on its own for this use. "Assumed" rooms have not been inspected by the vision agents yet
+        (open that room's own plan to inspect it); they use typical materials and furniture plus the scan's geometry and
+        furniture.
+      </p>
     </div>
   )
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { fetchTreatment } from '../../api'
-import type { TreatmentPlan } from './types'
+import { fetchHouseTreatment, fetchTreatment } from '../../api'
+import type { HouseTreatment, TreatmentPlan } from './types'
 
 type Scenario = 'as_scanned' | 'empty'
 
@@ -23,3 +23,21 @@ export function usePlan(sid: string | null, roomId: string | null, objective: st
   return { plan: cur ? state.plan : undefined, error: cur ? state.error : undefined, loading: key !== '' && !cur }
 }
 
+
+/** Plans for every room of the property (fetched only when `on`). */
+export function useHousePlan(sid: string, objective: string, scenario: Scenario, on: boolean) {
+  const key = on ? `${sid}/${objective}/${scenario}` : ''
+  const [state, setState] = useState<{ key: string; house?: HouseTreatment; error?: string }>({ key: '' })
+  useEffect(() => {
+    if (!on) return
+    let live = true
+    fetchHouseTreatment(sid, objective, scenario)
+      .then((house) => live && setState({ key, house }))
+      .catch((e: Error) => live && setState({ key, error: e.message }))
+    return () => {
+      live = false
+    }
+  }, [sid, objective, scenario, on, key])
+  const cur = state.key === key && key !== ''
+  return { house: cur ? state.house : undefined, error: cur ? state.error : undefined, loading: on && !cur }
+}

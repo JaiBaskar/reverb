@@ -170,6 +170,10 @@ def _overlaps(it: PlacedItem, placed: list[PlacedItem], geo: RoomGeometry) -> bo
 
 
 def _fits(it, geo, obs, placed) -> bool:
+    from treatment.optimizer import _on_face
+
+    if it.covers and not all(_on_face(p, it) for p in it.covers):
+        return False  # it would no longer absorb the reflection it is there for
     if it.wall is not None:
         a = _along(geo, it)
         w = geo.walls[it.wall]
@@ -188,8 +192,9 @@ def _variants(it: PlacedItem, geo: RoomGeometry):
     p = PRODUCTS[it.product_id]
     if p.mount == "wall":
         # a first-reflection panel must keep covering its reflection point
-        reach = it.width_m / 2 - 0.1 if it.group == "first_reflection" else 0.9
-        vreach = it.height_m / 2 - 0.15 if it.group == "first_reflection" else 0.4
+        # first-reflection panels: _fits rejects any position that uncovers a reflection point
+        reach = it.width_m / 2 if it.group == "first_reflection" else 0.9
+        vreach = it.height_m / 2 if it.group == "first_reflection" else 0.4
         shifts = sorted(((a, z) for a in np.arange(-reach, reach + 1e-9, STEP) for z in np.arange(-vreach, vreach + 1e-9, STEP)),
                         key=lambda s: (abs(s[0]) + abs(s[1]), abs(s[1])))  # fmt: skip
         for a, z in shifts:
@@ -281,7 +286,7 @@ def fit_item(it: PlacedItem, geo: RoomGeometry, obs: Obstacles | None, wall_obje
         # try lifting it clear of the furniture while it still does its job
         top = max(b.max[2] for b in blocking)
         lift = top + 0.03 - (chosen.center[2] - chosen.height_m / 2)
-        limit = chosen.height_m / 2 - 0.15 if chosen.group == "first_reflection" else 0.6
+        limit = chosen.height_m / 2 if chosen.group == "first_reflection" else 0.6
         if 0 < lift <= limit:
             up = _shift(chosen, geo, 0.0, lift)
             if _fits(up, geo, obs, placed) and not blockers(up, obs, wall_objects):

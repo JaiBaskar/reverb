@@ -30,3 +30,30 @@ def test_endpoint_reports_503_without_key(monkeypatch):
         },
     )
     assert r.status_code == 503
+
+
+class _Resp:
+    def __init__(self, code, data):
+        self.status_code, self._d = code, data
+
+    def json(self):
+        return {"data": self._d}
+
+
+def test_key_at_its_spending_limit_hides_the_feature(monkeypatch):
+    monkeypatch.setenv("OPENROUTER_API_KEY", "k-limited")
+    photoreal._KEY_CHECK.clear()
+    monkeypatch.setattr(
+        photoreal.httpx, "get", lambda *a, **k: _Resp(200, {"limit": 0, "limit_remaining": 0})
+    )
+    st = photoreal.status()
+    assert not st.available and "spending limit" in st.reason
+
+
+def test_key_with_credit_is_offered(monkeypatch):
+    monkeypatch.setenv("OPENROUTER_API_KEY", "k-paid")
+    photoreal._KEY_CHECK.clear()
+    monkeypatch.setattr(
+        photoreal.httpx, "get", lambda *a, **k: _Resp(200, {"limit": None, "limit_remaining": None})
+    )
+    assert photoreal.status().available

@@ -1,7 +1,11 @@
 """Deterministic room-acoustics equations. Pure functions, no I/O.
 
-Equations: Sabine RT60 T = 0.161 V / A; Schroeder frequency fs = 2000 sqrt(T / V);
-axial modes f = n c / (2 L); first-order reflections by the image-source method.
+Reverberation: Eyring's formula with air absorption,
+    T = 0.161 V / (-S ln(1 - a) + 4 m V),  a = A / S (mean absorption coefficient),
+which stays accurate when a room is absorptive (Sabine, T = 0.161 V / A, overstates T by
+~15-20 % once a > 0.3, i.e. in any treated room). m is the air's intensity attenuation from
+ISO 9613-1 at 20 C, 50 % RH, 101.325 kPa. Schroeder frequency fs = 2000 sqrt(T / V); axial modes
+f = n c / (2 L); first-order reflections by the image-source method.
 """
 
 import math
@@ -32,6 +36,66 @@ def sabine_rt60(volume_m3: float, absorption_sabins: float) -> float:
     if absorption_sabins <= 0:
         return math.inf
     return SABINE_CONSTANT * volume_m3 / absorption_sabins
+
+
+AIR_TEMP_C = 20.0
+AIR_RH_PCT = 50.0
+MAX_MEAN_ALPHA = 0.99  # Eyring diverges at a = 1
+
+
+def air_attenuation_db_per_m(f_hz: float, temp_c: float = AIR_TEMP_C, rh_pct: float = AIR_RH_PCT,
+                             pa_kpa: float = 101.325) -> float:  # fmt: skip
+    """Pure-tone atmospheric absorption (ISO 9613-1:1993, equations 1-5), dB per metre."""
+    T, T0, T01, pr = temp_c + 273.15, 293.15, 273.16, 101.325
+    C = -6.8346 * (T01 / T) ** 1.261 + 4.6151
+    h = rh_pct * 10**C * (pr / pa_kpa)  # molar concentration of water vapour, %
+    frO = (pa_kpa / pr) * (24 + 4.04e4 * h * (0.02 + h) / (0.391 + h))
+    frN = (
+        (pa_kpa / pr)
+        * (T / T0) ** -0.5
+        * (9 + 280 * h * math.exp(-4.170 * ((T / T0) ** (-1 / 3) - 1)))
+    )
+    f2 = f_hz * f_hz
+    return (
+        8.686
+        * f2
+        * (
+            1.84e-11 * (pr / pa_kpa) * (T / T0) ** 0.5
+            + (T / T0) ** -2.5
+            * (
+                0.01275 * math.exp(-2239.1 / T) / (frO + f2 / frO)
+                + 0.1068 * math.exp(-3352.0 / T) / (frN + f2 / frN)
+            )
+        )
+    )
+
+
+def air_m(f_hz: float) -> float:
+    """Intensity attenuation coefficient m (1/m) of air, as used in 4 m V."""
+    return air_attenuation_db_per_m(f_hz) / (10 * math.log10(math.e))
+
+
+def eyring_rt60(
+    volume_m3: float, absorption_sabins: float, surface_m2: float, f_hz: float
+) -> float:
+    """Eyring reverberation time with air absorption. absorption_sabins may include furniture and
+    treatment (as equivalent area); surface_m2 is the room's boundary area."""
+    if surface_m2 <= 0 or absorption_sabins <= 0:
+        return math.inf
+    mean = min(absorption_sabins / surface_m2, MAX_MEAN_ALPHA)
+    return (
+        SABINE_CONSTANT
+        * volume_m3
+        / (-surface_m2 * math.log(1 - mean) + 4 * air_m(f_hz) * volume_m3)
+    )
+
+
+def eyring_absorption_for(rt60_s: float, volume_m3: float, surface_m2: float, f_hz: float) -> float:
+    """The equivalent absorption area (sabins) Eyring needs for a target RT60 (inverse of above)."""
+    need = SABINE_CONSTANT * volume_m3 / rt60_s - 4 * air_m(f_hz) * volume_m3
+    if need <= 0:
+        return 0.0
+    return surface_m2 * (1 - math.exp(-need / surface_m2))
 
 
 def schroeder_frequency(rt60_s: float, volume_m3: float) -> float:

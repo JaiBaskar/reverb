@@ -201,3 +201,28 @@ export interface TreatmentPlan {
   assumptions: string[]
   limitations: string[]
 }
+
+export interface RoomPlanSummary {
+  room_id: string
+  label: string
+  status: 'ok' | 'skipped' | 'error'
+  reason: string | null
+  area_m2: number | null
+  mid_before_s: number | null
+  mid_after_s: number | null
+  target_mid: [number, number] | null
+  items: PlacedItem[]
+  item_count: number
+  blocked: number
+  moved: number
+  vision_status: string | null
+}
+
+export interface HouseTreatment {
+  sid: string
+  objective: string
+  scenario: 'as_scanned' | 'empty'
+  rooms: RoomPlanSummary[]
+  total_items: number
+  notes: string[]
+}

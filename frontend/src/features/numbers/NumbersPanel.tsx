@@ -44,7 +44,7 @@ function Report({
 
       <div>
         <div className="mb-1 text-xs text-zinc-400">
-          RT60 by octave band (Sabine, modeled) · materials:{' '}
+          RT60 by octave band (Eyring, modeled) · materials:{' '}
           {r.materials.map((m) => `${m.surface}: ${m.label}${m.provenance === 'user' ? ' (your choice)' : ''}`).join(' · ')}
         </div>
         <div className="space-y-0.5">

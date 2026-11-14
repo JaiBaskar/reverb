@@ -43,7 +43,7 @@ export function RtChart({ p }: { p: Prediction }) {
         <span><span className="mr-1 inline-block h-0.5 w-4 bg-rose-400 align-middle" />Now</span>
         <span><span className="mr-1 inline-block h-0.5 w-4 bg-emerald-400 align-middle" />With the plan</span>
         <span><span className="mr-1 inline-block h-2 w-4 bg-emerald-500/20 align-middle" />Target</span>
-        <span>Hz · RT60 (Sabine, modeled)</span>
+        <span>Hz · RT60 (Eyring with air absorption, modeled)</span>
       </figcaption>
     </figure>
   )

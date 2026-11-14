@@ -82,7 +82,7 @@ export function HeatmapLegend({ mode, basis }: { mode: VizMode; basis: FitBasis 
         ? 'Rule-of-thumb fit for the empty room with assumed materials.'
         : 'Only what treatment cannot change: size, height, bass modes, reflection timing.'
       : mode === 'rt60'
-        ? 'Mid-band (500 Hz–1 kHz) Sabine RT60. Colour groups values; it is not a verdict.'
+        ? 'Mid-band (500 Hz–1 kHz) Eyring RT60. Colour groups values; it is not a verdict.'
         : 'Schroeder frequency: below it, individual room modes dominate.'
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs" data-testid="heatmap-legend">

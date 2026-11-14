@@ -44,7 +44,9 @@ def _bass_ratio(r: AcousticReport) -> float:
 def compare(a: AcousticReport, b: AcousticReport) -> Comparison:
     ta, tb = _mid_rt60(a), _mid_rt60(b)
     va, vb = a.geometry.volume_m3, b.geometry.volume_m3
-    # Effective mid-band absorption (sabins) implied by each RT60: A = 0.161 V / T
+    # Effective mid-band absorption implied by each RT60, A_eff = 0.161 V / T. Under Eyring this
+    # is -S ln(1 - a) + 4 m V (boundary absorption on Eyring's scale plus air), so the volume and
+    # absorption factors still multiply exactly to the RT60 ratio.
     ea, eb = SABINE_CONSTANT * va / ta, SABINE_CONSTANT * vb / tb
     vol_factor = va / vb
     abs_factor = eb / ea

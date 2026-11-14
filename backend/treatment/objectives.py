@@ -1,8 +1,9 @@
 """What a room should sound like for each use: RT60 limits per octave band (125 Hz-4 kHz).
 
 - mixing / critical listening: EBU Tech 3276 (listening conditions for sound programme):
-  mean RT60 Tm = 0.25 (V / 100 m3)^(1/3) s, tolerance -0.05/+0.05 s from 200 Hz up, with the
-  upper limit rising towards low frequencies (+0.3 s at 63 Hz -> about +0.15 s at 125 Hz).
+  mean RT60 Tm = 0.25 (V / 100 m3)^(1/3) s, tolerance +/-0.05 s from 200 Hz to 4 kHz; below
+  200 Hz the upper limit rises linearly in log frequency to +0.3 s at 63 Hz, which is
+  +0.152 s at 125 Hz (ebu_upper below). The lower limit stays at -0.05 s.
   Early reflections in the first 15 ms should be at least 10 dB below the direct sound
   (ITU-R BS.1116 / EBU Tech 3276): a reflection-free zone at the listening position.
 - music production: the same centre value with a looser tolerance (+/-0.1 s).
@@ -46,16 +47,23 @@ OBJECTIVES: dict[str, Objective] = {
 }  # fmt: skip
 
 
+def ebu_upper(f_hz: float) -> float:
+    """EBU Tech 3276 upper tolerance above Tm (s): +0.05 from 200 Hz up, rising linearly in
+    log frequency to +0.3 at 63 Hz."""
+    import math
+
+    if f_hz >= 200:
+        return 0.05
+    frac = (math.log10(200) - math.log10(max(f_hz, 63))) / (math.log10(200) - math.log10(63))
+    return 0.05 + frac * 0.25
+
+
 def targets(objective: Objective, volume_m3: float, bands: list[int]) -> list[tuple[float, float]]:
     """(low, high) RT60 limits per band."""
     if objective.id in ("mixing", "critical_listening", "music_production"):
         tm = 0.25 * (volume_m3 / 100.0) ** (1 / 3)
         tol = 0.05 if objective.id != "music_production" else 0.10
-        out = []
-        for f in bands:
-            hi_extra = 0.15 if f <= 125 else 0.0  # EBU upper limit eases below 200 Hz
-            out.append((max(0.1, tm - tol), tm + tol + hi_extra))
-        return out
+        return [(max(0.1, tm - tol), tm + max(tol, ebu_upper(f))) for f in bands]
     if objective.id == "recording":
         return [(0.3, 0.6 if f <= 125 else 0.5) for f in bands]
     return [(0.2, 0.4 if f <= 125 else 0.35) for f in bands]

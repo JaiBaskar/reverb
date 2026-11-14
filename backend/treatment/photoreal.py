@@ -36,8 +36,46 @@ class PhotorealResult(BaseModel):
     prompt: str
 
 
+_KEY_CHECK: dict[str, tuple[float, str | None]] = {}
+KEY_CHECK_TTL_S = 300
+
+
+def _spend_problem(key: str) -> str | None:
+    """Why this key cannot pay for an image model (OpenRouter GET /key), or None if it can.
+    Image-output models are paid; a key at its spending limit is refused (HTTP 403)."""
+    import time
+
+    hit = _KEY_CHECK.get(key)
+    if hit and time.time() - hit[0] < KEY_CHECK_TTL_S:
+        return hit[1]
+    try:
+        r = httpx.get(
+            "https://openrouter.ai/api/v1/key",
+            headers={"Authorization": f"Bearer {key}"},
+            timeout=10,
+        )
+        d = (r.json() or {}).get("data") or {}
+        if r.status_code != 200:
+            why = f"OpenRouter did not accept the key (HTTP {r.status_code})."
+        elif d.get("limit") is not None and (d.get("limit_remaining") or 0) <= 0:
+            why = (
+                f"The OpenRouter key's spending limit is ${d.get('limit'):g} and it has "
+                f"${max(0.0, d.get('limit_remaining') or 0):.2f} left; image models are paid. "
+                "Raise the limit and add credit to enable it."
+            )
+        else:
+            why = None
+    except (httpx.HTTPError, ValueError):
+        why = "Could not reach OpenRouter to check the key."
+    _KEY_CHECK[key] = (time.time(), why)
+    return why
+
+
 def status() -> PhotorealStatus:
-    if not os.environ.get("OPENROUTER_API_KEY"):
+    key = os.environ.get("OPENROUTER_API_KEY")
+    if key and (why := _spend_problem(key)):
+        return PhotorealStatus(available=False, model=None, reason=why)
+    if not key:
         return PhotorealStatus(
             available=False, model=None,
             reason="No OPENROUTER_API_KEY in .env: the treated room is shown as a 3D render only.",

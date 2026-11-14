@@ -133,7 +133,7 @@ def _checks(rep: AcousticReport, rules: dict) -> list[Check]:
                 reason=(
                     f"RT60 at 4 kHz is {hr:.2f}x the mid RT60 "
                     f"(ideal {_fmt_range(rules['hf_ratio']['good'], 'x')}); lower means the "
-                    "room swallows string brightness. Sabine here ignores air absorption."
+                    "room swallows string brightness. Air absorption is included."
                 ),
             )
         )

@@ -72,7 +72,7 @@ export interface IrResponse {
   duration_s: number
   wav_base64: string
   bands_hz: number[]
-  sabine_rt60_s: number[]
+  report_rt60_s: number[] // the room report's RT60 (Eyring with air absorption)
   /** Decay measured from the MODELED impulse response, not from the real room. */
   ir_rt60_s: (number | null)[]
   params: Record<string, unknown>

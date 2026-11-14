@@ -77,6 +77,8 @@ class PlacedItem(BaseModel):
     reason: str
     # set by fit.py: moved / replaced to clear the building, or blocked by furniture
     status: Literal["ok", "moved", "replaced", "blocked"] = "ok"
+    # reflection points this item exists to absorb; a move must keep every one on its face
+    covers: list[tuple[float, float, float]] = []
     adjustment: str | None = None
     blocked_by: list[Blocker] = []
 
@@ -400,8 +402,12 @@ def candidates(
                 "The wall behind the listening position has an opening there; no rear treatment."
             )
 
-    fr: list[PlacedItem] = []
-    for r in sorted(refl, key=lambda r: -r.level_db):  # loudest first: panels centre on them
+    # Early wall reflections, grouped per wall: one panel is centred over every group of points it
+    # can cover (all within its width, less a 5 cm margin); a wider spread gets another panel.
+    # Points already on a panel behind the speakers or the listener are covered by that panel.
+    half = PRODUCTS["panel_50"].width_m / 2 - 0.05
+    by_wall: dict[int, list[ReflectionPath]] = {}
+    for r in refl:
         if r.wall is None or r.delay_ms > REFLECTION_WINDOW_MS:
             continue
         w = geo.walls[r.wall]
@@ -410,16 +416,29 @@ def candidates(
                 f"The {r.source}'s reflection off the {r.surface} lands on an opening; it cannot take a panel (a heavy curtain helps if it is a window)."
             )
             continue
-        if any(i.wall == r.wall and abs(_along(w, i) - r.along_m) < 0.45 for i in fr):
-            continue  # both speakers reflect near the same spot: one panel covers it
         if any(
-            i.wall == r.wall and abs(_along(w, i) - r.along_m) < 0.6 for i in [*front, *rear_abs]
+            i.wall == r.wall and abs(_along(w, i) - r.along_m) <= half for i in [*front, *rear_abs]
         ):
-            continue  # the panels behind the speakers / the listener already cover it
-        fr.append(_panel("panel_50", "first_reflection", w, r.along_m, max(r.point[2], geo.floor_z + 0.65),
-                         f"{names[w.index]}, {r.along_m:.2f} m along it, centred {r.point[2] - geo.floor_z:.2f} m up",
-                         f"First reflection of the {r.source}: arrives {r.delay_ms:.1f} ms after the direct sound at {r.level_db:+.1f} dB.",
-                         f"fr{len(fr) + 1}"))  # fmt: skip
+            continue
+        by_wall.setdefault(r.wall, []).append(r)
+    fr: list[PlacedItem] = []
+    for wi, rs in by_wall.items():
+        w = geo.walls[wi]
+        rs.sort(key=lambda r: r.along_m)
+        groups: list[list[ReflectionPath]] = []
+        for r in rs:
+            if groups and r.along_m - groups[-1][0].along_m <= 2 * half:
+                groups[-1].append(r)
+            else:
+                groups.append([r])
+        for g in groups:
+            along = (g[0].along_m + g[-1].along_m) / 2
+            z = max(float(np.mean([r.point[2] for r in g])), geo.floor_z + 0.65)
+            what = "; ".join(f"{r.source} {r.delay_ms:.1f} ms at {r.level_db:+.1f} dB" for r in g)
+            fr.append(_panel("panel_50", "first_reflection", w, along, z,
+                             f"{names[w.index]}, {along:.2f} m along it, centred {z - geo.floor_z:.2f} m up",
+                             f"First reflection{'s' if len(g) > 1 else ''} after the direct sound: {what}.",
+                             f"fr{len(fr) + 1}").model_copy(update={"covers": [r.point for r in g]}))  # fmt: skip
 
     ceil_pts = [r.point for r in refl if r.surface == "ceiling"]
     cloud = PRODUCTS["cloud_100"]

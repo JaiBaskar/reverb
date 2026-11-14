@@ -2,6 +2,7 @@ import math
 
 import pytest
 
+from acoustics.physics import air_m
 from suitability.compare import compare_fits
 from suitability.service import assess
 from suitability.treatment import PANEL_ALPHA, PANEL_AREA_M2, treatment
@@ -17,9 +18,13 @@ def test_treatment_hand_calculation(living_room):
     rep = with_rt60(living_room, 1.0)
     t = treatment(rep, (None, 0.40))
     v = rep.geometry.volume_m3
-    a_now = 0.161 * v / 1.0
-    a_need = 0.161 * v / 0.40
     s = rep.surfaces.floor_m2 + rep.surfaces.ceiling_m2 + rep.surfaces.walls_m2
+
+    def eyring_area(t, f):  # hand-rolled inverse of T = 0.161 V / (-S ln(1 - a) + 4 m V)
+        return s * (1 - math.exp(-(0.161 * v / t - 4 * air_m(f) * v) / s))
+
+    a_now = (eyring_area(1.0, 500) + eyring_area(1.0, 1000)) / 2
+    a_need = (eyring_area(0.40, 500) + eyring_area(0.40, 1000)) / 2
     area = (a_need - a_now) / (PANEL_ALPHA - a_now / s)
     assert t.verdict == "add_absorption"
     assert t.added_sabins == pytest.approx(a_need - a_now)

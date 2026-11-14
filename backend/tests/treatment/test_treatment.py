@@ -4,7 +4,7 @@ import math
 
 import pytest
 
-from acoustics.physics import SABINE_CONSTANT
+from acoustics.physics import SABINE_CONSTANT, air_m, eyring_absorption_for, eyring_rt60
 from acoustics.products import PRODUCTS
 from properties.models import Field, Room
 from roomintel.geometry import room_geometry
@@ -108,9 +108,14 @@ def test_sabine_bookkeeping_for_a_wall_panel():
     p = PRODUCTS[panel.product_id]
     assert d[3] == pytest.approx((p.alpha[3] - DRYWALL[3]) * 0.72)
     vol = W * D * H
+    surf = 2 * W * D + 2 * (W + D) * H
     base = [10.0] * 6
-    rt = predict(base, vol, [panel], DRYWALL)
-    assert rt[3] == pytest.approx(SABINE_CONSTANT * vol / (10 + d[3]))
+    rt = predict(base, vol, [panel], DRYWALL, surf)
+    # Eyring with air absorption, by hand
+    a_bar = (10 + d[3]) / surf
+    assert rt[3] == pytest.approx(
+        SABINE_CONSTANT * vol / (-surf * math.log(1 - a_bar) + 4 * air_m(1000) * vol)
+    )
 
 
 def test_treated_reflection_level():
@@ -126,10 +131,10 @@ def test_optimiser_hits_the_target_and_is_deterministic():
     s = W * D * 2 + 2 * (W + D) * H
     base = [s * a for a in DRYWALL]  # bare drywall box: very live
     c = candidates(geo, lay, DRYWALL[3], True)
-    best, ranked = optimise(c, obj, tg, base, vol, DRYWALL)
-    best2, _ = optimise(c, obj, tg, base, vol, DRYWALL)
+    best, ranked = optimise(c, obj, tg, base, vol, DRYWALL, s)
+    best2, _ = optimise(c, obj, tg, base, vol, DRYWALL, s)
     assert [i.key for i in best.items] == [i.key for i in best2.items]
-    before = SABINE_CONSTANT * vol / base[3]
+    before = eyring_rt60(vol, base[3], s, 1000)
     assert before > tg[3][1] and best.rt60_s[3] < before
     assert best.rfz_misses == 0  # mixing needs the reflection-free zone
     assert best.score <= min(r.score for r in ranked)
@@ -141,9 +146,12 @@ def test_a_dead_room_gets_no_absorption():
     obj = OBJECTIVES["recording"]
     vol = W * D * H
     tg = targets(obj, vol, [125, 250, 500, 1000, 2000, 4000])
-    base = [SABINE_CONSTANT * vol / 0.25] * 6  # already 0.25 s everywhere, under 0.3 s
+    s = W * D * 2 + 2 * (W + D) * H
+    base = [
+        eyring_absorption_for(0.25, vol, s, f) for f in (125, 250, 500, 1000, 2000, 4000)
+    ]  # 0.25 s: under 0.3 s
     c = candidates(geo, lay, DRYWALL[3], True)
-    best, _ = optimise(c, obj, tg, base, vol, DRYWALL)
+    best, _ = optimise(c, obj, tg, base, vol, DRYWALL, s)
     absorbers = [i for i in best.items if PRODUCTS[i.product_id].kind != "diffuser"]
     assert not absorbers
 

@@ -3,10 +3,11 @@
 Every configuration is a choice of: panel thickness for the first-reflection points (50 or
 100 mm), corner bass traps (0, 2 or 4), a ceiling cloud (yes/no), the rear wall (nothing,
 absorb, or diffuse when there is room), panels behind the speakers (yes/no) and N extra
-coverage panels. Each is scored with the same Sabine arithmetic as the room report:
+coverage panels. Each is scored with the same arithmetic as the room report:
 
     A'(band) = A(band) + sum over items of (alpha_item - alpha_surface_behind) * area
-    RT60'(band) = 0.161 V / A'(band)
+    RT60'(band) = Eyring with air absorption (acoustics.physics.eyring_rt60) of A' over the
+                  room's boundary area S
 
 score = sum over bands of the squared distance outside the target (in units of 0.05 s)
       + 4 for every early reflection still too loud (reflection-free-zone uses)
@@ -18,9 +19,10 @@ The lowest score wins; ties go to fewer items. Nothing here is random.
 import itertools
 import math
 
+import numpy as np
 from pydantic import BaseModel
 
-from acoustics.physics import SABINE_CONSTANT
+from acoustics.physics import BANDS_HZ, eyring_rt60
 from acoustics.products import PRODUCTS
 from treatment.objectives import Objective
 from treatment.placement import REFLECTION_WINDOW_MS, Candidates, PlacedItem
@@ -65,13 +67,18 @@ def delta_absorption(item: PlacedItem, wall_alpha: list[float]) -> list[float]:
 
 
 def predict(
-    base_absorption: list[float], volume: float, items: list[PlacedItem], wall_alpha: list[float]
+    base_absorption: list[float],
+    volume: float,
+    items: list[PlacedItem],
+    wall_alpha: list[float],
+    surface: float,
+    bands: list[int] = BANDS_HZ,
 ) -> list[float]:
     a = list(base_absorption)
     for it in items:
         for b, d in enumerate(delta_absorption(it, wall_alpha)):
             a[b] += d
-    return [SABINE_CONSTANT * volume / max(x, 1e-6) for x in a]
+    return [eyring_rt60(volume, max(x, 1e-6), surface, f) for x, f in zip(a, bands, strict=True)]
 
 
 def _with_product(item: PlacedItem, product: str) -> PlacedItem:
@@ -87,18 +94,29 @@ def _with_product(item: PlacedItem, product: str) -> PlacedItem:
 WALL_ABSORBERS = ("first_reflection", "front_wall", "rear_wall", "coverage")
 
 
+def _on_face(point, item: PlacedItem) -> bool:
+    """Does a reflection point land on the item's front face (within its width and height,
+    and on its plane to within its depth)?"""
+    z = np.array(item.normal, dtype=float)
+    y = np.array(item.up, dtype=float)
+    x = np.cross(y, z)
+    d = np.array(point, dtype=float) - np.array(item.center, dtype=float)
+    return (
+        abs(d @ x) <= item.width_m / 2
+        and abs(d @ y) <= item.height_m / 2
+        and abs(d @ z) <= item.depth_m / 2 + 0.25
+    )
+
+
 def reflection_after(r, items: list[PlacedItem]) -> tuple[float, str | None]:
-    """A reflection's level once the items are installed, and the item that treats it."""
+    """A reflection's level once the items are installed, and the item that treats it. Only an
+    item whose face the reflection point actually lands on counts."""
     for i in items:
-        if r.wall is None and i.group == "ceiling":
-            if math.dist(r.point[:2], i.center[:2]) <= max(i.width_m, i.height_m) / 2:
-                return treated_level(r.spreading_db, PRODUCTS[i.product_id].alpha[3]), i.key
-        elif (
-            r.wall is not None
-            and i.wall == r.wall
-            and i.group in WALL_ABSORBERS
-            and math.dist(r.point[:2], i.center[:2]) <= i.width_m / 2 + 0.25
-        ):
+        if (i.group == "ceiling") != (r.wall is None):
+            continue
+        if r.wall is not None and (i.wall != r.wall or i.group not in WALL_ABSORBERS):
+            continue
+        if _on_face(r.point, i):
             return treated_level(r.spreading_db, PRODUCTS[i.product_id].alpha[3]), i.key
     return r.level_db, None
 
@@ -124,6 +142,7 @@ def optimise(
     base_absorption: list[float],
     volume: float,
     wall_alpha: list[float],
+    surface: float,
 ) -> tuple[Scored, list[Scored]]:
     refl_opts: list[str | None] = ["panel_50", "panel_100"] if cands.first_reflection else [None]
     if not objective.needs_rfz and cands.first_reflection:
@@ -157,7 +176,7 @@ def optimise(
         misses = residual_reflections(cands, fixed, objective.rfz_db) if objective.needs_rfz else 0
         for n in range(n_cov + 1):
             items = fixed + cands.slots[:n]
-            rt = predict(base_absorption, volume, items, wall_alpha)
+            rt = predict(base_absorption, volume, items, wall_alpha, surface)
             dev = sum(
                 (max(0.0, lo - t) / TOL_UNIT_S) ** 2 + (max(0.0, t - hi) / TOL_UNIT_S) ** 2
                 for t, (lo, hi) in zip(rt, targets, strict=True)

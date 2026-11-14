@@ -4,7 +4,7 @@ import type { Variant } from '../matterport/connect'
 import { MatterportViewer } from '../matterport/MatterportViewer'
 import type { MpSdk } from '../matterport/sdkTypes'
 import { createTreatmentScene, goToViewpoint, type TreatmentScene } from './scene'
-import type { TreatmentPlan } from './types'
+import type { PlacedItem, TreatmentPlan } from './types'
 
 type Status =
   | { kind: 'connecting' }
@@ -15,17 +15,28 @@ type Status =
   | { kind: 'error'; message: string }
 
 const SHOT = { width: 1280, height: 720 }
+const NONE: PlacedItem[] = []
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
 /**
  * The plan installed in the real Matterport scan: live 3D view with a treated/original toggle,
  * and a before/after pair captured from the automatically chosen scan position.
  */
-export function TreatmentView({ plan, avoidWalls }: { plan: TreatmentPlan; avoidWalls: number[] }) {
+export function TreatmentView({
+  plan,
+  avoidWalls,
+  extraItems = NONE,
+}: {
+  plan: TreatmentPlan
+  avoidWalls: number[]
+  /** Items of the other rooms (whole-house view), installed alongside this room's plan. */
+  extraItems?: PlacedItem[]
+}) {
   const [conn, setConn] = useState<{ sdk: MpSdk; variant: Variant } | null>(null)
   const [status, setStatus] = useState<Status>({ kind: 'connecting' })
   const [shots, setShots] = useState<{ key: string; before: string; after: string } | null>(null)
   const [treated, setTreated] = useState(true)
+  const [moveError, setMoveError] = useState<string | null>(null)
   const scene = useRef<TreatmentScene | null>(null)
   const [ai, setAi] = useState<PhotorealStatus | null>(null)
   const [real, setReal] = useState<{ key: string; image?: string; label?: string; error?: string; busy?: boolean } | null>(null)
@@ -34,7 +45,7 @@ export function TreatmentView({ plan, avoidWalls }: { plan: TreatmentPlan; avoid
       .then(setAi)
       .catch(() => setAi(null))
   }, [])
-  const planKey = `${plan.room_id}/${plan.objective.id}/${plan.scenario}/${plan.items.length}`
+  const planKey = `${plan.room_id}/${plan.objective.id}/${plan.scenario}/${plan.items.length}/${extraItems.length}`
 
   const onConnected = useCallback((sdk: MpSdk, variant: Variant) => {
     // Dev-only handle for inspecting the SDK from the browser console.
@@ -52,7 +63,7 @@ export function TreatmentView({ plan, avoidWalls }: { plan: TreatmentPlan; avoid
         return
       }
       try {
-        const s = await createTreatmentScene(conn.sdk, plan.items)
+        const s = await createTreatmentScene(conn.sdk, [...plan.items, ...extraItems])
         if (!live) return s?.dispose()
         scene.current = s
         if (!plan.viewpoint) {
@@ -60,7 +71,14 @@ export function TreatmentView({ plan, avoidWalls }: { plan: TreatmentPlan; avoid
           return
         }
         setStatus({ kind: 'positioning' })
-        await goToViewpoint(conn.sdk, plan.viewpoint)
+        try {
+          await goToViewpoint(conn.sdk, plan.viewpoint)
+        } catch (e) {
+          // not fatal: the treatment is installed; only the automatic camera move failed
+          if (live) setMoveError((e as Error).message || 'the tour would not move to the chosen scan position')
+          if (live) setStatus({ kind: 'ready' })
+          return
+        }
         await wait(2500) // let the panorama's high-resolution tiles load
         if (!live) return
         setStatus({ kind: 'capturing' })
@@ -80,7 +98,7 @@ export function TreatmentView({ plan, avoidWalls }: { plan: TreatmentPlan; avoid
       scene.current?.dispose()
       scene.current = null
     }
-  }, [conn, plan, planKey])
+  }, [conn, plan, planKey, extraItems])
 
   const toggle = (on: boolean) => {
     setTreated(on)
@@ -138,6 +156,15 @@ export function TreatmentView({ plan, avoidWalls }: { plan: TreatmentPlan; avoid
             Back to the chosen view
           </button>
         )}
+        {extraItems.length > 0 && conn && status.kind === 'ready' && (
+          <button
+            onClick={() => void conn.sdk.Mode.moveTo(conn.sdk.Mode.Mode.DOLLHOUSE).catch(() => undefined)}
+            className="rounded-lg bg-zinc-800 px-3 py-1.5 hover:bg-zinc-700"
+            data-testid="dollhouse"
+          >
+            See the whole house
+          </button>
+        )}
         <span className="text-xs text-zinc-500">Drag to look around; click the floor to walk.</span>
       </div>
       {status.kind === 'embed' && (
@@ -146,7 +173,12 @@ export function TreatmentView({ plan, avoidWalls }: { plan: TreatmentPlan; avoid
           positions and predictions below are unaffected.
         </p>
       )}
-      {status.kind === 'error' && <p className="text-sm text-red-300">3D preview failed: {status.message}</p>}
+      {status.kind === 'error' && (
+        <p className="text-sm text-red-300">3D preview failed: {status.message || 'unknown error from the Matterport viewer'}</p>
+      )}
+      {moveError && status.kind === 'ready' && (
+        <p className="text-xs text-amber-300">Could not move to the chosen view automatically ({moveError}); use “Back to the chosen view”.</p>
+      )}
       {plan.viewpoint ? (
         <p className="text-xs text-zinc-500" data-testid="viewpoint-reason">
           Viewpoint chosen automatically: {plan.viewpoint.reason}
@@ -167,6 +199,9 @@ export function TreatmentView({ plan, avoidWalls }: { plan: TreatmentPlan; avoid
             </figcaption>
           </figure>
         </div>
+      )}
+      {current && ai && !ai.available && ai.reason && (
+        <p className="text-xs text-zinc-500" data-testid="photoreal-off">AI photo version not offered: {ai.reason}</p>
       )}
       {current && ai?.available && (
         <div className="space-y-2" data-testid="photoreal">

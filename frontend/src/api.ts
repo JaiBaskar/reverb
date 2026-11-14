@@ -12,7 +12,7 @@ import type {
 } from './types'
 import { roomBody } from './roomRef'
 import type { SuitabilityReport } from './features/suitability/types'
-import type { Objective, TreatmentPlan } from './features/treatment/types'
+import type { HouseTreatment, Objective, TreatmentPlan } from './features/treatment/types'
 
 async function get<T>(path: string): Promise<T> {
   const res = await fetch(`/api${path}`)
@@ -143,3 +143,6 @@ export async function makePhotoreal(
   }
   return res.json()
 }
+
+export const fetchHouseTreatment = (sid: string, objective: string, scenario: 'as_scanned' | 'empty') =>
+  get<HouseTreatment>(`/properties/${sid}/treatment?objective=${encodeURIComponent(objective)}&scenario=${scenario}`)

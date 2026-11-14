@@ -248,10 +248,20 @@ export const sdkYaw = (modelYawDeg: number) => modelYawDeg - 90
 /** Fly to the chosen scan position and face the chosen heading. Only real scan positions. */
 export async function goToViewpoint(sdk: MpSdk, vp: Viewpoint, instant = false) {
   const rotation = { x: vp.pitch_deg, y: sdkYaw(vp.yaw_deg) }
-  await sdk.Sweep.moveTo(vp.scan_id, {
-    rotation,
-    transition: instant ? sdk.Sweep.Transition.INSTANT : sdk.Sweep.Transition.FLY,
-    transitionTime: 1500,
-  })
-  await sdk.Camera.setRotation(rotation, { speed: 200 })
+  // Showcase rejects a move while another transition is running (e.g. a previous call, or the
+  // opening fly-in): wait and retry a few times before giving up.
+  for (let attempt = 0; ; attempt++) {
+    try {
+      await sdk.Sweep.moveTo(vp.scan_id, {
+        rotation,
+        transition: instant ? sdk.Sweep.Transition.INSTANT : sdk.Sweep.Transition.FLY,
+        transitionTime: 1500,
+      })
+      await sdk.Camera.setRotation(rotation, { speed: 200 })
+      return
+    } catch (e) {
+      if (attempt >= 4) throw e instanceof Error && e.message ? e : new Error('the tour would not move to the chosen scan position')
+      await new Promise((r) => setTimeout(r, 800))
+    }
+  }
 }
