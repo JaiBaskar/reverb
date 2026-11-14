@@ -1,0 +1,1132 @@
+{
+  "sid": "zvKHR9DHNjJ",
+  "coordinate_note": "Positions are Matterport model space in metres with z up. The Showcase SDK (three.js) uses y up: sdk (x, y, z) = model (x, z, -y). Polygons are wall centrelines, so they enclose slightly more than the Matterport floor area.",
+  "floors": [
+    {
+      "id": "tsmq1wak12rhgn0mawksxcwcd",
+      "label": "Floor 1",
+      "index": 0
+    }
+  ],
+  "rooms": [
+    {
+      "room_id": "n2yqr30509t7i8whfdf2htwic",
+      "label": "Void",
+      "usable": false,
+      "floor_index": 0,
+      "polygon": [
+        [
+          -10.842009227666724,
+          -4.8595891961948805
+        ],
+        [
+          -11.568054715522692,
+          -3.9409416800556416
+        ],
+        [
+          -11.15268377432635,
+          -3.9400647351626166
+        ],
+        [
+          -11.155197839680838,
+          -2.76415232656364
+        ],
+        [
+          -10.576004018684836,
+          -2.762896382971524
+        ],
+        [
+          -10.57158396168834,
+          -4.859018296309398
+        ]
+      ],
+      "polygon_provenance": "verified",
+      "sweep_ids": [],
+      "entry_sweep_id": null,
+      "entry_sweep_provenance": "missing",
+      "navigable": false,
+      "issues": [
+        "no tour sweep inside this room; select it to inspect, not to walk to"
+      ]
+    },
+    {
+      "room_id": "peina19mpqedsku6a3huu38md",
+      "label": "Void",
+      "usable": false,
+      "floor_index": 0,
+      "polygon": [
+        [
+          -8.109750424992317,
+          -2.7576005565347947
+        ],
+        [
+          -8.114234487157765,
+          -0.6504138637004664
+        ],
+        [
+          -6.945191965133141,
+          -0.6479261064799673
+        ],
+        [
+          -6.940667123098977,
+          -2.7550940186144848
+        ]
+      ],
+      "polygon_provenance": "verified",
+      "sweep_ids": [],
+      "entry_sweep_id": null,
+      "entry_sweep_provenance": "missing",
+      "navigable": false,
+      "issues": [
+        "no tour sweep inside this room; select it to inspect, not to walk to"
+      ]
+    },
+    {
+      "room_id": "613htqkzf66zz7hf7n8kzszed",
+      "label": "Dining Room",
+      "usable": true,
+      "floor_index": 0,
+      "polygon": [
+        [
+          -2.3089300561342614,
+          0.825354891298228
+        ],
+        [
+          -2.2984497237631976,
+          -4.19724301521039
+        ],
+        [
+          -6.937550775413492,
+          -4.206923151396678
+        ],
+        [
+          -6.938230005926144,
+          -3.891999334086628
+        ],
+        [
+          -6.940667123098977,
+          -2.7550940186144848
+        ],
+        [
+          -6.945191965133141,
+          -0.6479261064799673
+        ],
+        [
+          -6.948331109001704,
+          0.8156256544227776
+        ],
+        [
+          -5.80173881419037,
+          0.8180527896834857
+        ]
+      ],
+      "polygon_provenance": "verified",
+      "sweep_ids": [
+        "b470c6ztd8733p8xgzs1d64gb",
+        "mmbwziwecxb9m8q1asgdq10ed",
+        "5ef86yc9eazqtcm82ar3irfqa",
+        "d7uckrxa7aahkfd4ytp2x6qid",
+        "f04my6h0adad7916q2yunyx2a",
+        "418rwm658z00s6z1dgik53xhc"
+      ],
+      "entry_sweep_id": "b470c6ztd8733p8xgzs1d64gb",
+      "entry_sweep_provenance": "estimated",
+      "navigable": true,
+      "issues": []
+    },
+    {
+      "room_id": "cdz3fkt38kae7tapstpt0eaeb",
+      "label": "Living Room",
+      "usable": true,
+      "floor_index": 0,
+      "polygon": [
+        [
+          -2.3089300561342614,
+          0.825354891298228
+        ],
+        [
+          -2.2984497237631976,
+          -4.19724301521039
+        ],
+        [
+          -2.297284708772749,
+          -4.755669764923909
+        ],
+        [
+          2.8231082625292823,
+          -4.7450358678300635
+        ],
+        [
+          2.8110482615561665,
+          1.0630233273197482
+        ],
+        [
+          -1.1256543256893066,
+          1.0548555322646593
+        ],
+        [
+          -2.3093980669391536,
+          1.0523971991486756
+        ]
+      ],
+      "polygon_provenance": "verified",
+      "sweep_ids": [
+        "kxq51hxy2bxidrsyq8i1qxmgb",
+        "0x1isyff3bgg9prxdenu4frfd",
+        "b72fp8qgf3esrt5gdrcknfzga",
+        "tgx6gn9g8wpqfq57gfammfqka",
+        "c18cwe6ee9ccact3mxfw31mhd"
+      ],
+      "entry_sweep_id": "b72fp8qgf3esrt5gdrcknfzga",
+      "entry_sweep_provenance": "estimated",
+      "navigable": true,
+      "issues": []
+    },
+    {
+      "room_id": "xy2x8mpaaqknp7q2c3nnbw1ma",
+      "label": "Living Room",
+      "usable": true,
+      "floor_index": 0,
+      "polygon": [
+        [
+          -1.1256543256893066,
+          1.0548555322646593
+        ],
+        [
+          -1.1336387340174512,
+          4.904324772607721
+        ],
+        [
+          2.8030614600011843,
+          4.912481943588205
+        ],
+        [
+          2.8110482615561665,
+          1.0630233273197482
+        ]
+      ],
+      "polygon_provenance": "verified",
+      "sweep_ids": [
+        "sa0ccfc88azxsste162hiipwd",
+        "0up626zz41smhfgmc7rczku6c",
+        "cd4n41i8nsrr88ec8hky2qqka"
+      ],
+      "entry_sweep_id": "sa0ccfc88azxsste162hiipwd",
+      "entry_sweep_provenance": "estimated",
+      "navigable": true,
+      "issues": []
+    },
+    {
+      "room_id": "tt6gm2a0463x9wmnx7rn6gugc",
+      "label": "Bedroom",
+      "usable": true,
+      "floor_index": 0,
+      "polygon": [
+        [
+          -12.9858864960696,
+          4.879805266321002
+        ],
+        [
+          -8.82966447237761,
+          4.888449514210081
+        ],
+        [
+          -8.823395737562018,
+          1.8715288233341116
+        ],
+        [
+          -8.821185260171964,
+          0.81160404256332
+        ],
+        [
+          -12.977405033373945,
+          0.8028669157595731
+        ]
+      ],
+      "polygon_provenance": "verified",
+      "sweep_ids": [
+        "k3hpf9ccgst5zc3z0nb1p2pxb",
+        "tbd69mzswnc68p97496tdbqdd",
+        "yymp87euqezbz6ws9xrm3u4pb"
+      ],
+      "entry_sweep_id": "tbd69mzswnc68p97496tdbqdd",
+      "entry_sweep_provenance": "estimated",
+      "navigable": true,
+      "issues": []
+    },
+    {
+      "room_id": "h26t7ky77ew74yb0pg8qqf5rd",
+      "label": "Bedroom",
+      "usable": true,
+      "floor_index": 0,
+      "polygon": [
+        [
+          -2.3089300561342614,
+          0.825354891298228
+        ],
+        [
+          -2.3093980669391536,
+          1.0523971991486756
+        ],
+        [
+          -2.3174104164516884,
+          4.901896299188831
+        ],
+        [
+          -5.810217523178687,
+          4.894688391497571
+        ],
+        [
+          -5.807665776602293,
+          3.6582293816811737
+        ],
+        [
+          -5.803958519960823,
+          1.8778307941032726
+        ],
+        [
+          -5.80173881419037,
+          0.8180527896834857
+        ]
+      ],
+      "polygon_provenance": "verified",
+      "sweep_ids": [
+        "f3pzmzhdp2ctz08q984xymata",
+        "fy8ec4dfkm7mt9tdgkue04ktd",
+        "2yk53pfnxf3r2duerc8ibazhb"
+      ],
+      "entry_sweep_id": "2yk53pfnxf3r2duerc8ibazhb",
+      "entry_sweep_provenance": "estimated",
+      "navigable": true,
+      "issues": []
+    },
+    {
+      "room_id": "3m54yff1z7crxaywd8if9rb0d",
+      "label": "Kitchen",
+      "usable": true,
+      "floor_index": 0,
+      "polygon": [
+        [
+          -10.592141265015032,
+          -0.21217901237369227
+        ],
+        [
+          -12.999637711334659,
+          -0.21721724136495313
+        ],
+        [
+          -12.994295768016684,
+          -2.768085260253077
+        ],
+        [
+          -11.155197839680838,
+          -2.76415232656364
+        ],
+        [
+          -10.576004018684836,
+          -2.762896382971524
+        ],
+        [
+          -8.109750424992317,
+          -2.7576005565347947
+        ],
+        [
+          -8.114234487157765,
+          -0.6504138637004664
+        ],
+        [
+          -8.562097315885676,
+          -0.6513625779151982
+        ],
+        [
+          -8.564322448801116,
+          0.399955370719002
+        ],
+        [
+          -10.59340890609698,
+          0.39570229337101437
+        ]
+      ],
+      "polygon_provenance": "verified",
+      "sweep_ids": [
+        "0kxp6pbbkte98efikuzkwzgxc",
+        "hxzu5nrr8ib8bqqbxprcxeync",
+        "6ymgeknw94ryhs733kr04m0xd",
+        "9zsku0i2t4kbd5nmbizt6yh0d"
+      ],
+      "entry_sweep_id": "hxzu5nrr8ib8bqqbxprcxeync",
+      "entry_sweep_provenance": "estimated",
+      "navigable": true,
+      "issues": []
+    },
+    {
+      "room_id": "2qdmc5i9byxi79ry1pxdkqzea",
+      "label": "Dining Room",
+      "usable": true,
+      "floor_index": 0,
+      "polygon": [
+        [
+          -6.937550775413492,
+          -4.206923151396678
+        ],
+        [
+          -6.938230005926144,
+          -3.891999334086628
+        ],
+        [
+          -6.940667123098977,
+          -2.7550940186144848
+        ],
+        [
+          -8.109750424992317,
+          -2.7576005565347947
+        ],
+        [
+          -10.576004018684836,
+          -2.762896382971524
+        ],
+        [
+          -10.57158396168834,
+          -4.859018296309398
+        ],
+        [
+          -10.570056332932316,
+          -5.584083866106503
+        ],
+        [
+          -10.569677924917531,
+          -5.76637660143167
+        ],
+        [
+          -6.934306435644424,
+          -5.758785388953116
+        ]
+      ],
+      "polygon_provenance": "verified",
+      "sweep_ids": [
+        "i2e531d27m54g8xf8fqm0mm6b",
+        "cbndtx0xss1aefwwwb1cxy2gd",
+        "3bpdnkeinsyafi9kppqntha7b",
+        "n5rwn1zrsks0yspec7aqpxt3b",
+        "8y3xi9p4tz8ryfq274qn58y8a"
+      ],
+      "entry_sweep_id": "n5rwn1zrsks0yspec7aqpxt3b",
+      "entry_sweep_provenance": "estimated",
+      "navigable": true,
+      "issues": []
+    },
+    {
+      "room_id": "a5f9age4zzxewres6iqux2emc",
+      "label": "Unlabelled",
+      "usable": true,
+      "floor_index": 0,
+      "polygon": null,
+      "polygon_provenance": "missing",
+      "sweep_ids": [
+        "35bu9kag74cwsq1s3f47fwqrc"
+      ],
+      "entry_sweep_id": "35bu9kag74cwsq1s3f47fwqrc",
+      "entry_sweep_provenance": "estimated",
+      "navigable": true,
+      "issues": [
+        "no wall boundary from Matterport"
+      ]
+    },
+    {
+      "room_id": "19ab05tns5h6y4qm42esqqpea",
+      "label": "Bathroom",
+      "usable": true,
+      "floor_index": 0,
+      "polygon": [
+        [
+          -6.674304755481155,
+          1.8760104727136049
+        ],
+        [
+          -8.823395737562018,
+          1.8715288233341116
+        ],
+        [
+          -8.82966447237761,
+          4.888449514210081
+        ],
+        [
+          -5.810217523178687,
+          4.894688391497571
+        ],
+        [
+          -5.807665776602293,
+          3.6582293816811737
+        ],
+        [
+          -6.678023020234487,
+          3.6564160310363785
+        ]
+      ],
+      "polygon_provenance": "verified",
+      "sweep_ids": [],
+      "entry_sweep_id": null,
+      "entry_sweep_provenance": "missing",
+      "navigable": false,
+      "issues": [
+        "no tour sweep inside this room; select it to inspect, not to walk to"
+      ]
+    },
+    {
+      "room_id": "m8npxsuk79xy21dd09x9wtped",
+      "label": "Unlabelled",
+      "usable": true,
+      "floor_index": 0,
+      "polygon": null,
+      "polygon_provenance": "missing",
+      "sweep_ids": [],
+      "entry_sweep_id": null,
+      "entry_sweep_provenance": "missing",
+      "navigable": false,
+      "issues": [
+        "no wall boundary from Matterport",
+        "no tour sweep inside this room; select it to inspect, not to walk to"
+      ]
+    },
+    {
+      "room_id": "b4qtykzcazp4iumkamm7y7h2b",
+      "label": "Closet",
+      "usable": true,
+      "floor_index": 0,
+      "polygon": [
+        [
+          -2.3093980669391536,
+          1.0523971991486756
+        ],
+        [
+          -1.1256543256893066,
+          1.0548555322646593
+        ],
+        [
+          -1.1336387340174512,
+          4.904324772607721
+        ],
+        [
+          -2.3174104164516884,
+          4.901896299188831
+        ]
+      ],
+      "polygon_provenance": "verified",
+      "sweep_ids": [],
+      "entry_sweep_id": null,
+      "entry_sweep_provenance": "missing",
+      "navigable": false,
+      "issues": [
+        "no tour sweep inside this room; select it to inspect, not to walk to"
+      ]
+    },
+    {
+      "room_id": "ediidma5zg15dufx3n0qyq21a",
+      "label": "Bathroom",
+      "usable": true,
+      "floor_index": 0,
+      "polygon": [
+        [
+          -10.57158396168834,
+          -4.859018296309398
+        ],
+        [
+          -10.842009227666724,
+          -4.8595891961948805
+        ],
+        [
+          -11.568054715522692,
+          -3.9409416800556416
+        ],
+        [
+          -12.99179965000944,
+          -3.943930562536103
+        ],
+        [
+          -12.987959031477052,
+          -5.771361154254667
+        ],
+        [
+          -11.187802645239145,
+          -5.767591718374265
+        ],
+        [
+          -11.188178434445273,
+          -5.585388302852993
+        ],
+        [
+          -10.570056332932316,
+          -5.584083866106503
+        ]
+      ],
+      "polygon_provenance": "verified",
+      "sweep_ids": [],
+      "entry_sweep_id": null,
+      "entry_sweep_provenance": "missing",
+      "navigable": false,
+      "issues": [
+        "no tour sweep inside this room; select it to inspect, not to walk to"
+      ]
+    },
+    {
+      "room_id": "wbpb7dkfuwnikd1kq2a9hz70a",
+      "label": "Hallway",
+      "usable": true,
+      "floor_index": 0,
+      "polygon": [
+        [
+          -8.565183851837983,
+          0.8121573919111246
+        ],
+        [
+          -6.948331109001704,
+          0.8156256544227776
+        ],
+        [
+          -5.80173881419037,
+          0.8180527896834857
+        ],
+        [
+          -5.803958519960823,
+          1.8778307941032726
+        ],
+        [
+          -6.674304755481155,
+          1.8760104727136049
+        ],
+        [
+          -8.823395737562018,
+          1.8715288233341116
+        ],
+        [
+          -8.821185260171964,
+          0.81160404256332
+        ]
+      ],
+      "polygon_provenance": "verified",
+      "sweep_ids": [],
+      "entry_sweep_id": null,
+      "entry_sweep_provenance": "missing",
+      "navigable": false,
+      "issues": [
+        "no tour sweep inside this room; select it to inspect, not to walk to"
+      ]
+    },
+    {
+      "room_id": "n81qfe51azs8iexnbqwspye6c",
+      "label": "Hallway",
+      "usable": false,
+      "floor_index": 0,
+      "polygon": [
+        [
+          -6.948331109001704,
+          0.8156256544227776
+        ],
+        [
+          -6.945191965133141,
+          -0.6479261064799673
+        ],
+        [
+          -8.114234487157765,
+          -0.6504138637004664
+        ],
+        [
+          -8.562097315885676,
+          -0.6513625779151982
+        ],
+        [
+          -8.564322448801116,
+          0.399955370719002
+        ],
+        [
+          -8.565183851837983,
+          0.8121573919111246
+        ]
+      ],
+      "polygon_provenance": "verified",
+      "sweep_ids": [],
+      "entry_sweep_id": null,
+      "entry_sweep_provenance": "missing",
+      "navigable": false,
+      "issues": [
+        "no tour sweep inside this room; select it to inspect, not to walk to"
+      ]
+    },
+    {
+      "room_id": "kuc0fpmsgqxff63egrxrycfud",
+      "label": "Hallway",
+      "usable": false,
+      "floor_index": 0,
+      "polygon": [
+        [
+          -12.99179965000944,
+          -3.943930562536103
+        ],
+        [
+          -11.568054715522692,
+          -3.9409416800556416
+        ],
+        [
+          -11.15268377432635,
+          -3.9400647351626166
+        ],
+        [
+          -11.155197839680838,
+          -2.76415232656364
+        ],
+        [
+          -12.994295768016684,
+          -2.768085260253077
+        ]
+      ],
+      "polygon_provenance": "verified",
+      "sweep_ids": [],
+      "entry_sweep_id": null,
+      "entry_sweep_provenance": "missing",
+      "navigable": false,
+      "issues": [
+        "no tour sweep inside this room; select it to inspect, not to walk to"
+      ]
+    },
+    {
+      "room_id": "3ygfq6yfyyw3hi9x7u5rm2iqa",
+      "label": "Bathroom",
+      "usable": false,
+      "floor_index": 0,
+      "polygon": [
+        [
+          -6.674304755481155,
+          1.8760104727136049
+        ],
+        [
+          -5.803958519960823,
+          1.8778307941032726
+        ],
+        [
+          -5.807665776602293,
+          3.6582293816811737
+        ],
+        [
+          -6.678023020234487,
+          3.6564160310363785
+        ]
+      ],
+      "polygon_provenance": "verified",
+      "sweep_ids": [],
+      "entry_sweep_id": null,
+      "entry_sweep_provenance": "missing",
+      "navigable": false,
+      "issues": [
+        "no tour sweep inside this room; select it to inspect, not to walk to"
+      ]
+    },
+    {
+      "room_id": "b2kez6wsw32fm2x3ui593u3hc",
+      "label": "Unlabelled",
+      "usable": false,
+      "floor_index": 0,
+      "polygon": null,
+      "polygon_provenance": "missing",
+      "sweep_ids": [],
+      "entry_sweep_id": null,
+      "entry_sweep_provenance": "missing",
+      "navigable": false,
+      "issues": [
+        "no wall boundary from Matterport",
+        "no tour sweep inside this room; select it to inspect, not to walk to"
+      ]
+    }
+  ],
+  "sweeps": [
+    {
+      "id": "d279g7xebr6dyraxsf95h6qfa",
+      "room_id": null,
+      "floor_index": 0,
+      "position": [
+        -11.873565673828125,
+        -5.134733200073242,
+        -0.02236069180071354
+      ]
+    },
+    {
+      "id": "i2e531d27m54g8xf8fqm0mm6b",
+      "room_id": "2qdmc5i9byxi79ry1pxdkqzea",
+      "floor_index": 0,
+      "position": [
+        -9.904204368591309,
+        -4.384326934814453,
+        -0.018567673861980438
+      ]
+    },
+    {
+      "id": "sa0ccfc88azxsste162hiipwd",
+      "room_id": "xy2x8mpaaqknp7q2c3nnbw1ma",
+      "floor_index": 0,
+      "position": [
+        0.4791676998138428,
+        2.6680428981781006,
+        0.019423194229602814
+      ]
+    },
+    {
+      "id": "y2qdsq85h95gwqcn9ne5khsfc",
+      "room_id": null,
+      "floor_index": 0,
+      "position": [
+        -12.37901496887207,
+        -4.473720550537109,
+        -0.02651030384004116
+      ]
+    },
+    {
+      "id": "cbndtx0xss1aefwwwb1cxy2gd",
+      "room_id": "2qdmc5i9byxi79ry1pxdkqzea",
+      "floor_index": 0,
+      "position": [
+        -7.443729400634766,
+        -4.858336925506592,
+        -0.0003934670821763575
+      ]
+    },
+    {
+      "id": "f3pzmzhdp2ctz08q984xymata",
+      "room_id": "h26t7ky77ew74yb0pg8qqf5rd",
+      "floor_index": 0,
+      "position": [
+        -5.328693389892578,
+        1.4805192947387695,
+        0.024178095161914825
+      ]
+    },
+    {
+      "id": "k3hpf9ccgst5zc3z0nb1p2pxb",
+      "room_id": "tt6gm2a0463x9wmnx7rn6gugc",
+      "floor_index": 0,
+      "position": [
+        -9.356492042541504,
+        1.4269195795059204,
+        -0.02928309142589569
+      ]
+    },
+    {
+      "id": "tbd69mzswnc68p97496tdbqdd",
+      "room_id": "tt6gm2a0463x9wmnx7rn6gugc",
+      "floor_index": 0,
+      "position": [
+        -10.912947654724121,
+        2.0844459533691406,
+        -0.008783786557614803
+      ]
+    },
+    {
+      "id": "xkr2bmc0g8ed9p49mdyz24rsc",
+      "room_id": null,
+      "floor_index": 0,
+      "position": [
+        -1.750226378440857,
+        2.143202066421509,
+        0.012930523604154587
+      ]
+    },
+    {
+      "id": "0up626zz41smhfgmc7rczku6c",
+      "room_id": "xy2x8mpaaqknp7q2c3nnbw1ma",
+      "floor_index": 0,
+      "position": [
+        -0.6244824528694153,
+        2.145115613937378,
+        0.010341376066207886
+      ]
+    },
+    {
+      "id": "0kxp6pbbkte98efikuzkwzgxc",
+      "room_id": "3m54yff1z7crxaywd8if9rb0d",
+      "floor_index": 0,
+      "position": [
+        -9.458786010742188,
+        -2.2056326866149902,
+        -0.02028745599091053
+      ]
+    },
+    {
+      "id": "23bnpf62mg8bgb6ym34iu2myc",
+      "room_id": null,
+      "floor_index": 0,
+      "position": [
+        -11.793685913085938,
+        -3.2495648860931396,
+        -0.03453035280108452
+      ]
+    },
+    {
+      "id": "3bpdnkeinsyafi9kppqntha7b",
+      "room_id": "2qdmc5i9byxi79ry1pxdkqzea",
+      "floor_index": 0,
+      "position": [
+        -7.347497463226318,
+        -3.3404486179351807,
+        -0.011038511991500854
+      ]
+    },
+    {
+      "id": "7be25q2w4btrnsz6gx1xck7pb",
+      "room_id": null,
+      "floor_index": 0,
+      "position": [
+        3.4371707439422607,
+        -0.09196357429027557,
+        0.06725533306598663
+      ]
+    },
+    {
+      "id": "b470c6ztd8733p8xgzs1d64gb",
+      "room_id": "613htqkzf66zz7hf7n8kzszed",
+      "floor_index": 0,
+      "position": [
+        -6.263526916503906,
+        -2.955679416656494,
+        0.002124079503118992
+      ]
+    },
+    {
+      "id": "mmbwziwecxb9m8q1asgdq10ed",
+      "room_id": "613htqkzf66zz7hf7n8kzszed",
+      "floor_index": 0,
+      "position": [
+        -6.217292308807373,
+        -0.21866516768932343,
+        -0.004613866563886404
+      ]
+    },
+    {
+      "id": "tmpywr94i7xrrhushaey6tp6c",
+      "room_id": null,
+      "floor_index": 0,
+      "position": [
+        -7.513913631439209,
+        1.315373420715332,
+        -0.012477335520088673
+      ]
+    },
+    {
+      "id": "cd4n41i8nsrr88ec8hky2qqka",
+      "room_id": "xy2x8mpaaqknp7q2c3nnbw1ma",
+      "floor_index": 0,
+      "position": [
+        -0.01909719593822956,
+        1.5455843210220337,
+        0.014014624059200287
+      ]
+    },
+    {
+      "id": "hxzu5nrr8ib8bqqbxprcxeync",
+      "room_id": "3m54yff1z7crxaywd8if9rb0d",
+      "floor_index": 0,
+      "position": [
+        -9.796220779418945,
+        -0.8949576616287231,
+        -0.02551400102674961
+      ]
+    },
+    {
+      "id": "kxq51hxy2bxidrsyq8i1qxmgb",
+      "room_id": "cdz3fkt38kae7tapstpt0eaeb",
+      "floor_index": 0,
+      "position": [
+        2.346343755722046,
+        0.008032036945223808,
+        0.05622130632400513
+      ]
+    },
+    {
+      "id": "n5rwn1zrsks0yspec7aqpxt3b",
+      "room_id": "2qdmc5i9byxi79ry1pxdkqzea",
+      "floor_index": 0,
+      "position": [
+        -8.77734375,
+        -5.204284191131592,
+        -0.0004768148937728256
+      ]
+    },
+    {
+      "id": "0xzu1mktux4h8b9un0xsd8mha",
+      "room_id": null,
+      "floor_index": 0,
+      "position": [
+        -7.616605281829834,
+        0.03359255567193031,
+        -0.020206620916724205
+      ]
+    },
+    {
+      "id": "0x1isyff3bgg9prxdenu4frfd",
+      "room_id": "cdz3fkt38kae7tapstpt0eaeb",
+      "floor_index": 0,
+      "position": [
+        1.1246135234832764,
+        -0.11291628330945969,
+        0.04160920903086662
+      ]
+    },
+    {
+      "id": "35bu9kag74cwsq1s3f47fwqrc",
+      "room_id": "a5f9age4zzxewres6iqux2emc",
+      "floor_index": 0,
+      "position": [
+        -6.488003253936768,
+        -5.0207109451293945,
+        -0.03500404581427574
+      ]
+    },
+    {
+      "id": "fy8ec4dfkm7mt9tdgkue04ktd",
+      "room_id": "h26t7ky77ew74yb0pg8qqf5rd",
+      "floor_index": 0,
+      "position": [
+        -3.316066026687622,
+        4.232990741729736,
+        0.02357146330177784
+      ]
+    },
+    {
+      "id": "yymp87euqezbz6ws9xrm3u4pb",
+      "room_id": "tt6gm2a0463x9wmnx7rn6gugc",
+      "floor_index": 0,
+      "position": [
+        -12.132452011108398,
+        1.8252849578857422,
+        0.0012012242805212736
+      ]
+    },
+    {
+      "id": "2yk53pfnxf3r2duerc8ibazhb",
+      "room_id": "h26t7ky77ew74yb0pg8qqf5rd",
+      "floor_index": 0,
+      "position": [
+        -3.085447311401367,
+        2.126971483230591,
+        0.03281734883785248
+      ]
+    },
+    {
+      "id": "5ef86yc9eazqtcm82ar3irfqa",
+      "room_id": "613htqkzf66zz7hf7n8kzszed",
+      "floor_index": 0,
+      "position": [
+        -4.544435501098633,
+        -0.3194575011730194,
+        0.01586604118347168
+      ]
+    },
+    {
+      "id": "6ymgeknw94ryhs733kr04m0xd",
+      "room_id": "3m54yff1z7crxaywd8if9rb0d",
+      "floor_index": 0,
+      "position": [
+        -11.614174842834473,
+        -1.5907639265060425,
+        -0.029745612293481827
+      ]
+    },
+    {
+      "id": "8y3xi9p4tz8ryfq274qn58y8a",
+      "room_id": "2qdmc5i9byxi79ry1pxdkqzea",
+      "floor_index": 0,
+      "position": [
+        -9.146300315856934,
+        -3.3047475814819336,
+        -0.01617082953453064
+      ]
+    },
+    {
+      "id": "b72fp8qgf3esrt5gdrcknfzga",
+      "room_id": "cdz3fkt38kae7tapstpt0eaeb",
+      "floor_index": 0,
+      "position": [
+        -1.279995322227478,
+        -1.0077790021896362,
+        0.01638007164001465
+      ]
+    },
+    {
+      "id": "d7uckrxa7aahkfd4ytp2x6qid",
+      "room_id": "613htqkzf66zz7hf7n8kzszed",
+      "floor_index": 0,
+      "position": [
+        -3.0063745975494385,
+        -2.435717821121216,
+        0.022484051063656807
+      ]
+    },
+    {
+      "id": "pqunigw6ucgcm4a1a17myqkma",
+      "room_id": null,
+      "floor_index": 0,
+      "position": [
+        -7.645913600921631,
+        2.6784918308258057,
+        -0.010579491034150124
+      ]
+    },
+    {
+      "id": "9zsku0i2t4kbd5nmbizt6yh0d",
+      "room_id": "3m54yff1z7crxaywd8if9rb0d",
+      "floor_index": 0,
+      "position": [
+        -9.0458984375,
+        -0.03899938985705376,
+        -0.024502243846654892
+      ]
+    },
+    {
+      "id": "f04my6h0adad7916q2yunyx2a",
+      "room_id": "613htqkzf66zz7hf7n8kzszed",
+      "floor_index": 0,
+      "position": [
+        -4.795407772064209,
+        -2.9450392723083496,
+        0.021484123542904854
+      ]
+    },
+    {
+      "id": "i8uihtgkec9ryrpg2p6b4gtfd",
+      "room_id": null,
+      "floor_index": 0,
+      "position": [
+        -7.448816299438477,
+        3.8802921772003174,
+        5.077711466583423e-05
+      ]
+    },
+    {
+      "id": "tgx6gn9g8wpqfq57gfammfqka",
+      "room_id": "cdz3fkt38kae7tapstpt0eaeb",
+      "floor_index": 0,
+      "position": [
+        0.009945875033736229,
+        -0.017784886062145233,
+        0.02183925360441208
+      ]
+    },
+    {
+      "id": "c18cwe6ee9ccact3mxfw31mhd",
+      "room_id": "cdz3fkt38kae7tapstpt0eaeb",
+      "floor_index": 0,
+      "position": [
+        -0.16779974102973938,
+        -2.834855794906616,
+        0.03451775386929512
+      ]
+    },
+    {
+      "id": "418rwm658z00s6z1dgik53xhc",
+      "room_id": "613htqkzf66zz7hf7n8kzszed",
+      "floor_index": 0,
+      "position": [
+        -2.74249529838562,
+        -1.219144344329834,
+        0.014624153263866901
+      ]
+    }
+  ]
+}
