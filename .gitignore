@@ -8,3 +8,6 @@ __pycache__/
 .ruff_cache/
 node_modules/
 dist/
+
+# Matterport Showcase bundle (licensed, fetched by npm run setup:matterport)
+frontend/public/matterport-bundle/

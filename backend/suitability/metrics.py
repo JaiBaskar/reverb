@@ -4,7 +4,7 @@ import itertools
 from dataclasses import dataclass, field
 
 from acoustics import physics
-from acoustics.report import Mode
+from acoustics.report import Mode, Reflection
 
 
 def _band(rt60: list[float], bands: list[int], hz: int) -> float:
@@ -19,6 +19,21 @@ def mid_rt60(rt60: list[float], bands: list[int]) -> float:
 def bass_ratio(rt60: list[float], bands: list[int]) -> float:
     """Beranek bass ratio, shared with the comparison explanation (acoustics.physics)."""
     return physics.bass_ratio(rt60, bands)
+
+
+def hf_ratio(rt60: list[float], bands: list[int]) -> float:
+    """RT60 at 4 kHz relative to mid RT60; <1 means highs die away faster (a darker room)."""
+    return _band(rt60, bands, 4000) / mid_rt60(rt60, bands)
+
+
+def reflection_gap_ms(reflections: list[Reflection]) -> float | None:
+    """Delay after the direct sound of the earliest first-order wall or ceiling reflection.
+
+    The floor bounce is excluded: it depends on mic and source height and is usually handled
+    with a rug or mic placement, not by choosing a room.
+    """
+    delays = [r.delay_ms for r in reflections if r.surface != "floor"]
+    return min(delays) if delays else None
 
 
 def bs1116_target(volume_m3: float) -> float:

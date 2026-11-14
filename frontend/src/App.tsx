@@ -16,6 +16,7 @@ import { useReport } from './features/numbers/useReport'
 import { CustomRoomForm } from './features/rooms/CustomRoomForm'
 import { RoomPicker, type Slot } from './features/rooms/RoomPicker'
 import { SuitabilityPanel } from './features/suitability/SuitabilityPanel'
+import { TourExperience } from './features/tour/TourExperience'
 import { customRoomToRoom, type CustomRoomSpec, type SlotRef } from './roomRef'
 import type { CatalogEntry, CatalogPoints, MaterialCatalog, MaterialSelection, Property, Room } from './types'
 import { Step, Stepper, Tag } from './ui/journey'
@@ -41,6 +42,7 @@ export default function App() {
   const [catalog, setCatalog] = useState<MaterialCatalog | null>(null)
   const [materials, setMaterials] = useState<Record<Slot, MaterialSelection>>({ A: {}, B: {} })
   const [dryName, setDryName] = useState<string | null>(null)
+  const [view, setView] = useState<'analysis' | 'tour'>('analysis')
 
   useEffect(() => {
     fetchCatalogPoints()
@@ -85,6 +87,7 @@ export default function App() {
     setRooms(null)
     setCustomRooms([])
     setRoomsError(null)
+    setView('analysis')
   }
 
   const noise = useNoise(selected)
@@ -141,6 +144,21 @@ export default function App() {
           <span className="hidden text-xs text-zinc-400 xl:inline">Hear a room before you sign the lease</span>
         </div>
         <Stepper done={done} />
+        {selected && !propError && (
+          <nav className="ml-auto flex rounded-lg bg-zinc-900 p-0.5 text-xs ring-1 ring-zinc-800" aria-label="View">
+            {(['analysis', 'tour'] as const).map((v) => (
+              <button
+                key={v}
+                onClick={() => setView(v)}
+                aria-pressed={view === v}
+                className={`rounded-md px-3 py-1 font-medium ${view === v ? 'bg-zinc-100 text-zinc-900' : 'text-zinc-300 hover:bg-zinc-800'}`}
+                data-testid={`view-${v}`}
+              >
+                {v === 'analysis' ? 'Journey' : '3D acoustic tour'}
+              </button>
+            ))}
+          </nav>
+        )}
       </header>
       {error && (
         <div className="flex items-center justify-between bg-red-950/70 px-4 py-1.5 text-xs text-red-200">
@@ -150,6 +168,9 @@ export default function App() {
           </button>
         </div>
       )}
+      {selected && !propError && view === 'tour' ? (
+        <TourExperience key={selected} sid={selected} title={address || selected} />
+      ) : (
       <main className="min-h-0 flex-1 overflow-auto lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] lg:overflow-hidden">
         <section className="flex flex-col border-zinc-800 lg:min-h-0 lg:border-r" aria-label="Discover">
           <div className="relative h-72 lg:h-auto lg:min-h-0 lg:flex-[3]">
@@ -200,6 +221,15 @@ export default function App() {
               <Placeholder>Select a property on the map or from the list to see its facts and surroundings.</Placeholder>
             ) : (
               <div className="space-y-3">
+                {!propError && (
+                  <button
+                    onClick={() => setView('tour')}
+                    className="rounded-lg bg-sky-400 px-3 py-1.5 text-xs font-semibold text-zinc-950 hover:bg-sky-300"
+                    data-testid="open-tour"
+                  >
+                    Walk the Matterport tour with an acoustic heatmap →
+                  </button>
+                )}
                 {propError && (
                   <p className="rounded-md bg-amber-900/30 px-3 py-2 text-xs text-amber-200">
                     {propError} Property facts and surroundings still come from CoStar; enter a room by its
@@ -404,6 +434,7 @@ export default function App() {
           </p>
         </section>
       </main>
+      )}
     </div>
   )
 }
