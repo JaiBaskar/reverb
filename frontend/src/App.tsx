@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { fetchMaterials, fetchProperties, fetchRooms } from './api'
+import { fetchCatalogPoints, fetchMaterials, fetchProperty, fetchRooms, searchCatalog } from './api'
 import { PropertyMap } from './features/map/PropertyMap'
 import { AudioLab } from './features/audio/AudioLab'
+import { DiscoveryPanel } from './features/discovery/DiscoveryPanel'
 import { FactsCard } from './features/facts/FactsCard'
 import { MaterialEditor } from './features/materials/MaterialEditor'
 import { NoisePanel } from './features/noise/NoisePanel'
@@ -12,11 +13,21 @@ import { NumbersPanel } from './features/numbers/NumbersPanel'
 import { useComparison } from './features/numbers/useComparison'
 import { useReport } from './features/numbers/useReport'
 import { RoomPicker, type Slot } from './features/rooms/RoomPicker'
-import type { MaterialCatalog, MaterialSelection, Property, Room } from './types'
+import type {
+  CatalogEntry,
+  CatalogPoints,
+  MaterialCatalog,
+  MaterialSelection,
+  Property,
+  Room,
+} from './types'
 
 export default function App() {
-  const [properties, setProperties] = useState<Property[]>([])
+  const [points, setPoints] = useState<CatalogPoints | null>(null)
   const [selected, setSelected] = useState<string | null>(null)
+  const [prop, setProp] = useState<Property | null>(null)
+  const [entry, setEntry] = useState<CatalogEntry | null>(null)
+  const [flyTo, setFlyTo] = useState<{ lon: number; lat: number; zoom: number; key: number } | null>(null)
   const [rooms, setRooms] = useState<Room[] | null>(null)
   const [picked, setPicked] = useState<Record<Slot, string | null>>({ A: null, B: null })
   const [error, setError] = useState<string | null>(null)
@@ -24,8 +35,8 @@ export default function App() {
   const [materials, setMaterials] = useState<Record<Slot, MaterialSelection>>({ A: {}, B: {} })
 
   useEffect(() => {
-    fetchProperties()
-      .then(setProperties)
+    fetchCatalogPoints()
+      .then(setPoints)
       .catch((e: Error) => setError(e.message))
     fetchMaterials()
       .then(setCatalog)
@@ -34,20 +45,30 @@ export default function App() {
 
   useEffect(() => {
     if (!selected) return
+    let live = true
+    fetchProperty(selected)
+      .then((p) => live && setProp(p))
+      .catch((e: Error) => live && setError(`Could not load this property from Matterport (${e.message}).`))
     fetchRooms(selected)
-      .then(setRooms)
-      .catch((e: Error) => setError(e.message))
+      .then((r) => live && setRooms(r))
+      .catch((e: Error) => live && setError(e.message))
+    searchCatalog(selected, '', '', 1)
+      .then((r) => live && setEntry(r.results[0] ?? null))
+      .catch(() => live && setEntry(null))
+    return () => {
+      live = false
+    }
   }, [selected])
 
   const selectProperty = (sid: string) => {
     setSelected(sid)
+    setProp(null)
     setRooms(null)
     setError(null)
     setPicked({ A: null, B: null })
     setMaterials({ A: {}, B: {} })
   }
 
-  const prop = properties.find((p) => p.sid === selected)
   const repA = useReport(selected, picked.A, materials.A)
   const repB = useReport(selected, picked.B, materials.B)
   const cmp = useComparison(
@@ -72,35 +93,61 @@ export default function App() {
       {error && <div className="bg-red-900/50 px-4 py-2 text-sm">Error: {error}</div>}
       <main className="min-h-0 flex-1 overflow-auto lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] lg:overflow-hidden">
         <section className="flex flex-col border-zinc-800 lg:min-h-0 lg:border-r">
-          <div className="h-64 lg:h-auto lg:min-h-0 lg:flex-1">
-            <PropertyMap properties={properties} selected={selected} onSelect={selectProperty} />
+          <div className="h-64 lg:h-auto lg:min-h-0 lg:flex-[3]">
+            <PropertyMap
+              points={points}
+              selected={
+                prop?.lat != null && prop.lon != null ? { sid: prop.sid, lat: prop.lat, lon: prop.lon } : null
+              }
+              flyTo={flyTo}
+              onSelect={selectProperty}
+            />
           </div>
-          <ul className="max-h-56 overflow-auto border-t border-zinc-800">
-            {properties.length === 0 && !error && (
-              <li className="px-4 py-2 text-sm text-zinc-500">Loading properties…</li>
-            )}
-            {properties.map((p) => (
-              <li key={p.sid}>
-                <button
-                  onClick={() => selectProperty(p.sid)}
-                  className={`w-full px-4 py-2 text-left hover:bg-zinc-900 ${p.sid === selected ? 'bg-zinc-900' : ''}`}
-                >
-                  <div className="text-sm font-medium">{p.address ?? p.name}</div>
-                  <div className="text-xs text-zinc-400">
-                    {p.name} · {p.usable_room_count}/{p.room_count} usable rooms
-                  </div>
-                </button>
-              </li>
-            ))}
-          </ul>
+          <div className="flex h-80 min-h-0 flex-col lg:h-auto lg:flex-[2]">
+            <DiscoveryPanel
+              selected={selected}
+              onSelect={selectProperty}
+              onCity={(at) => setFlyTo({ ...at, key: Date.now() })}
+            />
+          </div>
         </section>
         <section className="p-4 lg:min-h-0 lg:overflow-auto">
-          {!prop ? (
-            <p className="text-zinc-400">Select a property on the map or list.</p>
+          {!selected ? (
+            <p className="text-zinc-400">
+              Search or click any of the 5,000+ CoStar properties with a Matterport scan, or start
+              with a DEMO pick.
+            </p>
+          ) : !prop ? (
+            <p className="text-sm text-zinc-500">{error ? '' : 'Loading property from Matterport…'}</p>
           ) : (
             <>
-              <h2 className="text-lg font-semibold">{prop.address}</h2>
-              <p className="mb-3 text-xs text-zinc-400">{prop.name}</p>
+              <h2 className="text-lg font-semibold">
+                {entry ? [entry.address, entry.city, entry.state].filter(Boolean).join(', ') : prop.address}
+              </h2>
+              {entry && prop.address && !prop.address.toLowerCase().startsWith(entry.address.toLowerCase()) && (
+                <p className="text-xs text-amber-300" data-testid="address-mismatch">
+                  This Matterport scan reports its address as {prop.address}; CoStar lists the property
+                  as {entry.address}. Both are shown as recorded.
+                </p>
+              )}
+              <p className="text-xs text-zinc-400">
+                {[entry?.type_label ?? entry?.kind, entry?.name, prop.name].filter(Boolean).join(' · ')}
+              </p>
+              {entry && entry.model_ids.length > 1 && (
+                <div className="mt-1 flex flex-wrap items-center gap-1 text-xs" data-testid="scans">
+                  <span className="text-zinc-400">Matterport scans of this property:</span>
+                  {entry.model_ids.map((sid, i) => (
+                    <button
+                      key={sid}
+                      onClick={() => selectProperty(sid)}
+                      className={`rounded px-1.5 py-0.5 ${sid === selected ? 'bg-amber-500 text-black' : 'bg-zinc-800 hover:bg-zinc-700'}`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <div className="mb-3" />
               <FactsCard sid={prop.sid} />
               {rooms == null ? (
                 <p className="text-sm text-zinc-500">Loading rooms from Matterport…</p>

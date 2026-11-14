@@ -22,7 +22,7 @@ def props() -> dict[str, Property]:
 @pytest.fixture
 def client(tmp_path, monkeypatch, overpass_sample, props):
     monkeypatch.setenv("REVERB_DATA_DIR", str(tmp_path))
-    monkeypatch.setattr(router, "shortlist_ids", lambda: list(props))
+    monkeypatch.setattr(router, "is_known", lambda sid: sid in props)
     monkeypatch.setattr(router, "get_property", lambda sid: props[sid])
     real_fetch = overpass.fetch
     mock = httpx.Client(

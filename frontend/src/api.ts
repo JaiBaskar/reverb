@@ -1,5 +1,7 @@
 import type {
   AcousticReport,
+  CatalogEntry,
+  CatalogPoints,
   Comparison,
   MaterialCatalog,
   MaterialSelection,
@@ -14,6 +16,14 @@ async function get<T>(path: string): Promise<T> {
 }
 
 export const fetchProperties = () => get<Property[]>('/properties')
+export const fetchProperty = (sid: string) => get<Property>(`/properties/${sid}`)
+export const fetchCatalogPoints = () => get<CatalogPoints>('/catalog/points')
+export function searchCatalog(q: string, city: string, kind: string, limit = 50) {
+  const p = new URLSearchParams({ q, limit: String(limit) })
+  if (city) p.set('city', city)
+  if (kind) p.set('kind', kind)
+  return get<{ total: number; results: CatalogEntry[] }>(`/catalog/search?${p}`)
+}
 export const fetchMaterials = () => get<MaterialCatalog>('/materials')
 export const fetchRooms = (sid: string) => get<Room[]>(`/properties/${sid}/rooms`)
 

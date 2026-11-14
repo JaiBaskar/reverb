@@ -14,7 +14,7 @@ Read PRD.md, CONTEXT.md, SLICES.md (phases), WORKFLOW.md (ownership, git, prompt
 - Every input/output carries provenance: verified | estimated | assumed | missing. Never fill a gap silently.
 - Modeled audio is labelled a modeled approximation, never measured.
 - Shapes shared by backend and frontend live in `contract/` (fixtures are real API responses). Change them in their own commit and tell the other person.
-- Add a property by adding its Matterport model ID to `shortlist.json`; it needs >=2 rooms with area, width, depth and height.
+- Discovery: `backend/catalog/` indexes every CoStar-kit property with a Matterport scan (~5,100; cached in `data/cache/catalog/index.json`, delete to rebuild). `shortlist.json` only marks DEMO picks. Routers check `properties.service.is_known(sid)`, not the shortlist.
 - Matterport rooms may omit `dimensions` or any field in it. Use `.get`; never index.
 - Matterport lat/long arrive as strings. maplibre-gl v6 has named exports only (no default import).
 - If `npm install` fails with root-owned cache files: `npm install --cache <some writable dir>`.

@@ -5,13 +5,14 @@ from pydantic import BaseModel
 from acoustics.explain import Comparison, compare
 from acoustics.materials import DEFAULT_SELECTION, MATERIALS
 from acoustics.report import AcousticReport, UnknownMaterial, analyze_room
+from catalog.router import router as catalog_router
 from costar.router import router as costar_router
 from ir.service import IrResponse, build_ir
 from noise.router import router as noise_router
 from noise_scout.router import router as noise_scout_router
 from properties.matterport import MatterportError
 from properties.models import Property, Room
-from properties.service import get_property, get_rooms, list_properties, shortlist_ids
+from properties.service import get_property, get_rooms, is_known, list_properties
 from suitability.router import router as suitability_router
 
 app = FastAPI(title="REVERB")
@@ -25,6 +26,7 @@ app.include_router(noise_router)
 app.include_router(noise_scout_router)
 app.include_router(suitability_router)
 app.include_router(costar_router)
+app.include_router(catalog_router)
 
 
 @app.get("/health")
@@ -41,8 +43,8 @@ def properties() -> list[Property]:
 
 
 def _require_shortlisted(sid: str) -> None:
-    if sid not in shortlist_ids():
-        raise HTTPException(404, f"{sid} is not in shortlist.json")
+    if not is_known(sid):
+        raise HTTPException(404, f"{sid} is not a known property")
 
 
 @app.get("/properties/{sid}", response_model=Property)

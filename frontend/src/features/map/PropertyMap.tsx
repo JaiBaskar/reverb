@@ -1,25 +1,39 @@
-import { LngLatBounds, Map as MapLibreMap, Marker, setWorkerUrl } from 'maplibre-gl'
+import {
+  type GeoJSONSource,
+  type MapGeoJSONFeature,
+  Map as MapLibreMap,
+  setWorkerUrl,
+} from 'maplibre-gl'
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
 import { useEffect, useRef } from 'react'
-import type { Property } from '../../types'
+import type { CatalogPoints } from '../../types'
 
 // MapLibre resolves its worker next to its own bundle, which Vite moves; point it at the real file.
 setWorkerUrl(workerUrl)
 
+const EMPTY: CatalogPoints = { type: 'FeatureCollection', features: [] }
+
 interface Props {
-  properties: Property[]
-  selected: string | null
+  points: CatalogPoints | null
+  selected: { sid: string; lon: number; lat: number } | null
+  flyTo: { lon: number; lat: number; zoom: number; key: number } | null
   onSelect: (sid: string) => void
 }
 
-export function PropertyMap({ properties, selected, onSelect }: Props) {
+/** All CoStar properties with a Matterport scan, clustered; click to select. */
+export function PropertyMap({ points, selected, flyTo, onSelect }: Props) {
   const el = useRef<HTMLDivElement>(null)
   const map = useRef<MapLibreMap | null>(null)
-  const markers = useRef<globalThis.Map<string, HTMLDivElement>>(new globalThis.Map())
+  const loaded = useRef(false)
+  const pointsRef = useRef<CatalogPoints | null>(points)
+  const onSelectRef = useRef(onSelect)
+  useEffect(() => {
+    pointsRef.current = points
+    onSelectRef.current = onSelect
+  })
 
   useEffect(() => {
-    if (!el.current || map.current) return
-    const located = properties.filter((p) => p.lat != null && p.lon != null)
+    if (!el.current) return
     const m = new MapLibreMap({
       container: el.current,
       style: {
@@ -29,51 +43,133 @@ export function PropertyMap({ properties, selected, onSelect }: Props) {
             type: 'raster',
             tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
             tileSize: 256,
-            attribution: '© OpenStreetMap contributors',
+            attribution: '© OpenStreetMap contributors · properties: CoStar',
           },
         },
         layers: [{ id: 'osm', type: 'raster', source: 'osm' }],
       },
-      center: located.length ? [located[0].lon!, located[0].lat!] : [-118.3, 34.09],
-      zoom: 16,
+      center: [-118.3171, 34.0935],
+      zoom: 14,
     })
     map.current = m
-    const dots = markers.current
     // MapLibre only sizes its canvas at creation; follow layout changes (stacked <-> side by side).
     const ro = new ResizeObserver(() => m.resize())
     ro.observe(el.current)
-    located.forEach((p) => {
-      const dot = document.createElement('div')
-      dot.dataset.sid = p.sid
-      dot.title = p.name
-      dot.style.cssText =
-        'width:16px;height:16px;border-radius:50%;border:2px solid #fff;cursor:pointer;background:#2563eb'
-      dot.onclick = () => onSelect(p.sid)
-      markers.current.set(p.sid, dot)
-      new Marker({ element: dot }).setLngLat([p.lon!, p.lat!]).addTo(m)
+
+    m.on('load', () => {
+      m.addSource('catalog', {
+        type: 'geojson',
+        data: pointsRef.current ?? EMPTY,
+        cluster: true,
+        clusterRadius: 40,
+        clusterMaxZoom: 14,
+      })
+      m.addSource('selected', { type: 'geojson', data: EMPTY })
+      m.addLayer({
+        id: 'clusters',
+        type: 'circle',
+        source: 'catalog',
+        filter: ['has', 'point_count'],
+        paint: {
+          'circle-color': '#6366f1',
+          'circle-opacity': 0.75,
+          'circle-stroke-color': '#fff',
+          'circle-stroke-width': 1.5,
+          'circle-radius': ['step', ['get', 'point_count'], 12, 20, 16, 100, 22, 500, 30],
+        },
+      })
+      m.addLayer({
+        id: 'points',
+        type: 'circle',
+        source: 'catalog',
+        filter: ['!', ['has', 'point_count']],
+        paint: {
+          'circle-color': [
+            'case',
+            ['get', 'demo'],
+            '#f59e0b',
+            ['==', ['get', 'kind'], 'residential'],
+            '#10b981',
+            '#38bdf8',
+          ],
+          'circle-radius': ['case', ['get', 'demo'], 8, 6],
+          'circle-stroke-color': '#fff',
+          'circle-stroke-width': 1.5,
+        },
+      })
+      m.addLayer({
+        id: 'selected',
+        type: 'circle',
+        source: 'selected',
+        paint: {
+          'circle-radius': 12,
+          'circle-color': 'rgba(0,0,0,0)',
+          'circle-stroke-color': '#f59e0b',
+          'circle-stroke-width': 3,
+        },
+      })
+      loaded.current = true
+
+      m.on('click', 'clusters', async (e) => {
+        const f = e.features?.[0] as MapGeoJSONFeature | undefined
+        if (!f) return
+        const src = m.getSource('catalog') as GeoJSONSource
+        const zoom = await src.getClusterExpansionZoom(f.properties.cluster_id as number)
+        const [lon, lat] = (f.geometry as unknown as { coordinates: [number, number] }).coordinates
+        m.easeTo({ center: [lon, lat], zoom })
+      })
+      m.on('click', 'points', (e) => {
+        const sid = e.features?.[0]?.properties.sid as string | undefined
+        if (sid) onSelectRef.current(sid)
+      })
+      for (const layer of ['clusters', 'points']) {
+        m.on('mouseenter', layer, () => (m.getCanvas().style.cursor = 'pointer'))
+        m.on('mouseleave', layer, () => (m.getCanvas().style.cursor = ''))
+      }
     })
-    if (located.length > 1) {
-      const b = new LngLatBounds()
-      located.forEach((p) => b.extend([p.lon!, p.lat!]))
-      m.fitBounds(b, { padding: 60, maxZoom: 17, animate: false })
-    }
     return () => {
       ro.disconnect()
       m.remove()
       map.current = null
-      dots.clear()
+      loaded.current = false
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [properties])
+  }, [])
 
   useEffect(() => {
-    markers.current.forEach((dot, sid) => {
-      dot.style.background = sid === selected ? '#f59e0b' : '#2563eb'
-      dot.style.transform = sid === selected ? 'scale(1.4)' : 'none'
-    })
-    const p = properties.find((x) => x.sid === selected)
-    if (p?.lat != null && p.lon != null) map.current?.easeTo({ center: [p.lon, p.lat], duration: 400 })
-  }, [selected, properties])
+    const m = map.current
+    if (!m) return
+    const apply = () => (m.getSource('catalog') as GeoJSONSource | undefined)?.setData(points ?? EMPTY)
+    if (loaded.current) apply()
+    else m.once('load', apply)
+  }, [points])
+
+  useEffect(() => {
+    const m = map.current
+    if (!m) return
+    const apply = () => {
+      ;(m.getSource('selected') as GeoJSONSource | undefined)?.setData(
+        selected
+          ? {
+              type: 'FeatureCollection',
+              features: [
+                {
+                  type: 'Feature',
+                  properties: {},
+                  geometry: { type: 'Point', coordinates: [selected.lon, selected.lat] },
+                },
+              ],
+            }
+          : EMPTY,
+      )
+      if (selected) m.easeTo({ center: [selected.lon, selected.lat], zoom: Math.max(m.getZoom(), 15) })
+    }
+    if (loaded.current) apply()
+    else m.once('load', apply)
+  }, [selected])
+
+  useEffect(() => {
+    if (flyTo) map.current?.flyTo({ center: [flyTo.lon, flyTo.lat], zoom: flyTo.zoom })
+  }, [flyTo])
 
   return <div ref={el} className="h-full w-full" data-testid="map" />
 }

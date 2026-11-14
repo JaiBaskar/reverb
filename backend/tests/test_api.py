@@ -21,7 +21,7 @@ def client(monkeypatch):
     monkeypatch.setattr(service, "fetch_model", lambda sid, **_: RAW)
     from app import main
 
-    monkeypatch.setattr(main, "shortlist_ids", lambda: [SID])
+    monkeypatch.setattr(main, "is_known", lambda sid: sid == SID)
     return TestClient(app)
 
 
