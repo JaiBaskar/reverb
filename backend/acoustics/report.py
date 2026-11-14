@@ -162,6 +162,10 @@ def analyze_room(sid: str, room: Room, selection: dict[str, str] | None = None) 
     ):
         if field.provenance in ("estimated", "assumed"):
             assumptions.append(f"Room {name} is {field.provenance}: {field.note}.")
+    if room.width_m.provenance == "user":
+        assumptions.append(
+            "Room dimensions were entered by the user and are modeled as a rectangular box."
+        )
 
     return AcousticReport(
         sid=sid,

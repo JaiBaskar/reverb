@@ -8,6 +8,7 @@ import type {
   Property,
   Room,
 } from './types'
+import { roomPayload } from './roomRef'
 
 async function get<T>(path: string): Promise<T> {
   const res = await fetch(`/api${path}`)
@@ -35,7 +36,7 @@ export async function analyzeRoom(
   const res = await fetch('/api/rooms/analyze', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ sid, room_id: roomId, materials }),
+    body: JSON.stringify({ sid, ...roomPayload(roomId), materials }),
   })
   if (!res.ok) {
     const detail = await res.json().catch(() => ({}))
@@ -48,7 +49,7 @@ export async function compareRooms(
   a: { sid: string; roomId: string; materials?: MaterialSelection },
   b: { sid: string; roomId: string; materials?: MaterialSelection },
 ): Promise<Comparison> {
-  const body = (x: typeof a) => ({ sid: x.sid, room_id: x.roomId, materials: x.materials })
+  const body = (x: typeof a) => ({ sid: x.sid, ...roomPayload(x.roomId), materials: x.materials })
   const res = await fetch('/api/rooms/compare', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },

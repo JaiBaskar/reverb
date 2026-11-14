@@ -1,5 +1,5 @@
 // Mirrors backend/properties/models.py. See contract/.
-export type Provenance = 'verified' | 'estimated' | 'assumed' | 'missing'
+export type Provenance = 'verified' | 'estimated' | 'assumed' | 'user' | 'missing'
 
 export interface Field {
   value: number | null

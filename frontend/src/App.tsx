@@ -12,7 +12,9 @@ import { Explanation } from './features/numbers/Explanation'
 import { NumbersPanel } from './features/numbers/NumbersPanel'
 import { useComparison } from './features/numbers/useComparison'
 import { useReport } from './features/numbers/useReport'
+import { CustomRoomForm } from './features/rooms/CustomRoomForm'
 import { RoomPicker, type Slot } from './features/rooms/RoomPicker'
+import { customRoomToRoom, type CustomRoomSpec } from './roomRef'
 import type {
   CatalogEntry,
   CatalogPoints,
@@ -29,6 +31,8 @@ export default function App() {
   const [entry, setEntry] = useState<CatalogEntry | null>(null)
   const [flyTo, setFlyTo] = useState<{ lon: number; lat: number; zoom: number; key: number } | null>(null)
   const [rooms, setRooms] = useState<Room[] | null>(null)
+  const [customRooms, setCustomRooms] = useState<CustomRoomSpec[]>([])
+  const [roomsError, setRoomsError] = useState<string | null>(null)
   const [picked, setPicked] = useState<Record<Slot, string | null>>({ A: null, B: null })
   const [error, setError] = useState<string | null>(null)
   const [catalog, setCatalog] = useState<MaterialCatalog | null>(null)
@@ -51,7 +55,11 @@ export default function App() {
       .catch((e: Error) => live && setError(`Could not load this property from Matterport (${e.message}).`))
     fetchRooms(selected)
       .then((r) => live && setRooms(r))
-      .catch((e: Error) => live && setError(e.message))
+      .catch((e: Error) => {
+        if (!live) return
+        setRooms([])
+        setRoomsError(`No room geometry from Matterport (${e.message}). Enter rooms by hand below.`)
+      })
     searchCatalog(selected, '', '', 1)
       .then((r) => live && setEntry(r.results[0] ?? null))
       .catch(() => live && setEntry(null))
@@ -64,6 +72,8 @@ export default function App() {
     setSelected(sid)
     setProp(null)
     setRooms(null)
+    setCustomRooms([])
+    setRoomsError(null)
     setError(null)
     setPicked({ A: null, B: null })
     setMaterials({ A: {}, B: {} })
@@ -76,7 +86,8 @@ export default function App() {
     { sid: selected, roomId: picked.B, materials: materials.B },
   )
   const maxRt60 = Math.max(0.1, ...(repA.report?.rt60_s ?? []), ...(repB.report?.rt60_s ?? []))
-  const usableCount = rooms?.filter((r) => r.usable).length ?? 0
+  const allRooms = rooms == null ? null : [...rooms, ...customRooms.map(customRoomToRoom)]
+  const usableCount = allRooms?.filter((r) => r.usable).length ?? 0
   const sameRoom =
     picked.A != null &&
     picked.A === picked.B &&
@@ -149,20 +160,30 @@ export default function App() {
               )}
               <div className="mb-3" />
               <FactsCard sid={prop.sid} />
-              {rooms == null ? (
+              {allRooms == null ? (
                 <p className="text-sm text-zinc-500">Loading rooms from Matterport…</p>
               ) : (
                 <>
+                  {roomsError && <p className="mb-2 text-xs text-amber-300">{roomsError}</p>}
                   {usableCount < 2 && (
                     <p className="mb-2 rounded bg-amber-900/40 px-2 py-1 text-xs text-amber-200">
-                      Only {usableCount} room(s) here have enough Matterport geometry to model. A
-                      comparison needs two.
+                      Only {usableCount} room(s) here have enough geometry to model; a comparison needs
+                      two. Add rooms by their dimensions below, or pick another property.
                     </p>
                   )}
                   <RoomPicker
-                    rooms={rooms}
+                    rooms={allRooms}
                     picked={picked}
                     onPick={(s, id) => setPicked((x) => ({ ...x, [s]: id }))}
+                  />
+                  <CustomRoomForm
+                    key={selected}
+                    prominent={usableCount < 2}
+                    onAdd={(c) =>
+                      setCustomRooms((cs) =>
+                        cs.some((x) => customRoomToRoom(x).id === customRoomToRoom(c).id) ? cs : [...cs, c],
+                      )
+                    }
                   />
                 </>
               )}
@@ -174,8 +195,8 @@ export default function App() {
               )}
               <AudioLab
                 sid={prop.sid}
-                roomA={rooms?.find((r) => r.id === picked.A) ?? null}
-                roomB={rooms?.find((r) => r.id === picked.B) ?? null}
+                roomA={allRooms?.find((r) => r.id === picked.A) ?? null}
+                roomB={allRooms?.find((r) => r.id === picked.B) ?? null}
                 materials={materials}
               />
               <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2" data-testid="selection">

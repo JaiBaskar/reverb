@@ -86,3 +86,26 @@ def test_matterport_failure_is_502(client, monkeypatch):
     monkeypatch.setattr(service, "fetch_model", boom)
     assert client.get("/properties").status_code == 502
     assert client.get(f"/properties/{SID}/rooms").status_code == 502
+
+
+def test_analyze_and_ir_accept_a_custom_room(client):
+    body = {
+        "sid": SID,
+        "custom_room": {"label": "Den", "width_m": 4, "depth_m": 3.5, "height_m": 2.6},
+    }
+    r = client.post("/rooms/analyze", json=body)
+    assert r.status_code == 200
+    assert r.json()["geometry"]["width_m"]["provenance"] == "user"
+    assert client.post("/rooms/ir", json=body).status_code == 200
+
+
+def test_analyze_requires_exactly_one_room_source(client):
+    assert client.post("/rooms/analyze", json={"sid": SID}).status_code == 422
+    both = {
+        "sid": SID,
+        "room_id": "x",
+        "custom_room": {"width_m": 4, "depth_m": 3, "height_m": 2.5},
+    }
+    assert client.post("/rooms/analyze", json=both).status_code == 422
+    bad = {"sid": SID, "custom_room": {"width_m": 4, "depth_m": 3, "height_m": 0.5}}
+    assert client.post("/rooms/analyze", json=bad).status_code == 422
