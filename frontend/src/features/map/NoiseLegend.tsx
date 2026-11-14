@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { CATEGORY_COLOR } from '../noise/colors'
 import type { NoiseReport } from '../noise/types'
 
@@ -10,6 +11,17 @@ interface Props {
 
 /** Toggle noise-source categories on the main map. */
 export function NoiseLegend({ report, enabled, onChange, heat }: Props) {
+  const [open, setOpen] = useState(() => typeof window === 'undefined' || window.innerWidth >= 640)
+  if (!open)
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="absolute right-2 top-2 z-10 rounded bg-zinc-950/90 px-2 py-1 text-[11px] font-semibold text-zinc-200 shadow"
+        data-testid="noise-legend-open"
+      >
+        Noise layers
+      </button>
+    )
   const counts = Object.fromEntries(report.exposure.map((e) => [e.category, e.count]))
   const cats = report.exposure.filter((e) => e.count > 0)
   return (
@@ -20,6 +32,9 @@ export function NoiseLegend({ report, enabled, onChange, heat }: Props) {
       <div className="mb-1 flex items-center justify-between font-semibold text-zinc-200">
         Noise sources
         <span className="space-x-1 font-normal">
+          <button className="text-zinc-400" onClick={() => setOpen(false)} aria-label="Collapse noise layers">
+            ✕
+          </button>
           <button className="text-sky-300" onClick={() => onChange(cats.map((c) => c.category))}>
             all
           </button>
