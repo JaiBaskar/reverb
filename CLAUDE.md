@@ -19,3 +19,5 @@ Read PRD.md, CONTEXT.md, SLICES.md (phases), WORKFLOW.md (ownership, git, prompt
 - Matterport lat/long arrive as strings. maplibre-gl v6 has named exports only (no default import).
 - If `npm install` fails with root-owned cache files: `npm install --cache <some writable dir>`.
 - Write failing tests first for calculations and data transforms; run the real app before calling a phase done.
+- Pyroomacoustics: seed with `pra.random.seed(n)` (not `np.random.seed`) or IRs are not reproducible. Pure-specular rays (scattering 0) give RT60 40-50% above Sabine; we assume scattering 0.5. Below ~250 Hz the IR is modal and will not match Sabine.
+- Web Audio: set `ConvolverNode.normalize = false` BEFORE assigning `.buffer`. One source feeding both rooms' convolvers keeps A/B switching on one playhead.

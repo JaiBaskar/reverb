@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 from acoustics.materials import DEFAULT_SELECTION, MATERIALS
 from acoustics.report import AcousticReport, UnknownMaterial, analyze_room
+from ir.service import IrResponse, build_ir
 from properties.matterport import MatterportError
 from properties.models import Property, Room
 from properties.service import get_property, get_rooms, list_properties, shortlist_ids
@@ -82,3 +83,8 @@ def analyze(req: AnalyzeRequest) -> AcousticReport:
         raise HTTPException(422, str(e)) from e
     except ValueError as e:
         raise HTTPException(422, str(e)) from e
+
+
+@app.post("/rooms/ir", response_model=IrResponse)
+def room_ir(req: AnalyzeRequest) -> IrResponse:
+    return build_ir(analyze(req))

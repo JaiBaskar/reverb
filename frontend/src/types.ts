@@ -60,3 +60,18 @@ export interface AcousticReport {
   warnings: string[]
   method: string
 }
+
+// Mirrors backend/ir/service.py (IrResponse).
+export interface IrResponse {
+  sid: string
+  room_id: string
+  label: string
+  sample_rate: number
+  duration_s: number
+  wav_base64: string
+  bands_hz: number[]
+  sabine_rt60_s: number[]
+  measured_rt60_s: (number | null)[]
+  params: Record<string, unknown>
+  notes: string[]
+}

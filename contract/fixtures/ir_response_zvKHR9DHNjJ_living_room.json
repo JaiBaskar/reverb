@@ -1,0 +1,59 @@
+{
+  "sid": "zvKHR9DHNjJ",
+  "room_id": "cdz3fkt38kae7tapstpt0eaeb",
+  "label": "Living Room",
+  "sample_rate": 48000,
+  "duration_s": 2.9048333333333334,
+  "wav_base64": "<base64 float32 mono 48 kHz WAV omitted from fixture>",
+  "bands_hz": [
+    125,
+    250,
+    500,
+    1000,
+    2000,
+    4000
+  ],
+  "sabine_rt60_s": [
+    0.4224494699529891,
+    1.050614571578749,
+    1.7223717890281522,
+    2.266479293983163,
+    1.5955838105229456,
+    1.267139327490714
+  ],
+  "measured_rt60_s": [
+    0.8216203865587319,
+    1.1635577231396559,
+    1.6485725302130125,
+    1.9272143945843767,
+    1.4461619513024846,
+    1.054607912181902
+  ],
+  "params": {
+    "method": "pyroomacoustics hybrid image-source + ray tracing",
+    "max_order": 3,
+    "n_rays": 20000,
+    "scattering": 0.5,
+    "seed": 1,
+    "box_m": [
+      5.0508633499989495,
+      5.715141702461748,
+      2.669999837875366
+    ],
+    "source_m": [
+      2.5254316749994747,
+      1.428785425615437,
+      1.2
+    ],
+    "listener_m": [
+      2.5254316749994747,
+      3.4290850214770487,
+      1.2
+    ]
+  },
+  "notes": [
+    "Modeled approximation of an empty room from geometry and assumed materials; not a recording of the real space.",
+    "Surface scattering of 0.5 is an assumption.",
+    "Measured RT60 below the Schroeder frequency (~322 Hz) is modal and can differ strongly from the Sabine value."
+  ]
+}

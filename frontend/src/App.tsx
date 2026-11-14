@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { fetchProperties, fetchRooms } from './api'
 import { PropertyMap } from './features/map/PropertyMap'
+import { AudioLab } from './features/audio/AudioLab'
 import { NumbersPanel } from './features/numbers/NumbersPanel'
 import { useReport } from './features/numbers/useReport'
 import { RoomPicker, type Slot } from './features/rooms/RoomPicker'
@@ -77,6 +78,11 @@ export default function App() {
                 <NumbersPanel slot="A" {...repA} maxRt60={maxRt60} />
                 <NumbersPanel slot="B" {...repB} maxRt60={maxRt60} />
               </div>
+              <AudioLab
+                sid={prop.sid}
+                roomA={rooms.find((r) => r.id === picked.A) ?? null}
+                roomB={rooms.find((r) => r.id === picked.B) ?? null}
+              />
               <p className="mt-3 text-xs text-zinc-500">
                 All acoustic values are modeled approximations from room geometry and assumed materials, not measurements.
               </p>
