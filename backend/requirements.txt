@@ -6,3 +6,7 @@ python-dotenv
 pytest
 ruff
 pyroomacoustics
+deepagents
+langchain
+langchain-anthropic
+langsmith

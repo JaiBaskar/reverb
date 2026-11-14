@@ -8,6 +8,7 @@ from acoustics.report import AcousticReport, UnknownMaterial, analyze_room
 from costar.router import router as costar_router
 from ir.service import IrResponse, build_ir
 from noise.router import router as noise_router
+from noise_scout.router import router as noise_scout_router
 from properties.matterport import MatterportError
 from properties.models import Property, Room
 from properties.service import get_property, get_rooms, list_properties, shortlist_ids
@@ -21,6 +22,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(noise_router)
+app.include_router(noise_scout_router)
 app.include_router(suitability_router)
 app.include_router(costar_router)
 
