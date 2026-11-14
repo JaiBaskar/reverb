@@ -5,13 +5,14 @@ import re
 import httpx
 
 from noise import geo
-from noise.categories import CATEGORIES, Category
+from noise.categories import AREA_CATEGORIES, CATEGORIES, Category
 from noise.models import NoiseSource
 
 ENDPOINTS = (
     "https://overpass-api.de/api/interpreter",
     "https://overpass.kumi.systems/api/interpreter",
     "https://overpass.private.coffee/api/interpreter",
+    "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
 )
 USER_AGENT = "reverb-noise-scout/0.1 (hackathon project)"
 TIMEOUT_S = 60.0
@@ -21,17 +22,25 @@ class OverpassError(RuntimeError):
     pass
 
 
-def build_query(lat: float, lon: float, timeout_s: int = 50) -> str:
-    """Ways and nodes come back with full geometry; relations with a centre point."""
+def build_query(
+    lat: float,
+    lon: float,
+    timeout_s: int = 50,
+    categories: tuple[Category, ...] = CATEGORIES,
+    geometry: bool = True,
+) -> str:
+    """Ways and nodes come back with full geometry (or centre points if geometry=False);
+    relations with a centre point."""
     geom_parts, rel_parts = [], []
-    for cat in CATEGORIES:
+    for cat in categories:
         for sel in cat.selectors:
             for el in sel.elements:
                 stmt = f'{el}["{sel.key}"~"{sel.pattern}"](around:{cat.radius_m},{lat},{lon});'
                 (rel_parts if el == "relation" else geom_parts).append(stmt)
+    out = "out tags geom;" if geometry else "out tags center;"
     return (
         f"[out:json][timeout:{timeout_s}];\n"
-        f"({' '.join(geom_parts)})->.g;\n.g out tags geom;\n"
+        f"({' '.join(geom_parts)})->.g;\n.g {out}\n"
         f"({' '.join(rel_parts)})->.r;\n.r out tags center;\n"
     )
 
@@ -74,6 +83,26 @@ def _points(el: dict) -> list[tuple[float, float]]:
     return []
 
 
+MAX_VERTICES = 400
+
+
+def _geometry(el: dict, category: str) -> dict | None:
+    """GeoJSON geometry ([lon, lat]) for drawing; long ways are thinned to MAX_VERTICES."""
+    if "lat" in el and "lon" in el:
+        return {"type": "Point", "coordinates": [el["lon"], el["lat"]]}
+    pts = [[p["lon"], p["lat"]] for p in el.get("geometry") or [] if p]
+    if len(pts) > MAX_VERTICES:
+        step = len(pts) // MAX_VERTICES + 1
+        pts = pts[::step] + [pts[-1]]
+    if len(pts) >= 4 and pts[0] == pts[-1] and category in AREA_CATEGORIES:
+        return {"type": "Polygon", "coordinates": [pts]}
+    if len(pts) >= 2:
+        return {"type": "LineString", "coordinates": pts}
+    if "center" in el:
+        return {"type": "Point", "coordinates": [el["center"]["lon"], el["center"]["lat"]]}
+    return None
+
+
 def parse(payload: dict, lat: float, lon: float) -> list[NoiseSource]:
     """Turn Overpass elements into sources: nearest point, distance, bearing.
 
@@ -105,6 +134,7 @@ def parse(payload: dict, lat: float, lon: float) -> list[NoiseSource]:
             bearing_compass=geo.compass(brg),
             osm_url=f"https://www.openstreetmap.org/{osm_id}",
             osm_ids=[osm_id],
+            geometry=_geometry(el, cat.name),
         )
         if osm_id not in found or src.distance_m < found[osm_id].distance_m:
             found[osm_id] = src
@@ -125,7 +155,16 @@ def merge_named(sources: list[NoiseSource]) -> list[NoiseSource]:
             continue
         key = (src.category, src.subtype, src.name)
         if key in merged:
-            merged[key].osm_ids.append(src.id)
+            kept = merged[key]
+            kept.osm_ids.append(src.id)
+            if src.geometry and src.geometry["type"] == "LineString" and kept.geometry:
+                if kept.geometry["type"] == "LineString":
+                    kept.geometry = {
+                        "type": "MultiLineString",
+                        "coordinates": [kept.geometry["coordinates"]],
+                    }
+                if kept.geometry["type"] == "MultiLineString":
+                    kept.geometry["coordinates"].append(src.geometry["coordinates"])
         else:
             merged[key] = src
             out.append(src)

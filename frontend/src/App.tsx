@@ -6,6 +6,7 @@ import { DiscoveryPanel } from './features/discovery/DiscoveryPanel'
 import { FactsCard } from './features/facts/FactsCard'
 import { MaterialEditor } from './features/materials/MaterialEditor'
 import { NoisePanel } from './features/noise/NoisePanel'
+import { useNoise } from './features/noise/useNoise'
 import { NoiseScoutPanel } from './features/noise-scout/NoiseScoutPanel'
 import { SuitabilityPanel } from './features/suitability/SuitabilityPanel'
 import { Explanation } from './features/numbers/Explanation'
@@ -23,6 +24,9 @@ import type {
   Property,
   Room,
 } from './types'
+
+/** House number and street name, ignoring suffixes like Ave/Avenue, to compare addresses. */
+const streetKey = (a: string) => a.toLowerCase().split(/[\s,]+/).slice(0, 2).join(' ')
 
 export default function App() {
   const [points, setPoints] = useState<CatalogPoints | null>(null)
@@ -78,6 +82,7 @@ export default function App() {
     setError(null)
   }
 
+  const noise = useNoise(selected)
   const repA = useReport(picked.A?.sid ?? null, picked.A?.roomId ?? null, materials.A)
   const repB = useReport(picked.B?.sid ?? null, picked.B?.roomId ?? null, materials.B)
   const cmp = useComparison(
@@ -124,6 +129,7 @@ export default function App() {
               }
               flyTo={flyTo}
               onSelect={selectProperty}
+              noise={noise.report ?? null}
             />
           </div>
           <div className="flex h-80 min-h-0 flex-col lg:h-auto lg:flex-[2]">
@@ -147,7 +153,7 @@ export default function App() {
               <h2 className="text-lg font-semibold">
                 {entry ? [entry.address, entry.city, entry.state].filter(Boolean).join(', ') : prop.address}
               </h2>
-              {entry && prop.address && !prop.address.toLowerCase().startsWith(entry.address.toLowerCase()) && (
+              {entry && prop.address && streetKey(prop.address) !== streetKey(entry.address) && (
                 <p className="text-xs text-amber-300" data-testid="address-mismatch">
                   This Matterport scan reports its address as {prop.address}; CoStar lists the property
                   as {entry.address}. Both are shown as recorded.
@@ -274,7 +280,7 @@ export default function App() {
 
           {prop && (
             <>
-              <NoisePanel sid={prop.sid} />
+              <NoisePanel noise={noise} />
               <NoiseScoutPanel sid={prop.sid} />
             </>
           )}

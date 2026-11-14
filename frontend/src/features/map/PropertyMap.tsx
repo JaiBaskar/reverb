@@ -5,8 +5,11 @@ import {
   setWorkerUrl,
 } from 'maplibre-gl'
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { CatalogPoints } from '../../types'
+import type { NoiseReport } from '../noise/types'
+import { NoiseLegend } from './NoiseLegend'
+import { addNoiseLayers, setNoiseData, setNoiseFilter } from './noiseLayers'
 
 // MapLibre resolves its worker next to its own bundle, which Vite moves; point it at the real file.
 setWorkerUrl(workerUrl)
@@ -18,10 +21,12 @@ interface Props {
   selected: { sid: string; lon: number; lat: number } | null
   flyTo: { lon: number; lat: number; zoom: number; key: number } | null
   onSelect: (sid: string) => void
+  noise: NoiseReport | null
 }
 
 /** All CoStar properties with a Matterport scan, clustered; click to select. */
-export function PropertyMap({ points, selected, flyTo, onSelect }: Props) {
+export function PropertyMap({ points, selected, flyTo, onSelect, noise }: Props) {
+  const [enabled, setEnabled] = useState<string[] | null>(null)
   const el = useRef<HTMLDivElement>(null)
   const map = useRef<MapLibreMap | null>(null)
   const loaded = useRef(false)
@@ -108,6 +113,7 @@ export function PropertyMap({ points, selected, flyTo, onSelect }: Props) {
           'circle-stroke-width': 3,
         },
       })
+      addNoiseLayers(m, 'clusters')
       loaded.current = true
 
       m.on('click', 'clusters', async (e) => {
@@ -168,8 +174,30 @@ export function PropertyMap({ points, selected, flyTo, onSelect }: Props) {
   }, [selected])
 
   useEffect(() => {
+    const m = map.current
+    if (!m) return
+    const apply = () => setNoiseData(m, noise)
+    if (loaded.current) apply()
+    else m.once('load', apply)
+  }, [noise])
+
+  const shown = enabled ?? (noise?.exposure ?? []).map((e) => e.category)
+  useEffect(() => {
+    const m = map.current
+    if (!m) return
+    const apply = () => setNoiseFilter(m, shown)
+    if (loaded.current) apply()
+    else m.once('load', apply)
+  }, [shown.join(',')]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
     if (flyTo) map.current?.flyTo({ center: [flyTo.lon, flyTo.lat], zoom: flyTo.zoom })
   }, [flyTo])
 
-  return <div ref={el} className="h-full w-full" data-testid="map" />
+  return (
+    <div className="relative h-full w-full">
+      <div ref={el} className="h-full w-full" data-testid="map" />
+      {noise?.status === 'ok' && <NoiseLegend report={noise} enabled={shown} onChange={setEnabled} />}
+    </div>
+  )
 }

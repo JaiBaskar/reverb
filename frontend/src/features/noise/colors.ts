@@ -7,6 +7,14 @@ export const CATEGORY_COLOR: Record<string, string> = {
   venue: '#ec4899',
   industrial: '#84cc16',
   construction: '#eab308',
+  emergency: '#f43f5e',
+  transit: '#14b8a6',
+  school: '#fbbf24',
+  worship: '#c084fc',
+  food_drink: '#fb7185',
+  sports: '#4ade80',
+  fuel: '#a3a3a3',
+  commercial: '#60a5fa',
 }
 
 export const LEVEL_STYLE: Record<string, string> = {

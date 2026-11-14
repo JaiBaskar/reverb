@@ -89,3 +89,40 @@ def test_recorded_sample_property(overpass_sample):
     assert smb.category == "road_major" and smb.bearing_compass == "S"
     assert len(smb.osm_ids) > 1  # merged segments
     assert all(s.distance_m <= 5000 * 1.05 for s in out)
+
+
+def test_new_categories_classify_after_existing_ones():
+    assert classify({"amenity": "fire_station"})[0].name == "emergency"
+    assert classify({"amenity": "hospital"})[0].name == "emergency"
+    assert classify({"highway": "bus_stop"})[0].name == "transit"
+    assert classify({"railway": "station"})[0].name == "transit"
+    assert classify({"amenity": "school"})[0].name == "school"
+    assert classify({"amenity": "place_of_worship"})[0].name == "worship"
+    assert classify({"amenity": "restaurant"})[0].name == "food_drink"
+    assert classify({"leisure": "pitch"})[0].name == "sports"
+    assert classify({"amenity": "fuel"})[0].name == "fuel"
+    assert classify({"landuse": "retail"})[0].name == "commercial"
+    assert classify({"amenity": "bar"})[0].name == "venue"  # unchanged
+
+
+def test_geometry_line_polygon_and_point():
+    road = way(7, {"highway": "primary", "name": "A"}, [(0.0009, -0.001), (0.0009, 0.001)])
+    yard = way(
+        8,
+        {"landuse": "industrial"},
+        [(0.001, 0.001), (0.001, 0.002), (0.002, 0.002), (0.001, 0.001)],
+    )
+    bar = node(9, {"amenity": "bar"}, 0.0001, 0.0)
+    out = {s.id: s for s in parse({"elements": [road, yard, bar]}, 0, 0)}
+    assert out["way/7"].geometry["type"] == "LineString"
+    assert out["way/7"].geometry["coordinates"][0] == [-0.001, 0.0009]  # GeoJSON is [lon, lat]
+    assert out["way/8"].geometry["type"] == "Polygon"
+    assert out["node/9"].geometry == {"type": "Point", "coordinates": [0.0, 0.0001]}
+
+
+def test_merged_named_segments_draw_every_segment():
+    a = way(10, {"highway": "primary", "name": "Main"}, [(0.0009, 0.0), (0.0009, 0.001)])
+    b = way(11, {"highway": "primary", "name": "Main"}, [(0.0009, 0.001), (0.0009, 0.002)])
+    [main] = parse({"elements": [a, b]}, 0, 0)
+    assert main.geometry["type"] == "MultiLineString"
+    assert len(main.geometry["coordinates"]) == 2
