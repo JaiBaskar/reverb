@@ -71,7 +71,8 @@ export interface IrResponse {
   wav_base64: string
   bands_hz: number[]
   sabine_rt60_s: number[]
-  measured_rt60_s: (number | null)[]
+  /** Decay measured from the MODELED impulse response, not from the real room. */
+  ir_rt60_s: (number | null)[]
   params: Record<string, unknown>
   notes: string[]
 }

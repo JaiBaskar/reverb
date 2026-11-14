@@ -57,3 +57,15 @@ def test_more_absorption_gives_shorter_decay():
 
 def test_bands_constant_has_six_octaves():
     assert len(BANDS_HZ) == 6
+
+
+def test_generate_ir_is_deterministic_under_concurrent_requests():
+    # FastAPI runs sync endpoints in a threadpool; rooms A and B are requested together.
+    from concurrent.futures import ThreadPoolExecutor
+
+    alone = generate_ir(BOX, flat(0.2), SRC, LIS, seed=3)
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        futures = [pool.submit(generate_ir, BOX, flat(0.2), SRC, LIS, seed=3) for _ in range(2)]
+        results = [f.result() for f in futures]
+    for r in results:
+        assert np.array_equal(r, alone)

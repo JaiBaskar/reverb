@@ -41,6 +41,10 @@ export function AudioLab({ sid, roomA, roomB, materials }: Props) {
   const graph = useRef<Graph | null>(null)
   const timing = useRef({ startedAt: 0, offset: 0 })
   const master = useRef<GainNode | null>(null)
+  const starting = useRef(false)
+  // play() awaits the AudioContext; read IRs from a ref so it always builds with the latest ones.
+  const irs = useRef<{ A?: AudioBuffer; B?: AudioBuffer }>({})
+  irs.current = { A: irA.ir?.buffer, B: irB.ir?.buffer }
 
   // Offline-render the dry audio through each IR: gives loudness-matching gains and proof of processing.
   useEffect(() => {
@@ -96,14 +100,20 @@ export function AudioLab({ sid, roomA, roomB, materials }: Props) {
   )
 
   const play = async () => {
-    if (!dry) return
+    if (!dry || starting.current || graph.current) return
+    starting.current = true
     const c = audioCtx()
-    await c.resume()
+    try {
+      await c.resume()
+    } finally {
+      starting.current = false
+    }
     if (!master.current) {
       const m = c.createGain()
       const comp = c.createDynamicsCompressor() // safety limiter
       comp.threshold.value = -3
       comp.ratio.value = 20
+      comp.knee.value = 0 // hard knee: only touches peaks, so it does not colour the A/B comparison
       m.connect(comp).connect(c.destination)
       master.current = m
     }
@@ -114,11 +124,11 @@ export function AudioLab({ sid, roomA, roomB, materials }: Props) {
     src.connect(dryG).connect(master.current)
     const wetG = { A: c.createGain(), B: c.createGain() }
     for (const slot of ['A', 'B'] as const) {
-      const ir = slot === 'A' ? irA.ir : irB.ir
+      const ir = irs.current[slot]
       if (!ir) continue
       const conv = c.createConvolver()
       conv.normalize = false // the IR's own level is preserved; we loudness-match ourselves
-      conv.buffer = ir.buffer
+      conv.buffer = ir
       src.connect(conv).connect(wetG[slot]).connect(master.current)
     }
     graph.current = { src, dryG, wetG }
@@ -266,6 +276,25 @@ export function AudioLab({ sid, roomA, roomB, materials }: Props) {
           <>Choose two rooms and load audio to process it through their impulse responses.</>
         )}
         {(irA.error || irB.error) && <div className="text-red-300">{irA.error ?? irB.error}</div>}
+        {(irA.ir || irB.ir) && (
+          <div className="mt-2" data-testid="ir-rt60">
+            <div>RT60 of the modeled impulse response vs the Sabine estimate (500 Hz / 1 kHz / 2 kHz):</div>
+            {(['A', 'B'] as const).map((s) => {
+              const m = (s === 'A' ? irA : irB).ir?.meta
+              if (!m) return null
+              const f = (v: number | null) => (v == null ? '—' : v.toFixed(2))
+              return (
+                <div key={s} title={m.notes.join(' ')}>
+                  Room {s}: IR {[2, 3, 4].map((i) => f(m.ir_rt60_s[i])).join(' / ')} s · Sabine{' '}
+                  {[2, 3, 4].map((i) => f(m.sabine_rt60_s[i])).join(' / ')} s
+                </div>
+              )
+            })}
+            <div className="text-zinc-500">
+              {irA.ir?.meta.notes.slice(1).join(' ') ?? irB.ir?.meta.notes.slice(1).join(' ')}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

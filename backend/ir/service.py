@@ -24,7 +24,7 @@ class IrResponse(BaseModel):
     wav_base64: str
     bands_hz: list[int]
     sabine_rt60_s: list[float]
-    measured_rt60_s: list[float | None]
+    ir_rt60_s: list[float | None]  # decay measured from the MODELED IR, not from the real room
     params: dict
     notes: list[str]
 
@@ -36,7 +36,7 @@ def build_ir(report: AcousticReport, seed: int = 1) -> IrResponse:
     src, lis = tuple(report.source_position_m), tuple(report.listener_position_m)
     ir = generate_ir(box, alphas, src, lis, seed=seed)
 
-    measured = [measure_rt60(ir, SAMPLE_RATE, f) for f in report.bands_hz]
+    ir_rt60 = [measure_rt60(ir, SAMPLE_RATE, f) for f in report.bands_hz]
     return IrResponse(
         sid=report.sid,
         room_id=report.room_id,
@@ -46,7 +46,7 @@ def build_ir(report: AcousticReport, seed: int = 1) -> IrResponse:
         wav_base64=base64.b64encode(ir_to_wav_bytes(ir)).decode(),
         bands_hz=report.bands_hz,
         sabine_rt60_s=report.rt60_s,
-        measured_rt60_s=[None if math.isnan(m) else m for m in measured],
+        ir_rt60_s=[None if math.isnan(m) else m for m in ir_rt60],
         params={
             "method": "pyroomacoustics hybrid image-source + ray tracing",
             "max_order": MAX_ORDER,
@@ -61,7 +61,8 @@ def build_ir(report: AcousticReport, seed: int = 1) -> IrResponse:
             "Modeled approximation of an empty room from geometry and assumed materials; "
             "not a recording of the real space.",
             f"Surface scattering of {SCATTERING} is an assumption.",
-            f"Measured RT60 below the Schroeder frequency (~{report.schroeder_hz:.0f} Hz) "
+            "The IR includes air absorption; the Sabine values do not.",
+            f"IR decay below the Schroeder frequency (~{report.schroeder_hz:.0f} Hz) "
             "is modal and can differ strongly from the Sabine value.",
         ],
     )

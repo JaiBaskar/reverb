@@ -4,6 +4,7 @@ The IR is a modeled approximation of an empty shoebox room, not a measurement.
 """
 
 import io
+import threading
 
 import numpy as np
 import pyroomacoustics as pra
@@ -19,6 +20,10 @@ RECEIVER_RADIUS_M = 0.5
 SCATTERING = 0.5  # assumed surface diffusion; 0 (pure specular) decays too slowly vs Sabine
 MAX_LENGTH_S = 4.0
 FADE_S = 0.02
+
+# pra.random.seed() sets one global RNG; FastAPI serves sync endpoints from a threadpool, so
+# concurrent requests (rooms A and B load together) must not interleave seeding and simulation.
+_SIM_LOCK = threading.Lock()
 
 
 def generate_ir(
@@ -45,20 +50,21 @@ def generate_ir(
     materials["floor"] = mat("floor")
     materials["ceiling"] = mat("ceiling")
 
-    pra.random.seed(seed)  # ray tracing is stochastic; fix it so the same room sounds the same
-    room = pra.ShoeBox(
-        list(box),
-        fs=fs,
-        materials=materials,
-        max_order=max_order,
-        ray_tracing=True,
-        air_absorption=True,
-    )
-    room.set_ray_tracing(n_rays=n_rays, receiver_radius=RECEIVER_RADIUS_M)
-    room.add_source(list(source))
-    room.add_microphone(list(listener))
-    room.compute_rir()
-    ir = np.asarray(room.rir[0][0], dtype=np.float64)
+    with _SIM_LOCK:
+        pra.random.seed(seed)  # ray tracing is stochastic; fix it so the same room sounds the same
+        room = pra.ShoeBox(
+            list(box),
+            fs=fs,
+            materials=materials,
+            max_order=max_order,
+            ray_tracing=True,
+            air_absorption=True,
+        )
+        room.set_ray_tracing(n_rays=n_rays, receiver_radius=RECEIVER_RADIUS_M)
+        room.add_source(list(source))
+        room.add_microphone(list(listener))
+        room.compute_rir()
+        ir = np.asarray(room.rir[0][0], dtype=np.float64)
 
     ir = ir[: int(MAX_LENGTH_S * fs)]
     n_fade = int(FADE_S * fs)

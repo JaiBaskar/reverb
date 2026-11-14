@@ -98,11 +98,17 @@ def analyze_room(sid: str, room: Room, selection: dict[str, str] | None = None) 
     surf = surface_areas(w, d, h)
 
     geo_note = None
+    if w0 * d0 / area < 1 / ASPECT_NOTE_THRESHOLD:
+        geo_note = (
+            f"Matterport width x depth ({w0:.2f} x {d0:.2f} m) is smaller than the floor area "
+            f"({area:.1f} m2); calculations scale them to an equivalent {w:.2f} x {d:.2f} m box."
+        )
     if w0 * d0 / area > ASPECT_NOTE_THRESHOLD:
         geo_note = (
             f"Matterport bounding box {w0:.2f} x {d0:.2f} m exceeds the true floor area "
             f"({area:.1f} m2): the room is not a rectangle. Calculations use an equivalent "
-            f"{w:.2f} x {d:.2f} m box with the true area."
+            f"{w:.2f} x {d:.2f} m box with the true area; a box has less wall than the real "
+            "shape, so RT60 is somewhat overestimated."
         )
 
     absorption, rt60 = [], []
@@ -143,7 +149,7 @@ def analyze_room(sid: str, room: Room, selection: dict[str, str] | None = None) 
         "Surface materials are generic presets, not known for this property.",
         "Room is empty (no furniture, people or curtains).",
         "Walls, floor and ceiling are single uniform materials; doors and windows are ignored.",
-        "Air absorption is ignored (affects 2-4 kHz in large rooms).",
+        "Sabine RT60 values ignore air absorption; the impulse response you hear includes it, so its 2-4 kHz decay is somewhat shorter.",
         (
             f"Source at ({src[0]:.2f}, {src[1]:.2f}, {src[2]:.2f}) m and listener at "
             f"({lis[0]:.2f}, {lis[1]:.2f}, {lis[2]:.2f}) m are default positions."
