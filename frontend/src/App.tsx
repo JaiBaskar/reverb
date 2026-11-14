@@ -1,6 +1,8 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { fetchProperties, fetchRooms } from './api'
 import { PropertyMap } from './features/map/PropertyMap'
+import { NumbersPanel } from './features/numbers/NumbersPanel'
+import { useReport } from './features/numbers/useReport'
 import { RoomPicker, type Slot } from './features/rooms/RoomPicker'
 import type { Property, Room } from './types'
 
@@ -31,10 +33,9 @@ export default function App() {
   }
 
   const prop = properties.find((p) => p.sid === selected)
-  const chosen = useMemo(
-    () => ({ A: rooms.find((r) => r.id === picked.A), B: rooms.find((r) => r.id === picked.B) }),
-    [rooms, picked],
-  )
+  const repA = useReport(selected, picked.A)
+  const repB = useReport(selected, picked.B)
+  const maxRt60 = Math.max(0.1, ...(repA.report?.rt60_s ?? []), ...(repB.report?.rt60_s ?? []))
 
   return (
     <div className="flex h-screen flex-col">
@@ -72,20 +73,13 @@ export default function App() {
               <h2 className="text-lg font-semibold">{prop.address}</h2>
               <p className="mb-3 text-xs text-zinc-400">{prop.name}</p>
               <RoomPicker rooms={rooms} picked={picked} onPick={(s, id) => setPicked((x) => ({ ...x, [s]: id }))} />
-              <div className="mt-4 grid grid-cols-2 gap-3 text-sm" data-testid="selection">
-                {(['A', 'B'] as Slot[]).map((s) => (
-                  <div key={s} className="rounded border border-zinc-800 p-3">
-                    <div className="text-xs text-zinc-400">Room {s}</div>
-                    {chosen[s] ? (
-                      <div>
-                        {chosen[s]!.label} · {chosen[s]!.area_m2.value?.toFixed(1)} m²
-                      </div>
-                    ) : (
-                      <div className="text-zinc-500">not chosen</div>
-                    )}
-                  </div>
-                ))}
+              <div className="mt-4 grid grid-cols-2 gap-3" data-testid="selection">
+                <NumbersPanel slot="A" {...repA} maxRt60={maxRt60} />
+                <NumbersPanel slot="B" {...repB} maxRt60={maxRt60} />
               </div>
+              <p className="mt-3 text-xs text-zinc-500">
+                All acoustic values are modeled approximations from room geometry and assumed materials, not measurements.
+              </p>
             </>
           )}
         </section>
