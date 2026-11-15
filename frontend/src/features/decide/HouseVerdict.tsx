@@ -18,6 +18,12 @@ interface Props {
   riskLoading: boolean
 }
 
+/** OSM tag "aeroway=helipad" -> "Helipad". */
+const friendly = (tag: string) => {
+  const v = (tag.split('=').pop() ?? tag).replace(/_/g, ' ')
+  return v.charAt(0).toUpperCase() + v.slice(1)
+}
+
 /** One house as a music space: the room (as modeled, with furniture) and what is outside. */
 export function HouseVerdict({ slot, address, roomLabel, report, risk, riskLoading }: Props) {
   const { suitability } = useSuitability(report)
@@ -88,7 +94,7 @@ export function HouseVerdict({ slot, address, roomLabel, report, risk, riskLoadi
               <span className={r.level === 'high' ? 'text-rose-300' : r.level === 'moderate' ? 'text-amber-300' : 'text-zinc-500'}>
                 ●
               </span>{' '}
-              {r.name ?? r.subtype}, {Math.round(r.distance_m)} m {r.bearing_compass} · {r.when}
+              {r.name ?? friendly(r.subtype)}, {Math.round(r.distance_m)} m {r.bearing_compass} · {r.when}
             </li>
           ))}
         </ul>

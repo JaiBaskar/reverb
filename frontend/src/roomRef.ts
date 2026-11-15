@@ -55,7 +55,7 @@ export interface SlotRef {
  * its real outline.
  */
 export function roomBody(sid: string, roomId: string, sel?: MaterialSelection) {
-  const { furniture, ...materials } = sel ?? {}
+  const { furniture, treatment, treatment_avoid, room_model, ...materials } = sel ?? {}
   return {
     sid,
     ...roomPayload(roomId),
@@ -63,5 +63,7 @@ export function roomBody(sid: string, roomId: string, sel?: MaterialSelection) {
     furnished: true,
     use_outline: true,
     ...(furniture ? { furniture } : {}),
+    ...(treatment ? { treatment_objective: treatment, treatment_avoid_walls: treatment_avoid ?? [] } : {}),
+    ...(room_model ? { use_room_model: true } : {}),
   }
 }

@@ -1,12 +1,12 @@
 {
   "mid_rt60_s": [
-    1.9944255415056578,
-    3.3415064078539825
+    1.8572547581802674,
+    3.0946375538939352
   ],
   "livelier": "B",
-  "rt60_ratio": 1.675422991891374,
+  "rt60_ratio": 1.66624289977647,
   "volume_factor": 3.5840109469265613,
-  "absorption_factor": 0.16653526080699627,
+  "absorption_factor": 0.16745277951617896,
   "material_differences": [
     {
       "surface": "floor",
@@ -20,8 +20,8 @@
     }
   ],
   "schroeder_hz": [
-    321.7266085563209,
-    788.3768809484841
+    310.46582899557126,
+    758.6957071574144
   ],
   "lowest_mode_hz": [
     30.00800486296391,
@@ -32,16 +32,16 @@
     4.060191311572666
   ],
   "bass_ratio": [
-    0.36929532110275554,
-    0.6329826127533335
+    0.36453037253446724,
+    0.6608966217249367
   ],
   "statements": [
-    "Room B is more reverberant: mid-band (500 Hz-1 kHz) RT60 is 3.34 s vs 1.99 s in Room A, 1.7x longer.",
-    "Volume: Room B holds 0.28x the air of Room A (21.5 vs 77.1 m3), which on its own scales RT60 by 0.28x. Absorption: Room B absorbs 0.17x as much as Room A at mid frequencies (1.0 vs 6.2 sabins), scaling RT60 by 6.00x. Together: 1.68x.",
+    "Room B is more reverberant: mid-band (500 Hz-1 kHz) RT60 is 3.09 s vs 1.86 s in Room A, 1.7x longer.",
+    "Volume: Room B holds 0.28x the air of Room A (21.5 vs 77.1 m3), which on its own scales RT60 by 0.28x. Absorption: Room B absorbs 0.17x as much as Room A at mid frequencies (1.1 vs 6.7 sabins), scaling RT60 by 5.97x. Together: 1.67x.",
     "Assumed materials differ: floor: hardwood floor in A, tile / polished concrete in B; walls: painted drywall / plaster in A, tile / polished concrete in B.",
-    "Low end: the Schroeder frequency is 322 Hz in A and 788 Hz in B; below it, individual room modes dominate. Lowest axial mode: 30.0 Hz in A, 50.0 Hz in B.",
+    "Low end: the Schroeder frequency is 310 Hz in A and 759 Hz in B; below it, individual room modes dominate. Lowest axial mode: 30.0 Hz in A, 50.0 Hz in B.",
     "Early reflections: the first one arrives 3.3 ms after the direct sound in A and 4.1 ms in B; nearer boundaries return reflections sooner, which colours the sound (comb filtering).",
-    "Bass balance (RT60 at 125-250 Hz relative to 500 Hz-1 kHz): 0.37 in A, 0.63 in B; above 1 means the low end rings longer than the mids.",
+    "Bass balance (RT60 at 125-250 Hz relative to 500 Hz-1 kHz): 0.36 in A, 0.66 in B; above 1 means the low end rings longer than the mids.",
     "All values are modeled from room geometry and assumed materials, not measured."
   ]
 }

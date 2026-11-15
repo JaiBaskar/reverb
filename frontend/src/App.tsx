@@ -4,69 +4,67 @@ import { AudioLab } from './features/audio/AudioLab'
 import { ambienceLayers } from './features/audio/ambience'
 import { HouseVerdict, VerdictRules } from './features/decide/HouseVerdict'
 import { DiscoveryPanel } from './features/discovery/DiscoveryPanel'
-import { FactsCard } from './features/facts/FactsCard'
 import { FurnitureEditor } from './features/furniture/FurnitureEditor'
 import { PropertyMap } from './features/map/PropertyMap'
 import { MaterialEditor } from './features/materials/MaterialEditor'
-import { NoisePanel } from './features/noise/NoisePanel'
 import { useNoise } from './features/noise/useNoise'
-import { NoiseScoutPanel } from './features/noise-scout/NoiseScoutPanel'
 import { Explanation } from './features/numbers/Explanation'
-import { KeyMetrics } from './features/numbers/KeyMetrics'
 import { NumbersPanel } from './features/numbers/NumbersPanel'
 import { useComparison } from './features/numbers/useComparison'
 import { useReport } from './features/numbers/useReport'
-import { RiskPanel } from './features/risk/RiskPanel'
 import { useNoiseRisk } from './features/risk/useNoiseRisk'
 import { CustomRoomForm } from './features/rooms/CustomRoomForm'
-import { RoomPicker, type Slot } from './features/rooms/RoomPicker'
+import { RoomCards, type Slot } from './features/rooms/RoomCards'
+import { useRoomReports } from './features/rooms/useRoomReports'
 import { SuitabilityPanel } from './features/suitability/SuitabilityPanel'
 import { TourExperience } from './features/tour/TourExperience'
-import { ModelViewer } from './features/viewer/ModelViewer'
+import { TreatmentStep } from './features/treatment/TreatmentStep'
+import type { TreatmentPlan } from './features/treatment/types'
 import { customRoomToRoom, parseCustomRoomId, type CustomRoomSpec, type SlotRef } from './roomRef'
-import type { CatalogEntry, CatalogPoints, MaterialCatalog, MaterialSelection, Property, Room } from './types'
-import { Step, StepNav, Stepper, Tag } from './ui/journey'
-import { STEPS, type StepId } from './ui/steps'
+import type { AcousticReport, CatalogEntry, CatalogPoints, MaterialCatalog, MaterialSelection, Property, Room } from './types'
+import { StepHeader, StepNav, Stepper, Tag } from './ui/journey'
+import { type StepId } from './ui/steps'
 
-/** House number and street name, ignoring suffixes like Ave/Avenue, to compare addresses. */
-const streetKey = (a: string) => a.toLowerCase().split(/[\s,]+/).slice(0, 2).join(' ')
-const SLOT_TONE = { A: 'sky', B: 'fuchsia' } as const
-
-type View = { kind: 'journey' } | { kind: 'tour'; sid: string; heatmap: boolean; title: string }
+const SLOT_STYLE = {
+  A: { box: 'border-sky-500/50 bg-sky-500/5', on: 'ring-2 ring-sky-400', text: 'text-sky-300' },
+  B: { box: 'border-fuchsia-500/50 bg-fuchsia-500/5', on: 'ring-2 ring-fuchsia-400', text: 'text-fuchsia-300' },
+}
 
 export default function App() {
+  const [step, setStep] = useState<StepId>('find')
+  const [tour, setTour] = useState<{ sid: string; title: string } | null>(null)
   const [points, setPoints] = useState<CatalogPoints | null>(null)
-  const [demos, setDemos] = useState<CatalogEntry[]>([])
+  const [demo, setDemo] = useState<DemoPair | null>(null)
+  const [catalog, setCatalog] = useState<MaterialCatalog | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [flyTo, setFlyTo] = useState<{ lon: number; lat: number; zoom: number; key: number } | null>(null)
+
+  // The place being looked at.
   const [selected, setSelected] = useState<string | null>(null)
   const [prop, setProp] = useState<Property | null>(null)
   const [propError, setPropError] = useState<string | null>(null)
   const [entry, setEntry] = useState<CatalogEntry | null>(null)
-  const [flyTo, setFlyTo] = useState<{ lon: number; lat: number; zoom: number; key: number } | null>(null)
   const [rooms, setRooms] = useState<Room[] | null>(null)
-  const [customRooms, setCustomRooms] = useState<CustomRoomSpec[]>([])
   const [roomsError, setRoomsError] = useState<string | null>(null)
+  const [customRooms, setCustomRooms] = useState<CustomRoomSpec[]>([])
+
+  // The two rooms being compared (they can be in different places).
   const [picked, setPicked] = useState<Record<Slot, SlotRef | null>>({ A: null, B: null })
-  const [error, setError] = useState<string | null>(null)
-  const [catalog, setCatalog] = useState<MaterialCatalog | null>(null)
+  const [target, setTarget] = useState<Slot>('A')
   const [materials, setMaterials] = useState<Record<Slot, MaterialSelection>>({ A: {}, B: {} })
-  const [dryName, setDryName] = useState<string | null>(null)
-  const [active, setActive] = useState<StepId>('discover')
-  const [view, setView] = useState<View>({ kind: 'journey' })
-  const [demo, setDemo] = useState<DemoPair | null>(null)
+  const [objective, setObjective] = useState('mixing')
+  const [planned, setPlanned] = useState(false)
 
   useEffect(() => {
     fetchCatalogPoints()
       .then(setPoints)
-      .catch((e: Error) => setError(`Property map unavailable (${e.message}).`))
+      .catch((e: Error) => setError(`The property map is unavailable (${e.message}).`))
     fetchMaterials()
       .then(setCatalog)
-      .catch((e: Error) => setError(`Material presets unavailable (${e.message}).`))
+      .catch(() => setCatalog(null))
     fetchDemo()
       .then(setDemo)
       .catch(() => setDemo(null))
-    searchCatalog('', '', '', 50)
-      .then((r) => setDemos(r.results.filter((e) => e.demo_pick)))
-      .catch(() => setDemos([]))
   }, [])
 
   useEffect(() => {
@@ -77,10 +75,10 @@ export default function App() {
       .catch((e: Error) => live && setPropError(`Matterport did not return this scan (${e.message}).`))
     fetchRooms(selected)
       .then((r) => live && setRooms(r))
-      .catch((e: Error) => {
+      .catch(() => {
         if (!live) return
         setRooms([])
-        setRoomsError(`No room geometry from Matterport (${e.message}). Enter a room by its dimensions instead.`)
+        setRoomsError('Matterport has no room measurements for this scan. Enter a room by its dimensions instead.')
       })
     searchCatalog(selected, '', '', 1)
       .then((r) => live && setEntry(r.results[0] ?? null))
@@ -90,113 +88,115 @@ export default function App() {
     }
   }, [selected])
 
-  // Switching property keeps the A/B slots, so rooms from different properties can be compared.
-  const selectProperty = (sid: string) => {
+  const selectPlace = (sid: string) => {
     if (sid === selected) return
     setSelected(sid)
     setProp(null)
     setPropError(null)
     setEntry(null)
     setRooms(null)
-    setCustomRooms([])
     setRoomsError(null)
-    if (active === 'discover') setActive('explore')
+    setCustomRooms([])
   }
 
-  const noise = useNoise(selected)
-  const risk = useNoiseRisk(selected, noise.report != null)
-  const riskA = useNoiseRisk(picked.A?.sid ?? null, picked.A != null)
-  const riskB = useNoiseRisk(picked.B?.sid ?? null, picked.B != null)
-  const outside = {
-    A: ambienceLayers(riskA.risk?.ranked ?? []),
-    B: ambienceLayers(riskB.risk?.ranked ?? []),
-  }
-  const repA = useReport(picked.A?.sid ?? null, picked.A?.roomId ?? null, materials.A)
-  const repB = useReport(picked.B?.sid ?? null, picked.B?.roomId ?? null, materials.B)
-  const cmp = useComparison(
-    { sid: picked.A?.sid ?? null, roomId: picked.A?.roomId ?? null, materials: materials.A },
-    { sid: picked.B?.sid ?? null, roomId: picked.B?.roomId ?? null, materials: materials.B },
-  )
-  const maxRt60 = Math.max(0.1, ...(repA.report?.rt60_s ?? []), ...(repB.report?.rt60_s ?? []))
   const allRooms = rooms == null ? null : [...rooms, ...customRooms.map(customRoomToRoom)]
-  const usableCount = allRooms?.filter((r) => r.usable).length ?? 0
-  const sameRoom =
-    picked.A != null &&
-    picked.B != null &&
-    picked.A.sid === picked.B.sid &&
-    picked.A.roomId === picked.B.roomId &&
-    JSON.stringify(materials.A) === JSON.stringify(materials.B)
-  const address = entry ? [entry.address, entry.city].filter(Boolean).join(', ') : (prop?.address ?? selected ?? '')
-  const pickedHere = {
-    A: picked.A?.sid === selected ? picked.A.roomId : null,
-    B: picked.B?.sid === selected ? picked.B.roomId : null,
-  }
-  const pick = (slot: Slot, roomId: string) => {
-    const room = allRooms?.find((r) => r.id === roomId)
-    if (!selected || !room) return
-    setPicked((x) => ({ ...x, [slot]: { sid: selected, roomId, label: room.label, address } }))
-    setMaterials((m) => ({ ...m, [slot]: {} }))
-  }
+  const roomReports = useRoomReports(selected, allRooms)
+  const address = entry ? [entry.address, entry.city].filter(Boolean).join(', ') : (prop?.address ?? '')
   const loc =
     prop?.lat != null && prop.lon != null
       ? { lat: prop.lat, lon: prop.lon }
       : entry?.lat != null && entry.lon != null
         ? { lat: entry.lat, lon: entry.lon }
         : null
-  const propLoaded = prop != null || propError != null
-  const reports = { A: repA, B: repB }
 
-  const done: Record<StepId, boolean> = {
-    discover: selected != null,
-    explore: propLoaded,
-    configure: picked.A != null,
-    analyze: repA.report != null,
-    audition: picked.A != null && dryName != null,
-    compare: repA.report != null && repB.report != null && !sameRoom,
-    decide: repA.report != null && repB.report != null && !sameRoom,
+  const noise = useNoise(selected)
+  const risk = useNoiseRisk(selected, noise.report != null)
+  const riskA = useNoiseRisk(picked.A?.sid ?? null, picked.A != null)
+  const riskB = useNoiseRisk(picked.B?.sid ?? null, picked.B != null)
+  const repA = useReport(picked.A?.sid ?? null, picked.A?.roomId ?? null, materials.A)
+  const repB = useReport(picked.B?.sid ?? null, picked.B?.roomId ?? null, materials.B)
+  const reports = { A: repA, B: repB }
+  const cmp = useComparison(
+    { sid: picked.A?.sid ?? null, roomId: picked.A?.roomId ?? null, materials: materials.A },
+    { sid: picked.B?.sid ?? null, roomId: picked.B?.roomId ?? null, materials: materials.B },
+  )
+
+  const setSlot = (slot: Slot, ref: SlotRef | null) => {
+    setPicked((x) => ({ ...x, [slot]: ref }))
+    setMaterials((m) => ({ ...m, [slot]: {} }))
   }
-  // What each step needs before moving on (shown in the bottom bar; Next stays off until met).
-  const need: Record<StepId, string | null> = {
-    discover: selected ? null : 'Pick a property on the map or in the list',
-    explore: null,
-    configure: picked.A ? null : 'Press A on a room to choose it',
-    analyze: null,
-    audition: null,
-    compare: null,
-    decide: null,
+  const choose = (roomId: string) => {
+    const room = allRooms?.find((r) => r.id === roomId)
+    if (!selected || !room) return
+    setSlot(target, { sid: selected, roomId, label: room.label, address })
+    // After the first room, the next click offers the comparison room.
+    if (target === 'A' && !picked.B) setTarget('B')
   }
+
   const go = (id: StepId) => {
-    setActive(id)
+    setTour(null)
+    setStep(id)
     document.getElementById('workspace')?.scrollTo({ top: 0 })
   }
-  const openTour = (sid: string, heatmap: boolean, title: string) => setView({ kind: 'tour', sid, heatmap, title })
   const runDemo = () => {
     if (!demo) return
     const ref = (d: DemoPair['good']) => ({ sid: d.sid, roomId: d.room_id, label: d.label, address: d.address })
     setPicked({ A: ref(demo.good), B: ref(demo.bad) })
     setMaterials({ A: {}, B: {} })
-    if (selected !== demo.good.sid) selectProperty(demo.good.sid)
-    setView({ kind: 'journey' })
-    go('audition')
+    selectPlace(demo.good.sid)
+    go('listen')
   }
-  const activeTitle = STEPS.find((s) => s.id === active)?.title ?? ''
-  const tourRoomA = picked.A && !parseCustomRoomId(picked.A.roomId) ? picked.A : null
+  /** Room A as the plan modelled it, and the same room with the plan installed as Room B. */
+  const hearTreated = (plan: TreatmentPlan, avoidWalls: number[]) => {
+    if (!picked.A) return
+    const sel: MaterialSelection = {
+      ...Object.fromEntries(plan.room.materials.map((m) => [m.surface, m.material_id])),
+      furniture: plan.room.furniture,
+      room_model: true,
+    }
+    setPicked((x) => ({ ...x, B: { ...x.A!, label: `${x.A!.label}, treated for ${plan.objective.label.toLowerCase()}` } }))
+    setMaterials({ A: sel, B: { ...sel, treatment: plan.objective.id, treatment_avoid: avoidWalls } })
+    setPlanned(true)
+    go('listen')
+  }
+  const startOver = () => {
+    setPicked({ A: null, B: null })
+    setMaterials({ A: {}, B: {} })
+    setTarget('A')
+    setPlanned(false)
+    go('find')
+  }
+
+  const done: Record<StepId, boolean> = {
+    find: selected != null,
+    room: picked.A != null,
+    treat: planned,
+    listen: picked.A != null && repA.report != null,
+    verdict: false,
+  }
+  const reachable: Record<StepId, boolean> = {
+    find: true,
+    room: selected != null,
+    treat: picked.A != null,
+    listen: picked.A != null,
+    verdict: picked.A != null,
+  }
+  const need: Record<StepId, string | null> = {
+    find: selected ? null : 'Pick a place on the map or in the list',
+    room: picked.A ? null : 'Choose a room',
+    treat: null,
+    listen: null,
+    verdict: null,
+  }
 
   return (
-    <div className="flex h-screen flex-col">
-      <header className="flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-zinc-800 bg-zinc-950 px-4 py-2.5">
-        <div className="flex items-baseline gap-2">
+    <div className="flex h-screen flex-col bg-zinc-950">
+      <header className="flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-zinc-800 px-4 py-2.5">
+        <button onClick={startOver} className="flex items-baseline gap-2" title="Start over">
           <span className="text-lg font-black tracking-[0.2em] text-amber-400">REVERB</span>
-          <span className="hidden text-xs text-zinc-400 2xl:inline">Hear a room before you sign the lease</span>
-        </div>
-        <Stepper
-          done={done}
-          active={view.kind === 'tour' ? (view.heatmap ? 'analyze' : 'explore') : active}
-          onSelect={(id) => {
-            setView({ kind: 'journey' })
-            go(id)
-          }}
-        />
+          <span className="hidden text-xs text-zinc-400 xl:inline">Hear a room before you sign the lease</span>
+        </button>
+        <Stepper done={done} reachable={reachable} active={step} onSelect={go} />
       </header>
       {error && (
         <div className="flex items-center justify-between bg-red-950/70 px-4 py-1.5 text-xs text-red-200">
@@ -206,490 +206,303 @@ export default function App() {
           </button>
         </div>
       )}
-      {view.kind === 'tour' ? (
+
+      {/* The steps stay mounted under the tour, so a loaded recording survives a visit to it. */}
+      {tour && (
         <TourExperience
-          key={`${view.sid}-${view.heatmap}`}
-          sid={view.sid}
-          title={view.title}
-          startChoosing={view.heatmap}
-          onBack={() => setView({ kind: 'journey' })}
-          backLabel={`Back to ${activeTitle}`}
+          key={tour.sid}
+          sid={tour.sid}
+          title={tour.title}
+          onBack={() => setTour(null)}
+          backLabel="Back to the rooms"
           onUseRoom={(slot, roomId, label) => {
-            setPicked((x) => ({ ...x, [slot]: { sid: view.sid, roomId, label, address: view.title } }))
-            setMaterials((m) => ({ ...m, [slot]: {} }))
-            setView({ kind: 'journey' })
-            go('analyze')
+            setSlot(slot, { sid: tour.sid, roomId, label, address: tour.title })
+            go('listen')
           }}
         />
-      ) : (
-        <main className="min-h-0 flex-1 overflow-auto lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] lg:overflow-hidden">
-          <section className="flex flex-col border-zinc-800 lg:min-h-0 lg:border-r" aria-label="Map and search">
-            <div className="relative h-72 lg:h-auto lg:min-h-0 lg:flex-[3]">
-              <PropertyMap
-                points={points}
-                selected={selected && loc ? { sid: selected, ...loc } : null}
-                flyTo={flyTo}
-                onSelect={selectProperty}
-                noise={noise.report ?? null}
-                risk={risk.risk}
-              />
-            </div>
-            <div className="flex h-96 min-h-0 flex-col border-t border-zinc-800 lg:h-auto lg:flex-[2]">
-              <div className="px-3 pt-2 text-xs text-zinc-400">
-                <span className="font-semibold text-zinc-200">Find a property</span> · search, or click a dot on the
-                map. You can switch property at any step (for example to pick Room B elsewhere).
-              </div>
-              <DiscoveryPanel
-                selected={selected}
-                onSelect={selectProperty}
-                onCity={(at) => setFlyTo({ ...at, key: Date.now() })}
-              />
-            </div>
-          </section>
-
-          <section id="workspace" className="flex flex-col p-4 pb-0 lg:min-h-0 lg:overflow-auto" data-testid="workspace">
-            <div className="flex-1 space-y-4 pb-4">
-              {active === 'discover' && (
-                <>
-                  <Welcome demos={demos} onSelect={selectProperty} demo={demo} onDemo={runDemo} />
-                  {selected && (
-                    <p className="rounded-lg bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">
-                      Selected: {address || selected}. Press <b>Next</b> to explore it.
+      )}
+      {step === 'find' ? (
+        <main
+          className={
+            tour ? 'hidden' : 'min-h-0 flex-1 overflow-auto lg:grid lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] lg:overflow-hidden'
+          }
+        >
+          <div className="relative h-72 lg:h-auto">
+            <PropertyMap
+              points={points}
+              selected={selected && loc ? { sid: selected, ...loc } : null}
+              flyTo={flyTo}
+              onSelect={selectPlace}
+              noise={noise.report ?? null}
+              risk={risk.risk}
+            />
+          </div>
+          <section className="flex min-h-0 flex-col border-zinc-800 lg:border-l" data-testid="workspace">
+            <div className="space-y-3 p-4">
+              <StepHeader title="Find a place">
+                Pick a home or studio space with a 3D scan. You'll choose the room you'd play in, hear your own
+                recording in it, and get a verdict.
+              </StepHeader>
+              {selected ? (
+                <div className="rounded-xl border border-amber-400/50 bg-amber-400/5 p-4" data-testid="selected-place">
+                  <div className="text-xs uppercase tracking-wide text-amber-300">Selected</div>
+                  <div className="truncate text-lg font-semibold">{address || 'Loading…'}</div>
+                  <div className="truncate text-sm text-zinc-400">
+                    {[entry?.type_label ?? entry?.kind, prop && `${prop.usable_room_count} measurable rooms`]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </div>
+                  <button
+                    onClick={() => go('room')}
+                    className="mt-3 w-full rounded-lg bg-amber-400 px-4 py-2 text-sm font-semibold text-black hover:bg-amber-300"
+                    data-testid="to-rooms"
+                  >
+                    Choose a room here →
+                  </button>
+                </div>
+              ) : (
+                demo && (
+                  <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4" data-testid="demo-pair">
+                    <div className="font-semibold">New here? Try the demo</div>
+                    <p className="mt-1 text-sm text-zinc-400">
+                      A quiet house vs a noisy one: <span className="text-sky-300">{demo.good.address}</span> and{' '}
+                      <span className="text-fuchsia-300">{demo.bad.address}</span>.
                     </p>
-                  )}
-                </>
+                    <button
+                      onClick={runDemo}
+                      className="mt-3 rounded-lg bg-zinc-100 px-4 py-2 text-sm font-semibold text-black hover:bg-white"
+                      data-testid="run-demo"
+                    >
+                      Load both and listen →
+                    </button>
+                  </div>
+                )
               )}
-
-              {active === 'explore' && (
-                <Step
-                  id="explore"
-                  state={done.explore ? 'done' : 'current'}
-                  title={selected ? address || 'Loading property…' : 'Explore the property'}
-                  subtitle={
-                    selected
-                      ? [entry?.type_label ?? entry?.kind, entry?.name, prop?.name].filter(Boolean).join(' · ')
-                      : 'The 3D scan, facts and the noise risks around it.'
-                  }
-                  aside={selected && <Tag>Matterport + CoStar + OpenStreetMap</Tag>}
-                >
-                  {!selected ? (
-                    <Placeholder>Pick a property first (step 1).</Placeholder>
-                  ) : (
-                    <div className="space-y-3">
-                      {propError && (
-                        <p className="rounded-md bg-amber-900/30 px-3 py-2 text-xs text-amber-200">
-                          {propError} Facts and surroundings still come from CoStar; enter a room by its dimensions in
-                          the next step.
-                        </p>
-                      )}
-                      {entry && prop?.address && streetKey(prop.address) !== streetKey(entry.address) && (
-                        <p className="text-xs text-amber-300" data-testid="address-mismatch">
-                          This Matterport scan reports its address as {prop.address}; CoStar lists the property as{' '}
-                          {entry.address}. Both are shown as recorded.
-                        </p>
-                      )}
-                      {entry && entry.model_ids.length > 1 && (
-                        <div className="flex flex-wrap items-center gap-1 text-xs" data-testid="scans">
-                          <span className="text-zinc-400">{entry.model_ids.length} Matterport scans of this property:</span>
-                          {entry.model_ids.map((sid, i) => (
-                            <button
-                              key={sid}
-                              onClick={() => selectProperty(sid)}
-                              className={`rounded px-1.5 py-0.5 ${sid === selected ? 'bg-amber-400 text-black' : 'bg-zinc-800 hover:bg-zinc-700'}`}
-                            >
-                              {i + 1}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                      {!propError && (
-                        <div className="flex flex-wrap gap-2">
-                          <button
-                            onClick={() => openTour(selected, false, address || selected)}
-                            className="rounded-lg bg-sky-400 px-3 py-1.5 text-xs font-semibold text-zinc-950 hover:bg-sky-300"
-                            data-testid="open-tour"
-                          >
-                            Walk the 3D tour
-                          </button>
-                          <button
-                            onClick={() => openTour(selected, true, address || selected)}
-                            className="rounded-lg bg-gradient-to-r from-rose-500 via-amber-400 to-cyan-400 px-3 py-1.5 text-xs font-semibold text-black"
-                            data-testid="open-heatmap"
-                          >
-                            Choose my music room (3D heatmap)
-                          </button>
-                        </div>
-                      )}
-                      <ModelViewer sid={selected} />
-                      <RiskPanel
-                        sid={selected}
-                        risk={risk.risk}
-                        loading={risk.loading || noise.loading}
-                        error={risk.error ?? noise.error ?? null}
-                        onFocus={(lon, lat) => setFlyTo({ lon, lat, zoom: 17, key: Date.now() })}
-                      />
-                      <FactsCard sid={selected} />
-                      <details>
-                        <summary className="cursor-pointer text-xs text-zinc-400 hover:text-zinc-200">
-                          Noise exposure by category and every mapped source
-                        </summary>
-                        <NoisePanel noise={noise} />
-                      </details>
-                      <details>
-                        <summary className="cursor-pointer text-xs text-zinc-400 hover:text-zinc-200">
-                          Full Deep Agents research report (summary, advice, data gaps, trace)
-                        </summary>
-                        <NoiseScoutPanel sid={selected} />
-                      </details>
-                    </div>
-                  )}
-                </Step>
-              )}
-
-              {active === 'configure' && (
-                <Step
-                  id="configure"
-                  state={done.configure ? 'done' : 'current'}
-                  title="Choose the rooms"
-                  subtitle="A Matterport room, or one you enter by its dimensions. Furniture and materials are editable."
-                  aside={<Tag tone="amber">furniture and materials assumed until edited</Tag>}
-                  hint={
-                    !selected
-                      ? undefined
-                      : !picked.A
-                        ? 'Press A on the room you want to hear first.'
-                        : !picked.B
-                          ? 'Optional: press B on a second room, here or after picking another property on the map.'
-                          : undefined
-                  }
-                >
-                  <SlotBar picked={picked} onOpen={selectProperty} onClear={(s) => setPicked((x) => ({ ...x, [s]: null }))} />
-                  {!selected ? (
-                    <div className="mt-3">
-                      <Placeholder>Pick a property first (step 1).</Placeholder>
-                    </div>
-                  ) : allRooms == null ? (
-                    <div className="mt-3">
-                      <Placeholder>Loading rooms from Matterport…</Placeholder>
-                    </div>
-                  ) : (
-                    <div className="mt-3">
-                      {roomsError && <p className="mb-2 text-xs text-amber-300">{roomsError}</p>}
-                      {usableCount < 2 && (
-                        <p className="mb-2 rounded-md bg-amber-900/30 px-3 py-2 text-xs text-amber-200">
-                          {usableCount === 0 ? 'No room' : `Only ${usableCount} room`} here has enough geometry to model.
-                          Add a room by its dimensions, compare with a room from another property, or pick another
-                          property.
-                        </p>
-                      )}
-                      <RoomPicker rooms={allRooms} picked={pickedHere} onPick={pick} />
-                      <CustomRoomForm
-                        key={selected}
-                        prominent={usableCount < 2}
-                        onAdd={(c) =>
-                          setCustomRooms((cs) =>
-                            cs.some((x) => customRoomToRoom(x).id === customRoomToRoom(c).id) ? cs : [...cs, c],
-                          )
-                        }
-                      />
-                    </div>
-                  )}
-                  {(picked.A || picked.B) && (
-                    <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2" data-testid="selection">
-                      {(['A', 'B'] as Slot[])
-                        .filter((s) => picked[s])
-                        .map((slot) => {
-                          const rep = reports[slot].report
-                          const sel = materials[slot]
-                          return (
-                            <div key={slot} className="space-y-2 rounded-lg border border-zinc-800 p-2">
-                              <div className="flex items-center gap-2 text-xs">
-                                <Tag tone={SLOT_TONE[slot]}>Room {slot}</Tag>
-                                <span className="truncate text-zinc-300">{picked[slot]!.label}</span>
-                              </div>
-                              {catalog && (
-                                <MaterialEditor
-                                  slot={slot}
-                                  catalog={catalog}
-                                  value={sel}
-                                  onChange={(v) => setMaterials((m) => ({ ...m, [slot]: v }))}
-                                />
-                              )}
-                              {rep ? (
-                                <FurnitureEditor
-                                  current={rep.furniture ?? []}
-                                  edited={sel.furniture !== undefined}
-                                  compact
-                                  onChange={(items) =>
-                                    setMaterials((m) => {
-                                      const { furniture: _drop, ...rest } = m[slot]
-                                      void _drop
-                                      return { ...m, [slot]: items === undefined ? rest : { ...rest, furniture: items } }
-                                    })
-                                  }
-                                />
-                              ) : (
-                                <p className="text-xs text-zinc-500">Loading furniture…</p>
-                              )}
-                            </div>
-                          )
-                        })}
-                    </div>
-                  )}
-                </Step>
-              )}
-
-              {active === 'analyze' && (
-                <Step
-                  id="analyze"
-                  state={done.analyze ? 'done' : 'current'}
-                  title="Room acoustics"
-                  subtitle="Calculated from the room's outline, height, materials and furniture: RT60, modes, Schroeder frequency, reflections."
-                  aside={<Tag tone="amber">modeled, not measured</Tag>}
-                >
-                  {!picked.A && !picked.B ? (
-                    <Placeholder>Pick a room in step 3 to calculate its acoustics.</Placeholder>
-                  ) : (
-                    <>
-                      {tourRoomA && (
-                        <button
-                          onClick={() => openTour(tourRoomA.sid, true, tourRoomA.address)}
-                          className="mb-3 w-full rounded-lg bg-gradient-to-r from-rose-500 via-amber-400 to-cyan-400 px-3 py-2 text-sm font-semibold text-black"
-                          data-testid="analyze-heatmap"
-                        >
-                          Choose your music room in 3D and see where the sound is good or bad: {tourRoomA.address}
-                        </button>
-                      )}
-                      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                        {(['A', 'B'] as Slot[]).map((slot) => {
-                          const r = reports[slot]
-                          return (
-                            <div key={slot} className="min-w-0 rounded-lg border border-zinc-800 p-3" data-testid={`analysis-${slot}`}>
-                              <div className="mb-2 flex items-center gap-2 text-xs">
-                                <Tag tone={SLOT_TONE[slot]}>Room {slot}</Tag>
-                                <span className="truncate text-zinc-300">{picked[slot]?.label ?? 'not chosen'}</span>
-                              </div>
-                              {r.loading && <div className="text-xs text-zinc-500">Calculating…</div>}
-                              {r.error && <div className="text-xs text-red-300">{r.error}</div>}
-                              {!picked[slot] && <div className="text-xs text-zinc-500">Pick a room as {slot} to fill this side.</div>}
-                              {r.report && (
-                                <>
-                                  <KeyMetrics slot={slot} report={r.report} />
-                                  <p className="mt-2 text-[11px] text-zinc-500">
-                                    {r.report.furniture?.length
-                                      ? `Furnished (${r.report.furniture.length} kinds of item${
-                                          r.report.furniture.some((f) => f.provenance === 'assumed') ? ', assumed' : ''
-                                        }).`
-                                      : 'Modeled empty.'}{' '}
-                                    {r.report.geometry.wall_source === 'outline'
-                                      ? 'Wall area from the Matterport outline.'
-                                      : 'Rectangular box.'}
-                                  </p>
-                                  <details className="mt-2">
-                                    <summary className="cursor-pointer text-xs text-zinc-400 hover:text-zinc-200">
-                                      Full analysis: RT60 by band, modes, reflections, assumptions
-                                    </summary>
-                                    <div className="mt-2">
-                                      <NumbersPanel slot={slot} {...r} maxRt60={maxRt60} />
-                                    </div>
-                                  </details>
-                                </>
-                              )}
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </>
-                  )}
-                </Step>
-              )}
-
-              {active === 'audition' && (
-                <Step
-                  id="audition"
-                  state={done.audition ? 'done' : 'current'}
-                  title="Audition"
-                  subtitle="Upload one dry recording; your browser convolves it with each room's modeled impulse response."
-                  aside={<Tag tone="amber">modeled approximation, not a recording</Tag>}
-                  hint={picked.A && !dryName ? 'Upload a dry recording (or use the test claps), then press Play.' : undefined}
-                >
-                  {!picked.A && !picked.B ? (
-                    <Placeholder>Pick a room first (step 3); its impulse response is generated with Pyroomacoustics.</Placeholder>
-                  ) : (
-                    <AudioLab a={picked.A} b={picked.B} materials={materials} onDry={setDryName} outside={outside} />
-                  )}
-                </Step>
-              )}
-
-              {active === 'compare' && (
-                <Step
-                  id="compare"
-                  state={done.compare ? 'done' : 'current'}
-                  title="Compare A and B"
-                  subtitle="Same recording, two rooms: switch Room A / Room B in the player (step 5). The explanation comes from the numbers."
-                  hint={picked.A && !picked.B ? 'Pick a second room as B in step 3; it can be in another property.' : undefined}
-                >
-                  {sameRoom && (
-                    <p className="mb-2 text-xs text-amber-300">
-                      Room A and B are the same room with the same settings; pick another room or change materials or
-                      furniture to hear a difference.
-                    </p>
-                  )}
-                  {picked.A && picked.B ? (
-                    <>
-                      <Explanation {...cmp} />
-                      <button onClick={() => go('audition')} className="mt-3 text-xs text-sky-300 hover:underline">
-                        ← Listen to both again in the player
-                      </button>
-                    </>
-                  ) : (
-                    <Placeholder>Choose two rooms to compare.</Placeholder>
-                  )}
-                </Step>
-              )}
-
-              {active === 'decide' && (
-                <Step
-                  id="decide"
-                  state={done.decide ? 'done' : 'current'}
-                  title="Decide"
-                  subtitle="Studio suitability per use, from the calculated results (furniture included). Qualitative, never a score."
-                >
-                  {repA.report || repB.report ? (
-                    <>
-                      <div className="mb-3 grid grid-cols-1 gap-3 md:grid-cols-2" data-testid="house-verdicts">
-                        {(['A', 'B'] as Slot[])
-                          .filter((s) => picked[s])
-                          .map((slot) => (
-                            <HouseVerdict
-                              key={slot}
-                              slot={slot}
-                              address={picked[slot]!.address}
-                              roomLabel={picked[slot]!.label}
-                              report={reports[slot].report}
-                              risk={(slot === 'A' ? riskA : riskB).risk}
-                              riskLoading={(slot === 'A' ? riskA : riskB).loading}
-                            />
-                          ))}
-                      </div>
-                      <VerdictRules />
-                      <details className="mt-3">
-                        <summary className="cursor-pointer text-xs text-zinc-400 hover:text-zinc-200">
-                          Suitability for every use (vocals, instruments, mixing, podcasting, guitars)
-                        </summary>
-                        <SuitabilityPanel a={repA.report} b={repB.report} />
-                      </details>
-                      {tourRoomA && (
-                        <button
-                          onClick={() => openTour(tourRoomA.sid, true, tourRoomA.address)}
-                          className="mt-3 text-xs text-sky-300 hover:underline"
-                        >
-                          Where to put the mic or seat, panels and bass traps: open the 3D heatmap advice →
-                        </button>
-                      )}
-                    </>
-                  ) : (
-                    <Placeholder>Suitability appears once a room is analyzed.</Placeholder>
-                  )}
-                </Step>
-              )}
-
-              <p className="text-xs text-zinc-500">
-                Property records: CoStar. Room geometry: Matterport, or entered by you. Surroundings: OpenStreetMap
-                (mapped proximity, not measured sound levels). All acoustic values and audio are modeled approximations
-                from geometry, materials and furniture, not measurements.
-              </p>
             </div>
-            <StepNav active={active} need={need[active]} onGo={go} />
+            <DiscoveryPanel selected={selected} onSelect={selectPlace} onCity={(at) => setFlyTo({ ...at, key: Date.now() })} />
           </section>
         </main>
-      )}
-    </div>
-  )
-}
+      ) : (
+        <main id="workspace" className={`min-h-0 flex-1 overflow-auto ${tour ? 'hidden' : ''}`} data-testid="workspace">
+          <div className="mx-auto max-w-4xl px-4 py-6">
+            {step === 'room' && selected && (
+              <>
+                <StepHeader
+                  title="Choose a room"
+                  aside={
+                    <button onClick={() => go('find')} className="rounded-lg bg-zinc-800 px-3 py-1.5 text-sm hover:bg-zinc-700">
+                      Change place
+                    </button>
+                  }
+                >
+                  Pick the room you'd record or rehearse in. Add a second room to compare: another room here, or one in
+                  another place (choose Room B, then Change place).
+                </StepHeader>
 
-function Placeholder({ children }: { children: ReactNode }) {
-  return (
-    <p className="rounded-lg border border-dashed border-zinc-800 px-3 py-4 text-center text-xs text-zinc-500">{children}</p>
-  )
-}
+                <SlotBar picked={picked} target={target} onTarget={setTarget} onClear={(s) => setSlot(s, null)} />
 
-function Welcome({
-  demos,
-  onSelect,
-  demo,
-  onDemo,
-}: {
-  demos: CatalogEntry[]
-  onSelect: (sid: string) => void
-  demo: DemoPair | null
-  onDemo: () => void
-}) {
-  return (
-    <div className="rounded-xl border border-zinc-800 bg-gradient-to-br from-zinc-900 to-zinc-950 p-5" data-testid="welcome">
-      <h1 className="text-xl font-semibold text-zinc-100">Find a property, understand its acoustics, hear it.</h1>
-      <p className="mt-1 max-w-prose text-sm text-zinc-400">
-        For musicians and audio people choosing a place to record, mix or rehearse. Seven steps, one at a time; the bar
-        at the bottom always says what is next.
-      </p>
-      <ol className="mt-3 grid grid-cols-1 gap-1.5 text-xs text-zinc-300 sm:grid-cols-2">
-        {[
-          ['Discover', 'search 5,000+ CoStar properties with a Matterport scan'],
-          ['Explore', '3D tour, facts and a noise-risk heatmap of the neighbourhood'],
-          ['Configure', 'pick rooms; check their furniture and materials'],
-          ['Analyze', 'RT60, modes, clarity, and a 3D acoustic heatmap'],
-          ['Audition', 'play your dry recording through the room'],
-          ['Compare', 'the same recording in a second room'],
-          ['Decide', 'which room suits which use, and what to fix'],
-        ].map(([t, d], i) => (
-          <li key={t} className="flex gap-2">
-            <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-zinc-800 text-[10px]">{i + 1}</span>
-            <span>
-              <b>{t}</b>: {d}
-            </span>
-          </li>
-        ))}
-      </ol>
-      {demo && (
-        <div className="mt-4 rounded-lg border border-amber-400/40 bg-amber-400/5 p-3" data-testid="demo-pair">
-          <div className="text-sm font-semibold text-amber-200">Demo: a good house vs a bad house</div>
-          <div className="mt-1 grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
-            <div>
-              <span className="font-semibold text-sky-300">A · {demo.good.address}</span>
-              <div className="text-zinc-400">{demo.good.why}</div>
-            </div>
-            <div>
-              <span className="font-semibold text-fuchsia-300">B · {demo.bad.address}</span>
-              <div className="text-zinc-400">{demo.bad.why}</div>
-            </div>
-          </div>
-          <button
-            onClick={onDemo}
-            className="mt-2 rounded-md bg-amber-400 px-3 py-1.5 text-xs font-semibold text-black hover:bg-amber-300"
-            data-testid="run-demo"
-          >
-            Load both and listen →
-          </button>
-        </div>
-      )}
-      {demos.length > 0 && (
-        <div className="mt-4">
-          <div className="mb-1.5 text-xs text-zinc-500">Start with a demo pick, or use the map and list on the left:</div>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {demos.map((d) => (
-              <button
-                key={d.key}
-                onClick={() => onSelect(d.sid)}
-                className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-left hover:border-amber-400/60"
-              >
-                <div className="truncate text-sm text-zinc-100">{d.address}</div>
-                <div className="truncate text-xs text-zinc-500">
-                  {[d.city, d.type_label ?? d.kind].filter(Boolean).join(' · ')}
+                <div className="mt-6 mb-3 flex flex-wrap items-baseline justify-between gap-2">
+                  <div className="min-w-0">
+                    <h2 className="truncate text-lg font-semibold">{address || 'Loading…'}</h2>
+                    {entry && entry.model_ids.length > 1 && (
+                      <div className="mt-1 flex flex-wrap items-center gap-1 text-xs text-zinc-400" data-testid="scans">
+                        {entry.model_ids.length} scans of this place:
+                        {entry.model_ids.map((sid, i) => (
+                          <button
+                            key={sid}
+                            onClick={() => selectPlace(sid)}
+                            className={`rounded px-1.5 py-0.5 ${sid === selected ? 'bg-amber-400 text-black' : 'bg-zinc-800 hover:bg-zinc-700'}`}
+                          >
+                            {i + 1}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {!propError && (
+                    <button
+                      onClick={() => setTour({ sid: selected, title: address || selected })}
+                      className="rounded-lg bg-sky-400 px-3 py-1.5 text-sm font-semibold text-black hover:bg-sky-300"
+                      data-testid="open-tour"
+                    >
+                      Walk through in 3D
+                    </button>
+                  )}
                 </div>
-              </button>
-            ))}
+
+                {propError && <Note>{propError} You can still enter a room by its dimensions.</Note>}
+                {roomsError && <Note>{roomsError}</Note>}
+                {allRooms == null ? (
+                  <Placeholder>Loading rooms from Matterport…</Placeholder>
+                ) : (
+                  <RoomCards
+                    rooms={allRooms}
+                    reports={roomReports}
+                    picked={{
+                      A: picked.A?.sid === selected ? picked.A.roomId : null,
+                      B: picked.B?.sid === selected ? picked.B.roomId : null,
+                    }}
+                    target={target}
+                    onChoose={choose}
+                  />
+                )}
+                <CustomRoomForm
+                  key={selected}
+                  prominent={allRooms != null && allRooms.filter((r) => r.usable).length === 0}
+                  onAdd={(c) =>
+                    setCustomRooms((cs) => (cs.some((x) => customRoomToRoom(x).id === customRoomToRoom(c).id) ? cs : [...cs, c]))
+                  }
+                />
+
+                {(picked.A || picked.B) && (
+                  <details className="mt-6 rounded-xl border border-zinc-800" data-testid="adjust">
+                    <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-zinc-200">
+                      Adjust furniture and surfaces <span className="font-normal text-zinc-500">(optional: typical for the room type until you change them)</span>
+                    </summary>
+                    <div className="grid grid-cols-1 gap-3 px-4 pb-4 md:grid-cols-2">
+                      {(['A', 'B'] as Slot[])
+                        .filter((s) => picked[s])
+                        .map((slot) => (
+                          <Adjust
+                            key={slot}
+                            slot={slot}
+                            label={picked[slot]!.label}
+                            catalog={catalog}
+                            report={reports[slot].report}
+                            value={materials[slot]}
+                            onChange={(v) => setMaterials((m) => ({ ...m, [slot]: v }))}
+                          />
+                        ))}
+                    </div>
+                  </details>
+                )}
+              </>
+            )}
+
+            {step === 'treat' && picked.A && (
+              <>
+                <StepHeader title="Treatment plan" aside={<Tag tone="amber">simulated, not measured</Tag>}>
+                  REVERB reads the scan, works out what is wrong with {picked.A.label} for the use you pick, and places
+                  each panel, bass trap and cloud where it does the most good.
+                </StepHeader>
+                {parseCustomRoomId(picked.A.roomId) ? (
+                  <Placeholder>A treatment plan needs a scanned room; a room entered by its dimensions has no walls to place panels on.</Placeholder>
+                ) : (
+                  <TreatmentStep
+                    key={`${picked.A.sid}/${picked.A.roomId}`}
+                    room={picked.A}
+                    objective={objective}
+                    onObjective={setObjective}
+                    onHearTreated={hearTreated}
+                  />
+                )}
+              </>
+            )}
+
+            {/* Kept mounted from here on, so your recording and playhead survive moving between steps. */}
+            {picked.A && (
+              <div className={step === 'listen' ? '' : 'hidden'}>
+                <StepHeader title="Listen" aside={<Tag tone="amber">modeled, not a recording</Tag>}>
+                  Upload a dry take (close-miked, little room sound) and press Play. Switch between the original and each
+                  room while it plays; your place in the track is kept.
+                </StepHeader>
+                <AudioLab
+                  a={picked.A}
+                  b={picked.B}
+                  materials={materials}
+                  active={step === 'listen'}
+                  outside={{ A: ambienceLayers(riskA.risk?.ranked ?? []), B: ambienceLayers(riskB.risk?.ranked ?? []) }}
+                />
+                <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {(['A', 'B'] as Slot[]).map((s) =>
+                    picked[s] ? <RoomSummary key={s} slot={s} ref_={picked[s]!} report={reports[s].report} /> : null,
+                  )}
+                </div>
+                {picked.B ? (
+                  <div className="mt-4">
+                    <Explanation {...cmp} />
+                  </div>
+                ) : (
+                  <p className="mt-4 text-sm text-zinc-500">
+                    Want a comparison? Go back and choose a Room B.
+                  </p>
+                )}
+              </div>
+            )}
+
+            {step === 'verdict' && picked.A && (
+              <>
+                <StepHeader title="Verdict">
+                  Each place as a music space: the room (with treatment you could realistically add) and the noise around
+                  it.
+                </StepHeader>
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2" data-testid="house-verdicts">
+                  {(['A', 'B'] as Slot[])
+                    .filter((s) => picked[s])
+                    .map((slot) => (
+                      <HouseVerdict
+                        key={slot}
+                        slot={slot}
+                        address={picked[slot]!.address}
+                        roomLabel={picked[slot]!.label}
+                        report={reports[slot].report}
+                        risk={(slot === 'A' ? riskA : riskB).risk}
+                        riskLoading={(slot === 'A' ? riskA : riskB).loading}
+                      />
+                    ))}
+                </div>
+                <div className="mt-3">
+                  <VerdictRules />
+                </div>
+                <div className="mt-6 space-y-2">
+                  <More title="Fit for each use: vocals, acoustic and electric guitar, mixing, podcasting…">
+                    <SuitabilityPanel a={repA.report} b={repB.report} />
+                  </More>
+                  <More title="All the numbers: RT60 by band, room modes, early reflections">
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                      {(['A', 'B'] as Slot[])
+                        .filter((s) => picked[s])
+                        .map((s) => (
+                          <NumbersPanel
+                            key={s}
+                            slot={s}
+                            {...reports[s]}
+                            maxRt60={Math.max(0.1, ...(repA.report?.rt60_s ?? []), ...(repB.report?.rt60_s ?? []))}
+                          />
+                        ))}
+                    </div>
+                  </More>
+                  {!parseCustomRoomId(picked.A.roomId) && (
+                    <button
+                      onClick={() => setTour({ sid: picked.A!.sid, title: picked.A!.address })}
+                      className="w-full rounded-xl border border-zinc-800 px-4 py-3 text-left text-sm text-sky-300 hover:bg-zinc-900"
+                    >
+                      Where to put the mic, panels and bass traps in Room A: open the 3D heatmap →
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+
+            <p className="mt-10 text-xs text-zinc-600">
+              All acoustic values and audio are modeled from the room's geometry, materials and furniture, not measured.
+              Property records: CoStar. Room geometry: Matterport. Surroundings: OpenStreetMap.
+            </p>
           </div>
-        </div>
+        </main>
+      )}
+
+      {!tour && (
+        <StepNav
+          active={step}
+          need={need[step]}
+          onGo={go}
+          last={
+            <button onClick={startOver} className="rounded-lg bg-zinc-100 px-5 py-2 text-sm font-semibold text-black hover:bg-white" data-testid="start-over">
+              Start over
+            </button>
+          }
+        />
       )}
     </div>
   )
@@ -697,45 +510,50 @@ function Welcome({
 
 function SlotBar({
   picked,
-  onOpen,
+  target,
+  onTarget,
   onClear,
 }: {
   picked: Record<Slot, SlotRef | null>
-  onOpen: (sid: string) => void
-  onClear: (slot: Slot) => void
+  target: Slot
+  onTarget: (s: Slot) => void
+  onClear: (s: Slot) => void
 }) {
   return (
-    <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2" data-testid="slots">
+    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2" data-testid="slots">
       {(['A', 'B'] as Slot[]).map((slot) => {
         const ref = picked[slot]
+        const st = SLOT_STYLE[slot]
         return (
           <div
             key={slot}
-            className={`flex items-start justify-between gap-2 rounded-lg border px-3 py-2 ${
-              slot === 'A' ? 'border-sky-500/40 bg-sky-500/5' : 'border-fuchsia-500/40 bg-fuchsia-500/5'
-            }`}
+            role="button"
+            tabIndex={0}
+            onClick={() => onTarget(slot)}
+            onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onTarget(slot)}
+            className={`flex cursor-pointer items-start justify-between gap-2 rounded-xl border px-4 py-3 ${st.box} ${target === slot ? st.on : ''}`}
+            data-testid={`slot-${slot}`}
           >
             <div className="min-w-0">
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-zinc-400">Room {slot}</div>
+              <div className={`text-xs font-semibold uppercase tracking-wide ${st.text}`}>
+                Room {slot} {slot === 'A' ? '· your room' : '· to compare (optional)'}
+              </div>
               {ref ? (
                 <>
                   <div className="truncate font-medium">{ref.label}</div>
-                  <button
-                    className="block max-w-full truncate text-left text-xs text-zinc-400 hover:text-zinc-200"
-                    onClick={() => onOpen(ref.sid)}
-                    title="Open this property"
-                  >
-                    {ref.address}
-                  </button>
+                  <div className="truncate text-xs text-zinc-400">{ref.address}</div>
                 </>
               ) : (
-                <div className="text-xs text-zinc-500">empty: press {slot} on a room below</div>
+                <div className="text-sm text-zinc-500">{target === slot ? 'Click a room below' : 'Empty'}</div>
               )}
             </div>
             {ref && (
               <button
-                className="text-xs text-zinc-500 hover:text-zinc-200"
-                onClick={() => onClear(slot)}
+                className="text-sm text-zinc-500 hover:text-zinc-200"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onClear(slot)
+                }}
                 aria-label={`Clear room ${slot}`}
               >
                 ✕
@@ -746,4 +564,91 @@ function SlotBar({
       })}
     </div>
   )
+}
+
+function Adjust({
+  slot,
+  label,
+  catalog,
+  report,
+  value,
+  onChange,
+}: {
+  slot: Slot
+  label: string
+  catalog: MaterialCatalog | null
+  report?: AcousticReport
+  value: MaterialSelection
+  onChange: (v: MaterialSelection) => void
+}) {
+  return (
+    <div className="space-y-2 rounded-lg bg-zinc-900/60 p-3">
+      <div className={`text-xs font-semibold ${SLOT_STYLE[slot].text}`}>
+        Room {slot}: {label}
+      </div>
+      {catalog && <MaterialEditor slot={slot} catalog={catalog} value={value} onChange={onChange} />}
+      {report ? (
+        <FurnitureEditor
+          current={report.furniture ?? []}
+          edited={value.furniture !== undefined}
+          compact
+          onChange={(items) => {
+            const { furniture: _drop, ...rest } = value
+            void _drop
+            onChange(items === undefined ? rest : { ...rest, furniture: items })
+          }}
+        />
+      ) : (
+        <p className="text-xs text-zinc-500">Loading furniture…</p>
+      )}
+    </div>
+  )
+}
+
+/** The three numbers a musician reads first, per room. */
+function RoomSummary({ slot, ref_, report }: { slot: Slot; ref_: SlotRef; report?: AcousticReport }) {
+  const mid = report ? (report.rt60_s[report.bands_hz.indexOf(500)] + report.rt60_s[report.bands_hz.indexOf(1000)]) / 2 : null
+  const lowest = report?.modes.length ? Math.min(...report.modes.map((m) => m.freq_hz)) : null
+  return (
+    <div className="rounded-xl border border-zinc-800 p-3" data-testid={`summary-${slot}`}>
+      <div className={`text-xs font-semibold ${SLOT_STYLE[slot].text}`}>Room {slot}</div>
+      <div className="truncate text-sm font-medium">{ref_.label}</div>
+      <div className="truncate text-xs text-zinc-500">{ref_.address}</div>
+      {report ? (
+        <dl className="mt-2 grid grid-cols-3 gap-2 text-xs">
+          <Metric label="RT60 (mid)" value={`${mid!.toFixed(2)} s`} help="How long the room rings: time for a sound to fade by 60 dB, 500 Hz-1 kHz." />
+          <Metric label="Schroeder" value={`${report.schroeder_hz.toFixed(0)} Hz`} help="Below this, room modes (boomy notes) dominate the bass." />
+          <Metric label="Lowest mode" value={lowest == null ? '—' : `${lowest.toFixed(0)} Hz`} help="The deepest resonance of the room." />
+        </dl>
+      ) : (
+        <div className="mt-2 text-xs text-zinc-500">Calculating…</div>
+      )}
+    </div>
+  )
+}
+
+function Metric({ label, value, help }: { label: string; value: string; help: string }) {
+  return (
+    <div title={help}>
+      <dt className="text-zinc-500">{label}</dt>
+      <dd className="text-base font-semibold tabular-nums text-zinc-100">{value}</dd>
+    </div>
+  )
+}
+
+function More({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <details className="rounded-xl border border-zinc-800">
+      <summary className="cursor-pointer px-4 py-3 text-sm text-zinc-300">{title}</summary>
+      <div className="px-4 pb-4">{children}</div>
+    </details>
+  )
+}
+
+function Note({ children }: { children: ReactNode }) {
+  return <p className="mb-3 rounded-lg bg-amber-900/30 px-3 py-2 text-sm text-amber-200">{children}</p>
+}
+
+function Placeholder({ children }: { children: ReactNode }) {
+  return <p className="rounded-xl border border-dashed border-zinc-800 px-3 py-6 text-center text-sm text-zinc-500">{children}</p>
 }

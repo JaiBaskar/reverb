@@ -1,265 +1,267 @@
 {
-    "sid": "zvKHR9DHNjJ",
-    "room_id": "cdz3fkt38kae7tapstpt0eaeb",
-    "label": "Living Room",
-    "bands_hz": [
-        125,
-        250,
-        500,
-        1000,
-        2000,
-        4000
-    ],
-    "geometry": {
-        "width_m": {
-            "value": 5.041176795959473,
-            "provenance": "verified",
-            "note": null
-        },
-        "depth_m": {
-            "value": 5.70418119430542,
-            "provenance": "verified",
-            "note": null
-        },
-        "height_m": {
-            "value": 2.669999837875366,
-            "provenance": "verified",
-            "note": null
-        },
-        "area_m2": {
-            "value": 28.86639976501465,
-            "provenance": "verified",
-            "note": null
-        },
-        "equivalent_width_m": 5.0508633499989495,
-        "equivalent_depth_m": 5.715141702461748,
-        "volume_m3": 77.07328269263462,
-        "note": null
+  "sid": "zvKHR9DHNjJ",
+  "room_id": "cdz3fkt38kae7tapstpt0eaeb",
+  "label": "Living Room",
+  "bands_hz": [
+    125,
+    250,
+    500,
+    1000,
+    2000,
+    4000
+  ],
+  "geometry": {
+    "width_m": {
+      "value": 5.041176795959473,
+      "provenance": "verified",
+      "note": null
     },
-    "surfaces": {
-        "floor_m2": 28.866399765014645,
-        "ceiling_m2": 28.866399765014645,
-        "walls_m2": 57.49046348927088
+    "depth_m": {
+      "value": 5.70418119430542,
+      "provenance": "verified",
+      "note": null
     },
-    "materials": [
-        {
-            "surface": "floor",
-            "id": "hardwood",
-            "label": "Hardwood floor",
-            "alpha": [
-                0.15,
-                0.11,
-                0.1,
-                0.07,
-                0.06,
-                0.07
-            ],
-            "provenance": "assumed"
-        },
-        {
-            "surface": "walls",
-            "id": "painted_drywall",
-            "label": "Painted drywall / plaster",
-            "alpha": [
-                0.29,
-                0.1,
-                0.05,
-                0.04,
-                0.07,
-                0.09
-            ],
-            "provenance": "assumed"
-        },
-        {
-            "surface": "ceiling",
-            "id": "painted_drywall",
-            "label": "Painted drywall / plaster",
-            "alpha": [
-                0.29,
-                0.1,
-                0.05,
-                0.04,
-                0.07,
-                0.09
-            ],
-            "provenance": "assumed"
-        }
-    ],
-    "absorption_sabins": [
-        29.373450308494995,
-        11.810990299580164,
-        7.204483139215741,
-        5.474922513722446,
-        7.776964413700866,
-        9.792765676436723
-    ],
-    "rt60_s": [
-        0.4224494699529891,
-        1.050614571578749,
-        1.7223717890281522,
-        2.266479293983163,
-        1.5955838105229456,
-        1.267139327490714
-    ],
-    "schroeder_hz": 321.7266085563209,
-    "modes": [
-        {
-            "axis": "depth",
-            "order": 1,
-            "freq_hz": 30.00800486296391
-        },
-        {
-            "axis": "width",
-            "order": 1,
-            "freq_hz": 33.954591149260786
-        },
-        {
-            "axis": "depth",
-            "order": 2,
-            "freq_hz": 60.01600972592782
-        },
-        {
-            "axis": "height",
-            "order": 1,
-            "freq_hz": 64.23221363806147
-        },
-        {
-            "axis": "width",
-            "order": 2,
-            "freq_hz": 67.90918229852157
-        },
-        {
-            "axis": "depth",
-            "order": 3,
-            "freq_hz": 90.02401458889175
-        },
-        {
-            "axis": "width",
-            "order": 3,
-            "freq_hz": 101.86377344778235
-        },
-        {
-            "axis": "depth",
-            "order": 4,
-            "freq_hz": 120.03201945185565
-        },
-        {
-            "axis": "height",
-            "order": 2,
-            "freq_hz": 128.46442727612293
-        },
-        {
-            "axis": "width",
-            "order": 4,
-            "freq_hz": 135.81836459704314
-        },
-        {
-            "axis": "depth",
-            "order": 5,
-            "freq_hz": 150.04002431481956
-        },
-        {
-            "axis": "width",
-            "order": 5,
-            "freq_hz": 169.77295574630392
-        },
-        {
-            "axis": "depth",
-            "order": 6,
-            "freq_hz": 180.0480291777835
-        },
-        {
-            "axis": "height",
-            "order": 3,
-            "freq_hz": 192.6966409141844
-        },
-        {
-            "axis": "width",
-            "order": 6,
-            "freq_hz": 203.7275468955647
-        },
-        {
-            "axis": "depth",
-            "order": 7,
-            "freq_hz": 210.0560340407474
-        },
-        {
-            "axis": "width",
-            "order": 7,
-            "freq_hz": 237.68213804482548
-        },
-        {
-            "axis": "depth",
-            "order": 8,
-            "freq_hz": 240.0640389037113
-        },
-        {
-            "axis": "height",
-            "order": 4,
-            "freq_hz": 256.92885455224587
-        },
-        {
-            "axis": "depth",
-            "order": 9,
-            "freq_hz": 270.0720437666752
-        },
-        {
-            "axis": "width",
-            "order": 8,
-            "freq_hz": 271.6367291940863
-        }
-    ],
-    "source_position_m": [
-        2.5254316749994747,
-        1.428785425615437,
-        1.2
-    ],
-    "listener_position_m": [
-        2.5254316749994747,
-        3.4290850214770487,
-        1.2
-    ],
-    "early_reflections": [
-        {
-            "surface": "left wall",
-            "path_m": 5.432533391850136,
-            "delay_ms": 10.006512524747885
-        },
-        {
-            "surface": "right wall",
-            "path_m": 5.432533391850137,
-            "delay_ms": 10.006512524747887
-        },
-        {
-            "surface": "front wall",
-            "path_m": 4.857870447092486,
-            "delay_ms": 8.331110353442782
-        },
-        {
-            "surface": "back wall",
-            "path_m": 6.572412957831011,
-            "delay_ms": 13.329776565508451
-        },
-        {
-            "surface": "floor",
-            "path_m": 3.1242916754368704,
-            "delay_ms": 3.276944838411833
-        },
-        {
-            "surface": "ceiling",
-            "path_m": 3.555952272826301,
-            "delay_ms": 4.535430545086558
-        }
-    ],
-    "assumptions": [
-        "Surface materials are generic presets unless you chose them; absorption values are typical figures for those finishes, not measured for this property.",
-        "Room is empty (no furniture, people or curtains).",
-        "Walls, floor and ceiling are single uniform materials; doors and windows are ignored.",
-        "Sabine RT60 values ignore air absorption; the impulse response you hear includes it, so its 2-4 kHz decay is somewhat shorter.",
-        "Source at (2.53, 1.43, 1.20) m and listener at (2.53, 3.43, 1.20) m are default positions."
-    ],
-    "warnings": [
-        "Below the Schroeder frequency (~322 Hz) the sound field is dominated by individual room modes and the Sabine RT60 is not a reliable description."
-    ],
-    "method": "Sabine RT60 per octave band; axial modes f = n*c/(2L); first-order image-source reflections. Modeled, not measured."
+    "height_m": {
+      "value": 2.669999837875366,
+      "provenance": "verified",
+      "note": null
+    },
+    "area_m2": {
+      "value": 28.86639976501465,
+      "provenance": "verified",
+      "note": null
+    },
+    "equivalent_width_m": 5.0508633499989495,
+    "equivalent_depth_m": 5.715141702461748,
+    "volume_m3": 77.07328269263462,
+    "note": null,
+    "wall_source": "box"
+  },
+  "surfaces": {
+    "floor_m2": 28.866399765014645,
+    "ceiling_m2": 28.866399765014645,
+    "walls_m2": 57.49046348927088
+  },
+  "materials": [
+    {
+      "surface": "floor",
+      "id": "hardwood",
+      "label": "Hardwood floor",
+      "alpha": [
+        0.15,
+        0.11,
+        0.1,
+        0.07,
+        0.06,
+        0.07
+      ],
+      "provenance": "assumed"
+    },
+    {
+      "surface": "walls",
+      "id": "painted_drywall",
+      "label": "Painted drywall / plaster",
+      "alpha": [
+        0.29,
+        0.1,
+        0.05,
+        0.04,
+        0.07,
+        0.09
+      ],
+      "provenance": "assumed"
+    },
+    {
+      "surface": "ceiling",
+      "id": "painted_drywall",
+      "label": "Painted drywall / plaster",
+      "alpha": [
+        0.29,
+        0.1,
+        0.05,
+        0.04,
+        0.07,
+        0.09
+      ],
+      "provenance": "assumed"
+    }
+  ],
+  "furniture": [],
+  "absorption_sabins": [
+    29.373450308494995,
+    11.810990299580164,
+    7.204483139215741,
+    5.474922513722446,
+    7.776964413700866,
+    9.792765676436723
+  ],
+  "rt60_s": [
+    0.36562893238381816,
+    0.9884226053979114,
+    1.6256282522976742,
+    2.0888812640628607,
+    1.4175475747098798,
+    1.0055778195039877
+  ],
+  "schroeder_hz": 310.46582899557126,
+  "modes": [
+    {
+      "axis": "depth",
+      "order": 1,
+      "freq_hz": 30.00800486296391
+    },
+    {
+      "axis": "width",
+      "order": 1,
+      "freq_hz": 33.954591149260786
+    },
+    {
+      "axis": "depth",
+      "order": 2,
+      "freq_hz": 60.01600972592782
+    },
+    {
+      "axis": "height",
+      "order": 1,
+      "freq_hz": 64.23221363806147
+    },
+    {
+      "axis": "width",
+      "order": 2,
+      "freq_hz": 67.90918229852157
+    },
+    {
+      "axis": "depth",
+      "order": 3,
+      "freq_hz": 90.02401458889175
+    },
+    {
+      "axis": "width",
+      "order": 3,
+      "freq_hz": 101.86377344778235
+    },
+    {
+      "axis": "depth",
+      "order": 4,
+      "freq_hz": 120.03201945185565
+    },
+    {
+      "axis": "height",
+      "order": 2,
+      "freq_hz": 128.46442727612293
+    },
+    {
+      "axis": "width",
+      "order": 4,
+      "freq_hz": 135.81836459704314
+    },
+    {
+      "axis": "depth",
+      "order": 5,
+      "freq_hz": 150.04002431481956
+    },
+    {
+      "axis": "width",
+      "order": 5,
+      "freq_hz": 169.77295574630392
+    },
+    {
+      "axis": "depth",
+      "order": 6,
+      "freq_hz": 180.0480291777835
+    },
+    {
+      "axis": "height",
+      "order": 3,
+      "freq_hz": 192.6966409141844
+    },
+    {
+      "axis": "width",
+      "order": 6,
+      "freq_hz": 203.7275468955647
+    },
+    {
+      "axis": "depth",
+      "order": 7,
+      "freq_hz": 210.0560340407474
+    },
+    {
+      "axis": "width",
+      "order": 7,
+      "freq_hz": 237.68213804482548
+    },
+    {
+      "axis": "depth",
+      "order": 8,
+      "freq_hz": 240.0640389037113
+    },
+    {
+      "axis": "height",
+      "order": 4,
+      "freq_hz": 256.92885455224587
+    },
+    {
+      "axis": "depth",
+      "order": 9,
+      "freq_hz": 270.0720437666752
+    },
+    {
+      "axis": "width",
+      "order": 8,
+      "freq_hz": 271.6367291940863
+    }
+  ],
+  "source_position_m": [
+    2.5254316749994747,
+    1.428785425615437,
+    1.2
+  ],
+  "listener_position_m": [
+    2.5254316749994747,
+    3.4290850214770487,
+    1.2
+  ],
+  "early_reflections": [
+    {
+      "surface": "left wall",
+      "path_m": 5.432533391850136,
+      "delay_ms": 10.006512524747885
+    },
+    {
+      "surface": "right wall",
+      "path_m": 5.432533391850137,
+      "delay_ms": 10.006512524747887
+    },
+    {
+      "surface": "front wall",
+      "path_m": 4.857870447092486,
+      "delay_ms": 8.331110353442782
+    },
+    {
+      "surface": "back wall",
+      "path_m": 6.572412957831011,
+      "delay_ms": 13.329776565508451
+    },
+    {
+      "surface": "floor",
+      "path_m": 3.1242916754368704,
+      "delay_ms": 3.276944838411833
+    },
+    {
+      "surface": "ceiling",
+      "path_m": 3.555952272826301,
+      "delay_ms": 4.535430545086558
+    }
+  ],
+  "assumptions": [
+    "Surface materials are generic presets unless you chose them; absorption values are typical figures for those finishes, not measured for this property.",
+    "Room is empty (no furniture, people or curtains).",
+    "Walls, floor and ceiling are single uniform materials; doors and windows are ignored.",
+    "RT60 uses Eyring's formula (accurate for absorptive rooms, unlike Sabine) with air absorption from ISO 9613-1 at 20 C and 50 % relative humidity.",
+    "Source at (2.53, 1.43, 1.20) m and listener at (2.53, 3.43, 1.20) m are default positions."
+  ],
+  "warnings": [
+    "Below the Schroeder frequency (~310 Hz) the sound field is dominated by individual room modes and a statistical RT60 is not a reliable description."
+  ],
+  "method": "Eyring RT60 with ISO 9613-1 air absorption per octave band; axial modes f = n*c/(2L); first-order image-source reflections. Modeled, not measured."
 }

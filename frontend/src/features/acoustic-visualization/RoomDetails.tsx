@@ -89,7 +89,7 @@ export function RoomDetails({ room, data, cls, mode, useCaseLabel }: Props) {
 
           <section>
             <h4 className="mb-1 font-semibold text-zinc-300">
-              RT60 by band <span className="font-normal text-zinc-500">(Sabine, mid {midRt60(r).toFixed(2)} s)</span>
+              RT60 by band <span className="font-normal text-zinc-500">(Eyring, mid {midRt60(r).toFixed(2)} s)</span>
             </h4>
             <div className="space-y-0.5">
               {r.bands_hz.map((hz, i) => {

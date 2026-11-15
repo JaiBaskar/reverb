@@ -1,0 +1,1280 @@
+{
+  "sid": "zvKHR9DHNjJ",
+  "room_id": "xy2x8mpaaqknp7q2c3nnbw1ma",
+  "label": "Living Room",
+  "geometry": {
+    "polygon": [
+      [
+        2.8110482615561665,
+        1.0630233273197482
+      ],
+      [
+        2.8030614600011843,
+        4.912481943588205
+      ],
+      [
+        -1.1336387340174512,
+        4.904324772607721
+      ],
+      [
+        -1.1256543256893066,
+        1.0548555322646593
+      ]
+    ],
+    "polygon_provenance": "verified",
+    "floor_z": 0.025161334874953444,
+    "height": {
+      "value": 2.7200000286102295,
+      "provenance": "verified",
+      "note": "Matterport height; the scan mesh agrees (2.72 m)"
+    },
+    "area_m2": 15.154255182113934,
+    "volume_m3": 41.21957452891662,
+    "walls": [
+      {
+        "index": 0,
+        "start": [
+          2.8110482615561665,
+          1.0630233273197482
+        ],
+        "end": [
+          2.8030614600011843,
+          4.912481943588205
+        ],
+        "length_m": 3.849466901710227,
+        "area_m2": 10.470550082785948,
+        "inward": [
+          -0.9999978476391712,
+          -0.0020747811992964187
+        ],
+        "coverage": 0.998375,
+        "strips": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          0.974,
+          1.0
+        ],
+        "openings": [],
+        "surface_offset_m": 0.05756448612110805,
+        "no_go": []
+      },
+      {
+        "index": 1,
+        "start": [
+          2.8030614600011843,
+          4.912481943588205
+        ],
+        "end": [
+          -1.1336387340174512,
+          4.904324772607721
+        ],
+        "length_m": 3.9367086451787063,
+        "area_m2": 10.70784762751622,
+        "inward": [
+          0.0020720789155869693,
+          -0.9999978532421796
+        ],
+        "coverage": 0.9805625,
+        "strips": [
+          1.0,
+          1.0,
+          0.989,
+          0.982,
+          1.0,
+          0.979,
+          0.976,
+          1.0,
+          1.0,
+          1.0,
+          0.937,
+          0.982,
+          1.0,
+          0.913,
+          0.931,
+          1.0
+        ],
+        "openings": [],
+        "surface_offset_m": 0.06877618412204889,
+        "no_go": []
+      },
+      {
+        "index": 2,
+        "start": [
+          -1.1336387340174512,
+          4.904324772607721
+        ],
+        "end": [
+          -1.1256543256893066,
+          1.0548555322646593
+        ],
+        "length_m": 3.849477520797301,
+        "area_m2": 10.470578966703094,
+        "inward": [
+          0.9999978489407472,
+          0.002074153774118129
+        ],
+        "coverage": 0.99125,
+        "strips": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          0.926,
+          0.934,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "openings": [],
+        "surface_offset_m": 0.05282127877168442,
+        "no_go": []
+      },
+      {
+        "index": 3,
+        "start": [
+          -1.1256543256893066,
+          1.0548555322646593
+        ],
+        "end": [
+          2.8110482615561665,
+          1.0630233273197482
+        ],
+        "length_m": 3.9367110604286495,
+        "area_m2": 10.707854196996134,
+        "inward": [
+          -0.0020747763627335047,
+          0.9999978476492061
+        ],
+        "coverage": 0.9163125,
+        "strips": [
+          1.0,
+          1.0,
+          1.0,
+          0.677,
+          0.452,
+          0.532,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "openings": [
+          [
+            1.0,
+            1.5
+          ]
+        ],
+        "surface_offset_m": 0.047875836390617876,
+        "no_go": []
+      }
+    ],
+    "corners": [
+      {
+        "index": 0,
+        "point": [
+          2.8110482615561665,
+          1.0630233273197482
+        ],
+        "interior_angle_deg": 89.99999972288475,
+        "convex": true,
+        "walls": [
+          3,
+          0
+        ]
+      },
+      {
+        "index": 1,
+        "point": [
+          2.8030614600011843,
+          4.912481943588205
+        ],
+        "interior_angle_deg": 90.0001548297844,
+        "convex": true,
+        "walls": [
+          0,
+          1
+        ]
+      },
+      {
+        "index": 2,
+        "point": [
+          -1.1336387340174512,
+          4.904324772607721
+        ],
+        "interior_angle_deg": 89.99988111910761,
+        "convex": true,
+        "walls": [
+          1,
+          2
+        ]
+      },
+      {
+        "index": 3,
+        "point": [
+          -1.1256543256893066,
+          1.0548555322646593
+        ],
+        "interior_angle_deg": 89.99996432822321,
+        "convex": true,
+        "walls": [
+          2,
+          3
+        ]
+      }
+    ],
+    "source": "mesh+outline",
+    "notes": [
+      "Openings are wall stretches with little scanned surface: doorways, open plan, or glass the scanner saw through. No treatment is placed on them."
+    ]
+  },
+  "scans": [
+    {
+      "id": "sa0ccfc88azxsste162hiipwd",
+      "position": [
+        0.4791676998138428,
+        2.6680428981781006,
+        1.5197921991348267
+      ],
+      "yaw_deg": 27.676655834609793,
+      "room_id": "xy2x8mpaaqknp7q2c3nnbw1ma"
+    },
+    {
+      "id": "0up626zz41smhfgmc7rczku6c",
+      "position": [
+        -0.6244824528694153,
+        2.145115613937378,
+        1.5104635953903198
+      ],
+      "yaw_deg": -4.231705425643549,
+      "room_id": "xy2x8mpaaqknp7q2c3nnbw1ma"
+    },
+    {
+      "id": "cd4n41i8nsrr88ec8hky2qqka",
+      "position": [
+        -0.01909719593822956,
+        1.5455843210220337,
+        1.51156747341156
+      ],
+      "yaw_deg": 152.0405280300602,
+      "room_id": "xy2x8mpaaqknp7q2c3nnbw1ma"
+    }
+  ],
+  "materials": [
+    {
+      "surface": "floor",
+      "material_id": "hardwood",
+      "label": "Hardwood floor",
+      "alpha": [
+        0.15,
+        0.11,
+        0.1,
+        0.07,
+        0.06,
+        0.07
+      ],
+      "provenance": "observed",
+      "confidence": 0.95,
+      "basis": "Seen by the walls agent: Polished wood planks"
+    },
+    {
+      "surface": "walls",
+      "material_id": "painted_drywall",
+      "label": "Painted drywall / plaster",
+      "alpha": [
+        0.29,
+        0.1,
+        0.05,
+        0.04,
+        0.07,
+        0.09
+      ],
+      "provenance": "observed",
+      "confidence": 0.95,
+      "basis": "Seen by the walls agent: most of the wall area"
+    },
+    {
+      "surface": "ceiling",
+      "material_id": "painted_drywall",
+      "label": "Painted drywall / plaster",
+      "alpha": [
+        0.29,
+        0.1,
+        0.05,
+        0.04,
+        0.07,
+        0.09
+      ],
+      "provenance": "observed",
+      "confidence": 0.95,
+      "basis": "Seen by the walls agent: Smooth white painted ceiling"
+    }
+  ],
+  "furniture_as_scanned": [
+    {
+      "id": "sofa",
+      "count": 1,
+      "provenance": "observed"
+    },
+    {
+      "id": "cushions",
+      "count": 3,
+      "provenance": "observed"
+    },
+    {
+      "id": "desk",
+      "count": 1,
+      "provenance": "observed"
+    },
+    {
+      "id": "office_chair",
+      "count": 1,
+      "provenance": "observed"
+    },
+    {
+      "id": "table",
+      "count": 2,
+      "provenance": "observed"
+    },
+    {
+      "id": "bookshelf",
+      "count": 1,
+      "provenance": "observed"
+    }
+  ],
+  "furniture_basis": "Furniture seen by the furniture agent (by kind and covering, confidence 0.5 or more).",
+  "agents": [
+    {
+      "agent": "furniture",
+      "status": "ok",
+      "model": "openrouter:nvidia/nemotron-3.5-super-vl:free",
+      "seconds": 74.6,
+      "reason": null,
+      "created": "2026-11-14T22:27:21+00:00",
+      "answer": {
+        "pieces": [
+          {
+            "kind": "sofa",
+            "covering": "fabric",
+            "label": "green sofa",
+            "count": 1,
+            "image": "S2F2",
+            "x_start": 0.15,
+            "x_end": 0.62,
+            "floor_y": 0.89,
+            "top_y": 0.61,
+            "confidence": 0.95
+          },
+          {
+            "kind": "cushions",
+            "covering": "fabric",
+            "label": "sofa cushions",
+            "count": 3,
+            "image": "S2F2",
+            "x_start": 0.24,
+            "x_end": 0.58,
+            "floor_y": null,
+            "top_y": 0.61,
+            "confidence": 0.9
+          },
+          {
+            "kind": "desk",
+            "covering": "wood",
+            "label": "wooden desk",
+            "count": 1,
+            "image": "S1F1",
+            "x_start": 0.65,
+            "x_end": 1.0,
+            "floor_y": 1.0,
+            "top_y": 0.66,
+            "confidence": 0.95
+          },
+          {
+            "kind": "office_chair",
+            "covering": "wood",
+            "label": "wooden office chair",
+            "count": 1,
+            "image": "S2F2",
+            "x_start": 0.75,
+            "x_end": 1.0,
+            "floor_y": 1.0,
+            "top_y": 0.73,
+            "confidence": 0.95
+          },
+          {
+            "kind": "table",
+            "covering": "wood",
+            "label": "pink coffee table",
+            "count": 1,
+            "image": "S2F2",
+            "x_start": 0.3,
+            "x_end": 0.65,
+            "floor_y": 1.0,
+            "top_y": 0.73,
+            "confidence": 0.95
+          },
+          {
+            "kind": "table",
+            "covering": "wood",
+            "label": "console table",
+            "count": 1,
+            "image": "S1F2",
+            "x_start": 0.29,
+            "x_end": 0.72,
+            "floor_y": 1.0,
+            "top_y": 0.68,
+            "confidence": 0.9
+          },
+          {
+            "kind": "bookshelf",
+            "covering": "wood",
+            "label": "wooden bookshelf",
+            "count": 1,
+            "image": "S1F4",
+            "x_start": 0.18,
+            "x_end": 0.42,
+            "floor_y": 1.0,
+            "top_y": 0.61,
+            "confidence": 0.95
+          },
+          {
+            "kind": "curtains",
+            "covering": "mixed",
+            "label": "window blinds",
+            "count": 3,
+            "image": "S1F1",
+            "x_start": 0.15,
+            "x_end": 0.95,
+            "floor_y": null,
+            "top_y": 0.3,
+            "confidence": 0.9
+          },
+          {
+            "kind": "lamp",
+            "covering": "mixed",
+            "label": "table lamp",
+            "count": 1,
+            "image": "S2F3",
+            "x_start": 0.33,
+            "x_end": 0.44,
+            "floor_y": null,
+            "top_y": 0.65,
+            "confidence": 0.9
+          },
+          {
+            "kind": "lamp",
+            "covering": "mixed",
+            "label": "floor lamp",
+            "count": 1,
+            "image": "S1F1",
+            "x_start": 0.36,
+            "x_end": 0.38,
+            "floor_y": 0.68,
+            "top_y": 0.43,
+            "confidence": 0.9
+          }
+        ],
+        "existing_treatment": [],
+        "notes": []
+      }
+    },
+    {
+      "agent": "surroundings",
+      "status": "ok",
+      "model": "openrouter:nvidia/nemotron-3.5-super-vl:free",
+      "seconds": 35.5,
+      "reason": null,
+      "created": "2026-11-14T22:26:42+00:00",
+      "answer": {
+        "hazards": [
+          {
+            "kind": "street_facing_window",
+            "image": "S1F1",
+            "x": 0.65,
+            "note": "Large window with blinds facing outside, potential source of external noise.",
+            "confidence": 0.9
+          },
+          {
+            "kind": "single_glazing",
+            "image": "S1F1",
+            "x": 0.65,
+            "note": "Windows appear to be single pane, offering minimal sound insulation.",
+            "confidence": 0.6
+          },
+          {
+            "kind": "hard_bare_surfaces",
+            "image": "S2F2",
+            "x": 0.5,
+            "note": "Hardwood floors throughout the room reflect sound.",
+            "confidence": 0.9
+          },
+          {
+            "kind": "open_plan_connection",
+            "image": "S1F2",
+            "x": 0.85,
+            "note": "Open doorway to adjacent living space allows sound transfer.",
+            "confidence": 0.9
+          }
+        ],
+        "notes": []
+      }
+    },
+    {
+      "agent": "walls",
+      "status": "ok",
+      "model": "openrouter:nvidia/nemotron-3.5-super-vl:free",
+      "seconds": 30.8,
+      "reason": null,
+      "created": "2026-11-14T22:26:37+00:00",
+      "answer": {
+        "walls": [
+          {
+            "image": "W0",
+            "material_id": "painted_drywall",
+            "finish": "Yellow painted wall",
+            "confidence": 0.95,
+            "features": [
+              {
+                "kind": "window",
+                "x_start": 0.142,
+                "x_end": 0.682,
+                "y_top": 0.233,
+                "y_bottom": 0.765,
+                "covering": "blinds",
+                "confidence": 0.95
+              },
+              {
+                "kind": "artwork",
+                "x_start": 0.732,
+                "x_end": 0.863,
+                "y_top": 0.262,
+                "y_bottom": 0.532,
+                "covering": "unknown",
+                "confidence": 0.95
+              }
+            ]
+          },
+          {
+            "image": "W1",
+            "material_id": "painted_drywall",
+            "finish": "Yellow painted wall",
+            "confidence": 0.95,
+            "features": [
+              {
+                "kind": "window",
+                "x_start": 0.128,
+                "x_end": 0.378,
+                "y_top": 0.242,
+                "y_bottom": 0.752,
+                "covering": "blinds",
+                "confidence": 0.95
+              },
+              {
+                "kind": "window",
+                "x_start": 0.682,
+                "x_end": 0.908,
+                "y_top": 0.242,
+                "y_bottom": 0.752,
+                "covering": "blinds",
+                "confidence": 0.95
+              },
+              {
+                "kind": "artwork",
+                "x_start": 0.415,
+                "x_end": 0.655,
+                "y_top": 0.285,
+                "y_bottom": 0.445,
+                "covering": "unknown",
+                "confidence": 0.95
+              },
+              {
+                "kind": "artwork",
+                "x_start": 0.41,
+                "x_end": 0.66,
+                "y_top": 0.455,
+                "y_bottom": 0.705,
+                "covering": "unknown",
+                "confidence": 0.95
+              }
+            ]
+          },
+          {
+            "image": "W2",
+            "material_id": "painted_drywall",
+            "finish": "Yellow painted wall",
+            "confidence": 0.95,
+            "features": [
+              {
+                "kind": "open_doorway",
+                "x_start": 0.405,
+                "x_end": 0.635,
+                "y_top": 0.105,
+                "y_bottom": 0.99,
+                "covering": "unknown",
+                "confidence": 0.95
+              },
+              {
+                "kind": "door",
+                "x_start": 0.61,
+                "x_end": 0.77,
+                "y_top": 0.23,
+                "y_bottom": 0.99,
+                "covering": "unknown",
+                "confidence": 0.95
+              },
+              {
+                "kind": "artwork",
+                "x_start": 0.795,
+                "x_end": 0.905,
+                "y_top": 0.285,
+                "y_bottom": 0.61,
+                "covering": "unknown",
+                "confidence": 0.95
+              }
+            ]
+          },
+          {
+            "image": "W3",
+            "material_id": "painted_drywall",
+            "finish": "Yellow painted wall",
+            "confidence": 0.95,
+            "features": [
+              {
+                "kind": "artwork",
+                "x_start": 0.095,
+                "x_end": 0.15,
+                "y_top": 0.295,
+                "y_bottom": 0.5,
+                "covering": "unknown",
+                "confidence": 0.95
+              },
+              {
+                "kind": "artwork",
+                "x_start": 0.14,
+                "x_end": 0.225,
+                "y_top": 0.23,
+                "y_bottom": 0.5,
+                "covering": "unknown",
+                "confidence": 0.95
+              },
+              {
+                "kind": "artwork",
+                "x_start": 0.225,
+                "x_end": 0.3,
+                "y_top": 0.225,
+                "y_bottom": 0.5,
+                "covering": "unknown",
+                "confidence": 0.95
+              },
+              {
+                "kind": "open_doorway",
+                "x_start": 0.335,
+                "x_end": 0.56,
+                "y_top": 0.1,
+                "y_bottom": 0.99,
+                "covering": "unknown",
+                "confidence": 0.95
+              },
+              {
+                "kind": "door",
+                "x_start": 0.555,
+                "x_end": 0.999,
+                "y_top": 0.0,
+                "y_bottom": 0.999,
+                "covering": "unknown",
+                "confidence": 0.95
+              }
+            ]
+          }
+        ],
+        "surfaces": [
+          {
+            "surface": "floor",
+            "material_id": "hardwood",
+            "finish": "Polished wood planks",
+            "confidence": 0.95
+          },
+          {
+            "surface": "ceiling",
+            "material_id": "painted_drywall",
+            "finish": "Smooth white painted ceiling",
+            "confidence": 0.95
+          }
+        ],
+        "notes": []
+      }
+    }
+  ],
+  "walls": [
+    {
+      "wall": 0,
+      "material_id": "painted_drywall",
+      "finish": "Yellow painted wall",
+      "confidence": 0.95,
+      "features": [
+        {
+          "kind": "window",
+          "category": "building",
+          "along": [
+            0.9892102232264172,
+            3.5313410315130818
+          ],
+          "z": [
+            0.7282122754385875,
+            2.266833744317546
+          ],
+          "covering": "blinds",
+          "confidence": 0.95
+        },
+        {
+          "kind": "artwork",
+          "category": "movable",
+          "along": [
+            0.22855872467504607,
+            0.7749073432739578
+          ],
+          "z": [
+            1.4075976327270385,
+            2.1419405237853297
+          ],
+          "covering": "unknown",
+          "confidence": 0.95
+        }
+      ],
+      "view": {
+        "wall": 0,
+        "scan_id": "sa0ccfc88azxsste162hiipwd",
+        "yaw_deg": 4.73208884750332,
+        "hfov_deg": 88.54298988140374,
+        "width": 1024,
+        "height": 640
+      }
+    },
+    {
+      "wall": 1,
+      "material_id": "painted_drywall",
+      "finish": "Yellow painted wall",
+      "confidence": 0.95,
+      "features": [
+        {
+          "kind": "window",
+          "category": "building",
+          "along": [
+            2.6798245180171887,
+            3.744131967895364
+          ],
+          "z": [
+            0.7958156366446438,
+            2.2100845496754653
+          ],
+          "covering": "blinds",
+          "confidence": 0.95
+        },
+        {
+          "kind": "window",
+          "category": "building",
+          "along": [
+            0.06422835269068211,
+            1.2457196292272505
+          ],
+          "z": [
+            0.7202399621370656,
+            2.287459645004653
+          ],
+          "covering": "blinds",
+          "confidence": 0.95
+        },
+        {
+          "kind": "artwork",
+          "category": "movable",
+          "along": [
+            1.3799393248895802,
+            2.5139224094651507
+          ],
+          "z": [
+            1.6553106124620987,
+            2.1227426072322095
+          ],
+          "covering": "unknown",
+          "confidence": 0.95
+        },
+        {
+          "kind": "artwork",
+          "category": "movable",
+          "along": [
+            1.3551900720060612,
+            2.5364745483888713
+          ],
+          "z": [
+            0.8957072074279925,
+            1.6261019108815056
+          ],
+          "covering": "unknown",
+          "confidence": 0.95
+        }
+      ],
+      "view": {
+        "wall": 1,
+        "scan_id": "sa0ccfc88azxsste162hiipwd",
+        "yaw_deg": 84.90136277312945,
+        "hfov_deg": 91.79555796984846,
+        "width": 1024,
+        "height": 640
+      }
+    },
+    {
+      "wall": 2,
+      "material_id": "painted_drywall",
+      "finish": "Yellow painted wall",
+      "confidence": 0.95,
+      "features": [
+        {
+          "kind": "open_doorway",
+          "category": "building",
+          "along": [
+            2.3081771471371155,
+            3.166966882381802
+          ],
+          "z": [
+            0.4660981346044176,
+            2.308899325379902
+          ],
+          "covering": "unknown",
+          "confidence": 0.95
+        },
+        {
+          "kind": "door",
+          "category": "building",
+          "along": [
+            1.4889403909689318,
+            2.4272520384599683
+          ],
+          "z": [
+            0.21063745002246312,
+            2.189380722003584
+          ],
+          "covering": "unknown",
+          "confidence": 0.95
+        },
+        {
+          "kind": "artwork",
+          "category": "movable",
+          "along": [
+            0.17682401765190178,
+            1.293789289097495
+          ],
+          "z": [
+            1.110044877606414,
+            2.2220213303547105
+          ],
+          "covering": "unknown",
+          "confidence": 0.95
+        }
+      ],
+      "view": {
+        "wall": 2,
+        "scan_id": "cd4n41i8nsrr88ec8hky2qqka",
+        "yaw_deg": -203.86321219648715,
+        "hfov_deg": 105.5584615385701,
+        "width": 1024,
+        "height": 640
+      }
+    },
+    {
+      "wall": 3,
+      "material_id": "painted_drywall",
+      "finish": "Yellow painted wall",
+      "confidence": 0.95,
+      "features": [
+        {
+          "kind": "artwork",
+          "category": "movable",
+          "along": [
+            3.1089718572061615,
+            3.7568338093039833
+          ],
+          "z": [
+            1.4853022605153663,
+            2.2425801820656215
+          ],
+          "covering": "unknown",
+          "confidence": 0.95
+        },
+        {
+          "kind": "artwork",
+          "category": "movable",
+          "along": [
+            2.4302842393132322,
+            3.2156264806584938
+          ],
+          "z": [
+            1.4853022605153663,
+            2.3700243083508914
+          ],
+          "covering": "unknown",
+          "confidence": 0.95
+        },
+        {
+          "kind": "artwork",
+          "category": "movable",
+          "along": [
+            1.9116919742957352,
+            2.4302842393132322
+          ],
+          "z": [
+            1.4853022605153663,
+            2.263747658465049
+          ],
+          "covering": "unknown",
+          "confidence": 0.95
+        },
+        {
+          "kind": "open_doorway",
+          "category": "building",
+          "along": [
+            0.7861509624433634,
+            1.7093624405949046
+          ],
+          "z": [
+            0.4077483002955141,
+            2.3649381464091235
+          ],
+          "covering": "unknown",
+          "confidence": 0.95
+        },
+        {
+          "kind": "door",
+          "category": "building",
+          "along": [
+            0.0,
+            0.8016005192144913
+          ],
+          "z": [
+            0.6770960365368375,
+            2.2951281362453555
+          ],
+          "covering": "unknown",
+          "confidence": 0.95
+        }
+      ],
+      "view": {
+        "wall": 3,
+        "scan_id": "0up626zz41smhfgmc7rczku6c",
+        "yaw_deg": -66.0851280635979,
+        "hfov_deg": 107.20443251599255,
+        "width": 1024,
+        "height": 640
+      }
+    }
+  ],
+  "pieces": [
+    {
+      "kind": "sofa",
+      "covering": "fabric",
+      "label": "green sofa",
+      "count": 1,
+      "furniture_id": "sofa",
+      "position": [
+        0.4872196532836406,
+        3.434300072628843
+      ],
+      "width_m": 1.7913099618261665,
+      "height_m": 1.0562173069739962,
+      "confidence": 0.95
+    },
+    {
+      "kind": "cushions",
+      "covering": "fabric",
+      "label": "sofa cushions",
+      "count": 3,
+      "furniture_id": "cushions",
+      "position": null,
+      "width_m": null,
+      "height_m": null,
+      "confidence": 0.9
+    },
+    {
+      "kind": "desk",
+      "covering": "wood",
+      "label": "wooden desk",
+      "count": 1,
+      "furniture_id": "desk",
+      "position": [
+        2.2540355271473507,
+        2.501918197989074
+      ],
+      "width_m": 1.046241604981911,
+      "height_m": 0.9241907448951096,
+      "confidence": 0.95
+    },
+    {
+      "kind": "office_chair",
+      "covering": "wood",
+      "label": "wooden office chair",
+      "count": 1,
+      "furniture_id": "office_chair",
+      "position": [
+        1.6624837052475443,
+        2.3358236432078234
+      ],
+      "width_m": 0.7432030692683032,
+      "height_m": 0.6317226088780578,
+      "confidence": 0.95
+    },
+    {
+      "kind": "table",
+      "covering": "wood",
+      "label": "pink coffee table",
+      "count": 1,
+      "furniture_id": "table",
+      "position": [
+        0.6121541062330829,
+        2.8933411648955962
+      ],
+      "width_m": 1.0404842969756245,
+      "height_m": 0.801805164790635,
+      "confidence": 0.95
+    },
+    {
+      "kind": "table",
+      "covering": "wood",
+      "label": "console table",
+      "count": 1,
+      "furniture_id": "table",
+      "position": [
+        1.160159544280057,
+        1.3374810167495221
+      ],
+      "width_m": 1.2853825432634907,
+      "height_m": 0.9565368504433123,
+      "confidence": 0.9
+    },
+    {
+      "kind": "bookshelf",
+      "covering": "wood",
+      "label": "wooden bookshelf",
+      "count": 1,
+      "furniture_id": "bookshelf",
+      "position": [
+        -0.7445081810721356,
+        3.7139712830113334
+      ],
+      "width_m": 0.7174228148447391,
+      "height_m": 1.140482188945624,
+      "confidence": 0.95
+    },
+    {
+      "kind": "curtains",
+      "covering": "mixed",
+      "label": "window blinds",
+      "count": 3,
+      "furniture_id": null,
+      "position": null,
+      "width_m": null,
+      "height_m": null,
+      "confidence": 0.9
+    },
+    {
+      "kind": "lamp",
+      "covering": "mixed",
+      "label": "table lamp",
+      "count": 1,
+      "furniture_id": null,
+      "position": null,
+      "width_m": null,
+      "height_m": null,
+      "confidence": 0.9
+    },
+    {
+      "kind": "lamp",
+      "covering": "mixed",
+      "label": "floor lamp",
+      "count": 1,
+      "furniture_id": null,
+      "position": null,
+      "width_m": 0.1660700960288752,
+      "height_m": 2.0952010432175103,
+      "confidence": 0.9
+    }
+  ],
+  "hazards": [
+    {
+      "kind": "street_facing_window",
+      "note": "Large window with blinds facing outside, potential source of external noise.",
+      "wall": 0,
+      "bearing_deg": 10.977411600616168,
+      "confidence": 0.9
+    },
+    {
+      "kind": "single_glazing",
+      "note": "Windows appear to be single pane, offering minimal sound insulation.",
+      "wall": 0,
+      "bearing_deg": 10.977411600616168,
+      "confidence": 0.6
+    },
+    {
+      "kind": "hard_bare_surfaces",
+      "note": "Hardwood floors throughout the room reflect sound.",
+      "wall": 1,
+      "bearing_deg": 62.04052803006019,
+      "confidence": 0.9
+    },
+    {
+      "kind": "open_plan_connection",
+      "note": "Open doorway to adjacent living space allows sound transfer.",
+      "wall": 3,
+      "bearing_deg": -97.31536436394887,
+      "confidence": 0.9
+    }
+  ],
+  "furniture_objects": [
+    {
+      "id": "f1",
+      "min": [
+        -1.042,
+        3.559,
+        0.071
+      ],
+      "max": [
+        -0.401,
+        4.808,
+        1.184
+      ],
+      "points": 2555,
+      "mounting": "floor",
+      "label": "wooden bookshelf",
+      "named_by": "furniture_agent"
+    },
+    {
+      "id": "f2",
+      "min": [
+        -1.02,
+        1.181,
+        0.075
+      ],
+      "max": [
+        -0.493,
+        1.646,
+        2.333
+      ],
+      "points": 636,
+      "mounting": "floor",
+      "label": "a tall piece of furniture",
+      "named_by": "geometry"
+    },
+    {
+      "id": "f3",
+      "min": [
+        -1.005,
+        2.689,
+        0.073
+      ],
+      "max": [
+        -0.401,
+        3.328,
+        0.297
+      ],
+      "points": 448,
+      "mounting": "floor",
+      "label": "wooden bookshelf",
+      "named_by": "furniture_agent"
+    },
+    {
+      "id": "f4",
+      "min": [
+        -0.311,
+        2.998,
+        0.08
+      ],
+      "max": [
+        2.684,
+        4.793,
+        0.87
+      ],
+      "points": 7963,
+      "mounting": "floor",
+      "label": "green sofa",
+      "named_by": "furniture_agent"
+    },
+    {
+      "id": "f5",
+      "min": [
+        0.434,
+        2.952,
+        2.07
+      ],
+      "max": [
+        0.593,
+        3.13,
+        2.381
+      ],
+      "points": 149,
+      "mounting": "ceiling",
+      "label": "a ceiling fixture",
+      "named_by": "geometry"
+    },
+    {
+      "id": "f6",
+      "min": [
+        0.585,
+        1.162,
+        0.092
+      ],
+      "max": [
+        2.7,
+        3.317,
+        1.257
+      ],
+      "points": 7400,
+      "mounting": "floor",
+      "label": "wooden desk",
+      "named_by": "furniture_agent"
+    }
+  ],
+  "wall_extra_sabins": [
+    2.3695710402181613,
+    4.140768544177977,
+    4.196414413118206,
+    3.961507480699747,
+    3.2468261530790095,
+    2.752550192796575
+  ],
+  "absorption_notes": [
+    "window on wall 0: 3.9 m2",
+    "window on wall 1: 1.5 m2",
+    "window on wall 1: 1.9 m2",
+    "open doorway on wall 2: 1.6 m2",
+    "door on wall 2: 1.9 m2",
+    "open doorway on wall 3: 1.8 m2",
+    "door on wall 3: 1.3 m2"
+  ],
+  "vision_status": "ok",
+  "vision_reason": null,
+  "issues": [
+    "Openings are wall stretches with little scanned surface: doorways, open plan, or glass the scanner saw through. No treatment is placed on them."
+  ]
+}

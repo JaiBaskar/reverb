@@ -5,7 +5,7 @@ import type { Check, FitLevel, SuitabilityReport } from '../suitability/types'
  * Room-level heatmap classes. Every class comes from a number the Python engine produced:
  * - fit: the qualitative level from /suitability for one use case (as modeled, or the
  *   shape-only level that ignores what treatment can change);
- * - rt60: the room's mid-band (500 Hz-1 kHz) Sabine RT60, binned for display only;
+ * - rt60: the room's mid-band (500 Hz-1 kHz) Eyring RT60, binned for display only;
  * - bass: the room's Schroeder frequency, binned for display only.
  * One colour per room. Nothing here is a spatial field or a score.
  */

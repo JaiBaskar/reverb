@@ -15,7 +15,8 @@ interface Props {
   basis: FitBasis
   onMode: (m: VizMode) => void
   onUseCase: (u: string) => void
-  onBasis: (b: FitBasis) => void
+  /** Omit to hide the as-modeled / room-shape toggle. */
+  onBasis?: (b: FitBasis) => void
 }
 
 const seg = (on: boolean) =>
@@ -46,6 +47,7 @@ export function VizControls({ mode, useCase, basis, onMode, onUseCase, onBasis }
               </option>
             ))}
           </select>
+          {onBasis && (
           <div className="flex rounded-lg bg-zinc-900/90 p-0.5 ring-1 ring-zinc-800" role="radiogroup" aria-label="Fit basis">
             <button
               role="radio"
@@ -66,6 +68,7 @@ export function VizControls({ mode, useCase, basis, onMode, onUseCase, onBasis }
               Room shape only
             </button>
           </div>
+          )}
         </>
       )}
     </div>
@@ -79,7 +82,7 @@ export function HeatmapLegend({ mode, basis }: { mode: VizMode; basis: FitBasis 
         ? 'Rule-of-thumb fit for the empty room with assumed materials.'
         : 'Only what treatment cannot change: size, height, bass modes, reflection timing.'
       : mode === 'rt60'
-        ? 'Mid-band (500 Hz–1 kHz) Sabine RT60. Colour groups values; it is not a verdict.'
+        ? 'Mid-band (500 Hz–1 kHz) Eyring RT60. Colour groups values; it is not a verdict.'
         : 'Schroeder frequency: below it, individual room modes dominate.'
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs" data-testid="heatmap-legend">

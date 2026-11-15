@@ -23,7 +23,7 @@ class IrResponse(BaseModel):
     duration_s: float
     wav_base64: str
     bands_hz: list[int]
-    sabine_rt60_s: list[float]
+    report_rt60_s: list[float]  # the room report's RT60 (Eyring with air absorption)
     ir_rt60_s: list[float | None]  # decay measured from the MODELED IR, not from the real room
     params: dict
     notes: list[str]
@@ -80,7 +80,7 @@ def build_ir(report: AcousticReport, seed: int = 1) -> IrResponse:
         duration_s=len(ir) / SAMPLE_RATE,
         wav_base64=base64.b64encode(ir_to_wav_bytes(ir)).decode(),
         bands_hz=report.bands_hz,
-        sabine_rt60_s=report.rt60_s,
+        report_rt60_s=report.rt60_s,
         ir_rt60_s=[None if math.isnan(m) else m for m in ir_rt60],
         params={
             "method": "pyroomacoustics hybrid image-source + ray tracing",
@@ -96,8 +96,8 @@ def build_ir(report: AcousticReport, seed: int = 1) -> IrResponse:
             "Modeled approximation from geometry, assumed materials and furniture (its absorption "
             "spread over the surfaces); not a recording of the real space.",
             f"Surface scattering of {SCATTERING} is an assumption.",
-            "The IR includes air absorption; the Sabine values do not.",
+            "Both the IR and the report's RT60 include air absorption (ISO 9613-1).",
             f"IR decay below the Schroeder frequency (~{report.schroeder_hz:.0f} Hz) "
-            "is modal and can differ strongly from the Sabine value.",
+            "is modal and can differ strongly from the statistical (Eyring) value.",
         ],
     )

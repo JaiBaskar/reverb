@@ -35,6 +35,25 @@ FURNITURE: dict[str, dict] = {
     "chair": {"label": "Hard chair", "sabins": [0.02, 0.02, 0.03, 0.04, 0.05, 0.05]},
     "desk": {"label": "Desk (hard)", "sabins": [0.05, 0.05, 0.05, 0.05, 0.05, 0.05]},
     "cabinets": {"label": "Kitchen cabinets", "sabins": [0.10, 0.10, 0.10, 0.10, 0.10, 0.10]},
+    # Variants the furniture agent can tell apart by material (rough typical values: leather and
+    # vinyl absorb roughly half of what fabric does at mid and high frequencies).
+    "sofa_leather": {
+        "label": "Leather sofa (3-seat)",
+        "sabins": [0.45, 0.70, 0.90, 1.00, 1.00, 0.95],
+    },
+    "armchair_leather": {
+        "label": "Leather armchair",
+        "sabins": [0.15, 0.25, 0.30, 0.35, 0.35, 0.35],
+    },
+    "office_chair": {
+        "label": "Upholstered office chair",
+        "sabins": [0.10, 0.15, 0.25, 0.30, 0.30, 0.30],
+    },
+    "piano": {"label": "Upright piano", "sabins": [0.20, 0.15, 0.10, 0.10, 0.10, 0.10]},
+    "cushions": {
+        "label": "Cushions / throws (a few)",
+        "sabins": [0.02, 0.05, 0.15, 0.25, 0.30, 0.30],
+    },
     "acoustic_panel": {
         "label": "Acoustic panel 100 mm (0.72 m2)",
         "sabins": [0.18, 0.47, 0.65, 0.68, 0.68, 0.68],
@@ -63,7 +82,8 @@ class UnknownFurniture(ValueError):
 class FurnitureItem(BaseModel):
     id: str
     count: int = 1
-    provenance: Literal["assumed", "user"] = "user"
+    # assumed: typical for the room type; observed: seen by the vision agent; user: entered
+    provenance: Literal["assumed", "observed", "user"] = "user"
 
 
 def default_furnishing(label: str) -> list[FurnitureItem]:

@@ -12,6 +12,7 @@ import type {
 } from './types'
 import { roomBody } from './roomRef'
 import type { SuitabilityReport } from './features/suitability/types'
+import type { HouseTreatment, Objective, TreatmentPlan } from './features/treatment/types'
 
 async function get<T>(path: string): Promise<T> {
   const res = await fetch(`/api${path}`)
@@ -88,3 +89,60 @@ export interface DemoPair {
   bad: DemoSide
 }
 export const fetchDemo = () => get<DemoPair>('/demo')
+
+export const fetchObjectives = () => get<Objective[]>('/treatment/objectives')
+
+export async function fetchTreatment(
+  sid: string,
+  roomId: string,
+  objective: string,
+  scenario: 'as_scanned' | 'empty',
+  avoidWalls: number[] = [],
+): Promise<TreatmentPlan> {
+  const res = await fetch('/api/rooms/treatment', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ sid, room_id: roomId, objective, scenario, avoid_walls: avoidWalls }),
+  })
+  if (!res.ok) {
+    const detail = await res.json().catch(() => ({}))
+    throw new Error(`treatment: HTTP ${res.status} ${detail.detail ?? ''}`)
+  }
+  return res.json() as Promise<TreatmentPlan>
+}
+
+export interface PhotorealStatus {
+  available: boolean
+  model: string | null
+  reason: string | null
+}
+export const fetchPhotorealStatus = () => get<PhotorealStatus>('/visualize/status')
+
+export async function makePhotoreal(
+  plan: { sid: string; room_id: string; objective: { id: string }; scenario: string },
+  avoidWalls: number[],
+  before: string,
+  render: string,
+): Promise<{ image: string; model: string; label: string }> {
+  const res = await fetch('/api/visualize/photoreal', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      sid: plan.sid,
+      room_id: plan.room_id,
+      objective: plan.objective.id,
+      scenario: plan.scenario,
+      avoid_walls: avoidWalls,
+      before,
+      render,
+    }),
+  })
+  if (!res.ok) {
+    const detail = await res.json().catch(() => ({}))
+    throw new Error(`HTTP ${res.status} ${detail.detail ?? ''}`)
+  }
+  return res.json()
+}
+
+export const fetchHouseTreatment = (sid: string, objective: string, scenario: 'as_scanned' | 'empty') =>
+  get<HouseTreatment>(`/properties/${sid}/treatment?objective=${encodeURIComponent(objective)}&scenario=${scenario}`)

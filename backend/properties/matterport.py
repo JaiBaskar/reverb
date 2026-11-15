@@ -40,6 +40,10 @@ class MatterportError(RuntimeError):
     pass
 
 
+class ExpiredAsset(MatterportError):
+    """A signed asset URL is no longer valid (HTTP 403/410): re-query for a fresh one."""
+
+
 def fetch_model(sid: str, *, use_cache: bool = True) -> dict:
     """Return the raw Matterport model, cached on disk per model ID."""
     return _cached_query(sid, MODEL_QUERY, f"{sid}.json", use_cache)
@@ -78,3 +82,155 @@ def graphql(query: str, variables: dict) -> dict:
     if resp.status_code != 200:
         raise MatterportError(f"Matterport HTTP {resp.status_code}")
     return resp.json()
+
+
+# Imagery and mesh. Asset URLs are signed and expire, so this query is cached briefly; the
+# downloaded files are cached for good.
+ASSETS_QUERY = """
+query Assets($id: ID!) { model(id: $id) {
+  id
+  matterpak: bundle(id: "mp:matterpak") { availability }
+  assets { meshes(formats: ["obj"], resolutions: ["50k"]) { url filename status } }
+  panoLocations { id position { x y z } rotation { x y z w }
+                  anchor { id room { id } }
+                  skybox(resolution: "2k") { status children } }
+} }
+"""
+ASSET_TTL_S = 30 * 60
+
+
+def fetch_assets(sid: str, fresh: bool = False) -> dict:
+    """Panorama locations (with signed skybox face URLs) and the 50k OBJ mesh URL."""
+    import time
+
+    cache = CACHE_DIR / f"{sid}.assets.json"
+    if not fresh and cache.exists() and time.time() - cache.stat().st_mtime < ASSET_TTL_S:
+        return json.loads(cache.read_text())
+    return _cached_query(sid, ASSETS_QUERY, f"{sid}.assets.json", use_cache=False)
+
+
+def download(url: str, dest: Path) -> Path:
+    """Fetch a signed asset URL once; the file is kept in the cache."""
+    if dest.exists() and dest.stat().st_size > 0:
+        return dest
+    try:
+        resp = httpx.get(url, timeout=120, follow_redirects=True)
+    except httpx.HTTPError as e:
+        raise MatterportError(f"asset download failed: {e}") from e
+    if resp.status_code in (403, 410):
+        raise ExpiredAsset(f"asset URL expired (HTTP {resp.status_code})")
+    if resp.status_code != 200:
+        raise MatterportError(f"asset download HTTP {resp.status_code}")
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_bytes(resp.content)
+    return dest
+
+
+def mesh_path(sid: str) -> Path | None:
+    """Local copy of the model's 50k OBJ mesh (Matterport's defurnished shell), or None."""
+    dest = CACHE_DIR / "mesh" / f"{sid}_50k.obj"
+    if dest.exists():
+        return dest
+    for fresh in (False, True):
+        meshes = ((fetch_assets(sid, fresh).get("assets") or {}).get("meshes")) or []
+        ok = [m for m in meshes if m.get("status") == "available" and m.get("url")]
+        if not ok:
+            return None
+        try:
+            return download(ok[0]["url"], dest)
+        except ExpiredAsset:
+            if fresh:
+                raise
+    return None
+
+
+def skybox_faces(sid: str, pano_id: str, faces=(1, 2, 3, 4, 5)) -> dict[int, Path]:
+    """Local copies of one panorama's 2k skybox faces (0 = up, 1-4 = sides, 5 = down)."""
+
+    def dest(f: int) -> Path:
+        return CACHE_DIR / "pano" / f"{sid}_{pano_id}_{f}.jpg"
+
+    for fresh in (False, True):
+        missing = [f for f in faces if not dest(f).exists()]
+        if not missing:
+            break
+        loc = next(
+            (p for p in fetch_assets(sid, fresh).get("panoLocations") or [] if p["id"] == pano_id),
+            None,
+        )
+        children = ((loc or {}).get("skybox") or {}).get("children") or []
+        if len(children) != 6:
+            raise MatterportError(f"panorama {pano_id} has no skybox faces")
+        try:
+            for f in missing:
+                download(children[f], dest(f))
+            break
+        except ExpiredAsset:
+            if fresh:
+                raise
+    return {f: dest(f) for f in faces}
+
+
+class _RangeFile:
+    """A read-only, seekable view of a remote file using HTTP range requests, so zipfile can
+    read the MatterPak's directory and one member without downloading the whole archive."""
+
+    def __init__(self, url: str):
+        self.url, self.pos = url, 0
+        self.client = httpx.Client(follow_redirects=True, timeout=120)
+        r = self.client.get(url, headers={"Range": "bytes=0-0"})
+        if r.status_code in (403, 410):
+            raise ExpiredAsset(f"asset URL expired (HTTP {r.status_code})")
+        if r.status_code != 206:
+            raise MatterportError(
+                f"MatterPak does not support range requests (HTTP {r.status_code})"
+            )
+        self.size = int(r.headers["content-range"].split("/")[1])
+
+    def seekable(self) -> bool:
+        return True
+
+    def tell(self) -> int:
+        return self.pos
+
+    def seek(self, off: int, whence: int = 0) -> int:
+        self.pos = off if whence == 0 else self.pos + off if whence == 1 else self.size + off
+        return self.pos
+
+    def read(self, n: int = -1) -> bytes:
+        if n is None or n < 0:
+            n = self.size - self.pos
+        if n == 0 or self.pos >= self.size:
+            return b""
+        end = min(self.size, self.pos + n) - 1
+        data = self.client.get(self.url, headers={"Range": f"bytes={self.pos}-{end}"}).content
+        self.pos += len(data)
+        return data
+
+
+def furnished_mesh_path(sid: str) -> Path | None:
+    """The MatterPak's full (furnished) OBJ, fetched alone from the remote zip and cached.
+    None when the model has no unlocked MatterPak."""
+    import zipfile
+
+    dest = CACHE_DIR / "mesh" / f"{sid}_furnished.obj"
+    if dest.exists() and dest.stat().st_size > 0:
+        return dest
+    q = 'query($id: ID!) { model(id: $id) { mp: bundle(id: "mp:matterpak") { availability assets { url } } } }'
+    for attempt in range(2):
+        mp = ((graphql(q, {"id": sid}).get("data") or {}).get("model") or {}).get("mp") or {}
+        if mp.get("availability") != "unlocked" or not mp.get("assets"):
+            return None
+        try:
+            z = zipfile.ZipFile(_RangeFile(mp["assets"][0]["url"]))  # type: ignore[arg-type]
+        except ExpiredAsset:
+            if attempt:
+                raise
+            continue
+        objs = [i for i in z.infolist() if i.filename.endswith(".obj")]
+        if not objs:
+            return None
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_bytes(z.read(max(objs, key=lambda i: i.file_size)))
+        return dest
+    return None

@@ -44,7 +44,9 @@ def _bass_ratio(r: AcousticReport) -> float:
 def compare(a: AcousticReport, b: AcousticReport) -> Comparison:
     ta, tb = _mid_rt60(a), _mid_rt60(b)
     va, vb = a.geometry.volume_m3, b.geometry.volume_m3
-    # Effective mid-band absorption (sabins) implied by each RT60: A = 0.161 V / T
+    # Effective mid-band absorption implied by each RT60, A_eff = 0.161 V / T. Under Eyring this
+    # is -S ln(1 - a) + 4 m V (boundary absorption on Eyring's scale plus air), so the volume and
+    # absorption factors still multiply exactly to the RT60 ratio.
     ea, eb = SABINE_CONSTANT * va / ta, SABINE_CONSTANT * vb / tb
     vol_factor = va / vb
     abs_factor = eb / ea
@@ -96,9 +98,26 @@ def compare(a: AcousticReport, b: AcousticReport) -> Comparison:
             + "."
         )
     else:
-        s.append(
-            "Both rooms use the same material assumptions, so the difference is geometry only."
-        )
+        treated = [
+            n
+            for n, r in (("A", a), ("B", b))
+            if any(x.startswith("Treatment installed") for x in r.assumptions)
+        ]
+        furn_a = sorted((i.id, i.count) for i in a.furniture)
+        furn_b = sorted((i.id, i.count) for i in b.furniture)
+        causes = (
+            [f"the acoustic treatment installed in {' and '.join(treated)}"] if treated else []
+        ) + (["their furniture"] if furn_a != furn_b else [])
+        if causes:
+            s.append(
+                "Both rooms use the same surface materials; the difference comes from "
+                + " and ".join(causes)
+                + "."
+            )
+        else:
+            s.append(
+                "Both rooms use the same material assumptions, so the difference is geometry only."
+            )
 
     fs_a, fs_b = a.schroeder_hz, b.schroeder_hz
     low_txt = ", ".join(
