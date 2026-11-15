@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { fetchPhotorealStatus, makePhotoreal, type PhotorealStatus } from '../../api'
 import type { Variant } from '../matterport/connect'
 import { MatterportViewer } from '../matterport/MatterportViewer'
 import type { MpSdk } from '../matterport/sdkTypes'
@@ -9,43 +8,29 @@ import type { PlacedItem, TreatmentPlan } from './types'
 type Status =
   | { kind: 'connecting' }
   | { kind: 'positioning' }
-  | { kind: 'capturing' }
   | { kind: 'ready' }
   | { kind: 'embed' }
   | { kind: 'error'; message: string }
 
-const SHOT = { width: 1280, height: 720 }
 const NONE: PlacedItem[] = []
-const wait = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
 /**
  * The plan installed in the real Matterport scan: live 3D view with a treated/original toggle,
- * and a before/after pair captured from the automatically chosen scan position.
+ * opened at the automatically chosen scan position.
  */
 export function TreatmentView({
   plan,
-  avoidWalls,
   extraItems = NONE,
 }: {
   plan: TreatmentPlan
-  avoidWalls: number[]
   /** Items of the other rooms (whole-house view), installed alongside this room's plan. */
   extraItems?: PlacedItem[]
 }) {
   const [conn, setConn] = useState<{ sdk: MpSdk; variant: Variant } | null>(null)
   const [status, setStatus] = useState<Status>({ kind: 'connecting' })
-  const [shots, setShots] = useState<{ key: string; before: string; after: string } | null>(null)
   const [treated, setTreated] = useState(true)
   const [moveError, setMoveError] = useState<string | null>(null)
   const scene = useRef<TreatmentScene | null>(null)
-  const [ai, setAi] = useState<PhotorealStatus | null>(null)
-  const [real, setReal] = useState<{ key: string; image?: string; label?: string; error?: string; busy?: boolean } | null>(null)
-  useEffect(() => {
-    fetchPhotorealStatus()
-      .then(setAi)
-      .catch(() => setAi(null))
-  }, [])
-  const planKey = `${plan.room_id}/${plan.objective.id}/${plan.scenario}/${plan.items.length}/${extraItems.length}`
 
   const onConnected = useCallback((sdk: MpSdk, variant: Variant) => {
     // Dev-only handle for inspecting the SDK from the browser console.
@@ -79,15 +64,7 @@ export function TreatmentView({
           if (live) setStatus({ kind: 'ready' })
           return
         }
-        await wait(2500) // let the panorama's high-resolution tiles load
         if (!live) return
-        setStatus({ kind: 'capturing' })
-        const before = s?.capture(false) ?? (await conn.sdk.Renderer.takeScreenShot(SHOT))
-        const after = s?.capture(true)
-        if (!live) return
-        // A capture from a hidden or not-yet-drawn canvas comes back blank ("data:,"): skip it.
-        const real = (u: string | null | undefined) => !!u && u.length > 2000
-        if (real(before) && real(after)) setShots({ key: planKey, before, after: after! })
         setTreated(true)
         setStatus({ kind: 'ready' })
       } catch (e) {
@@ -100,22 +77,13 @@ export function TreatmentView({
       scene.current?.dispose()
       scene.current = null
     }
-  }, [conn, plan, planKey, extraItems])
+  }, [conn, plan, extraItems])
 
   const toggle = (on: boolean) => {
     setTreated(on)
     scene.current?.setVisible(on)
   }
-  const current = shots?.key === planKey ? shots : null
-  const realNow = real?.key === planKey ? real : null
-  const photoreal = () => {
-    if (!current) return
-    setReal({ key: planKey, busy: true })
-    makePhotoreal(plan, avoidWalls, current.before, current.after)
-      .then((r) => setReal({ key: planKey, image: r.image, label: r.label }))
-      .catch((e: Error) => setReal({ key: planKey, error: e.message }))
-  }
-  const busy = status.kind === 'connecting' || status.kind === 'positioning' || status.kind === 'capturing'
+  const busy = status.kind === 'connecting' || status.kind === 'positioning'
 
   return (
     <div className="space-y-3" data-testid="treatment-view">
@@ -127,9 +95,7 @@ export function TreatmentView({
           {busy
             ? status.kind === 'connecting'
               ? 'Loading the 3D scan…'
-              : status.kind === 'positioning'
-                ? 'Moving to the best scan position…'
-                : 'Capturing before and after…'
+              : 'Moving to the best scan position…'
             : treated
               ? 'With the treatment plan (rendered at the calculated positions)'
               : 'Original scan'}
@@ -186,44 +152,7 @@ export function TreatmentView({
           Viewpoint chosen automatically: {plan.viewpoint.reason}
         </p>
       ) : (
-        <p className="text-xs text-zinc-500">This room has no tour scan position, so there is no picture of it.</p>
-      )}
-      {current && (
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2" data-testid="before-after">
-          <figure>
-            <img src={current.before} alt="The room as scanned" className="w-full rounded-lg ring-1 ring-zinc-800" />
-            <figcaption className="mt-1 text-xs text-zinc-400">Before: the Matterport scan as captured</figcaption>
-          </figure>
-          <figure>
-            <img src={current.after} alt="The room with the recommended treatment" className="w-full rounded-lg ring-1 ring-zinc-800" />
-            <figcaption className="mt-1 text-xs text-zinc-400">
-              After: a visualization, with each item drawn at its calculated position. Not a photo of an installation.
-            </figcaption>
-          </figure>
-        </div>
-      )}
-      {current && ai && !ai.available && ai.reason && (
-        <p className="text-xs text-zinc-500" data-testid="photoreal-off">AI photo version not offered: {ai.reason}</p>
-      )}
-      {current && ai?.available && (
-        <div className="space-y-2" data-testid="photoreal">
-          {!realNow?.image && (
-            <button
-              onClick={photoreal}
-              disabled={realNow?.busy}
-              className="rounded-lg bg-zinc-800 px-3 py-1.5 text-sm hover:bg-zinc-700 disabled:opacity-50"
-            >
-              {realNow?.busy ? 'Generating…' : 'Make the "after" look photographic (AI)'}
-            </button>
-          )}
-          {realNow?.error && <p className="text-sm text-red-300">AI visualization failed: {realNow.error}</p>}
-          {realNow?.image && (
-            <figure>
-              <img src={realNow.image} alt="AI visualization of the treated room" className="w-full rounded-lg ring-1 ring-zinc-800" />
-              <figcaption className="mt-1 text-xs text-zinc-400">{realNow.label}</figcaption>
-            </figure>
-          )}
-        </div>
+        <p className="text-xs text-zinc-500">This room has no tour scan position.</p>
       )}
     </div>
   )

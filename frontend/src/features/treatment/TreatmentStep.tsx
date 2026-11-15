@@ -43,6 +43,8 @@ interface Props {
   onHearTreated: (plan: TreatmentPlan, avoidWalls: number[]) => void
   /** Hear another room: opens that room's page. */
   onOpenRoom?: (roomId: string, label: string) => void
+  /** A room was picked on the plan or in the list: the page above follows it. */
+  onPick?: (roomId: string, label: string) => void
 }
 
 /** Short names and one-line meaning for each use, so the choice reads at a glance. */
@@ -54,7 +56,7 @@ const USE: Record<string, { label: string; hint: string }> = {
   podcasting: { label: 'Podcast', hint: 'Clear speech: dead and quiet, no echo.' },
 }
 
-export function TreatmentStep({ room, objective, onObjective, onHearTreated, onOpenRoom }: Props) {
+export function TreatmentStep({ room, objective, onObjective, onHearTreated, onOpenRoom, onPick }: Props) {
   const [objectives, setObjectives] = useState<Objective[]>(FALLBACK)
   const [scenario, setScenario] = useState<Scenario>('as_scanned')
   const [roomId, setRoomId] = useState(room.roomId)
@@ -113,8 +115,9 @@ export function TreatmentStep({ room, objective, onObjective, onHearTreated, onO
   const planRooms = (layout?.rooms ?? []).filter((r) => floors.length < 2 || r.floor_index === floorShown)
   const pick = (id: string) => {
     setRoomId(id)
-    const f = layout?.rooms.find((r) => r.room_id === id)?.floor_index
-    if (f != null) setFloor(f)
+    const lr = layout?.rooms.find((r) => r.room_id === id)
+    if (lr?.floor_index != null) setFloor(lr.floor_index)
+    onPick?.(id, names[id] ?? lr?.label ?? id)
   }
   const candidates = ranked.filter((r) => r.eligible)
   const others = ranked.filter((r) => !r.eligible)
@@ -286,7 +289,7 @@ export function TreatmentStep({ room, objective, onObjective, onHearTreated, onO
             </div>
 
             <div>
-              <TreatmentView plan={current} avoidWalls={avoid} extraItems={extraItems} />
+              <TreatmentView plan={current} extraItems={extraItems} />
               <ItemLegend plan={current} />
             </div>
 

@@ -38,9 +38,17 @@ interface Props {
  * plan in 3D), details (folded), and last, listen: test the reverb with your own recording.
  * A sticky bar jumps between the sections.
  */
-export function RoomPage({ room, risk, catalog, note, onOpenRoom, onHeatmap, onClose }: Props) {
+export function RoomPage({ room: opened, risk, catalog, note, onOpenRoom, onHeatmap, onClose }: Props) {
+  // The room shown: the one opened, until another is picked in Fix it (the whole page follows it).
+  const [room, setRoom] = useState<SlotRef>(opened)
   const [sel, setSel] = useState<MaterialSelection>({})
   const [treated, setTreated] = useState<{ sel: MaterialSelection; label: string } | null>(null)
+  const pickRoom = (roomId: string, label: string) => {
+    if (roomId === room.roomId) return
+    setRoom({ ...room, roomId, label })
+    setSel({}) // edits and the treated version belong to the previous room
+    setTreated(null)
+  }
   const [objective, setObjective] = useState('mixing')
   const [active, setActive] = useState<SectionId>('overview')
   const scanned = !parseCustomRoomId(room.roomId)
@@ -95,7 +103,7 @@ export function RoomPage({ room, risk, catalog, note, onOpenRoom, onHeatmap, onC
   return (
     <Sheet
       title={room.label}
-      sub={[note, room.address].filter(Boolean).join(' · ')}
+      sub={[room.roomId === opened.roomId ? note : undefined, room.address].filter(Boolean).join(' · ')}
       onClose={onClose}
       testId="room-page"
       actions={
@@ -156,7 +164,15 @@ export function RoomPage({ room, risk, catalog, note, onOpenRoom, onHeatmap, onC
 
         {scanned && (
           <Section id="fix" title="Fix it">
-            <TreatmentStep key={`${room.sid}/${room.roomId}`} room={room} objective={objective} onObjective={setObjective} onHearTreated={hearTreated} onOpenRoom={onOpenRoom} />
+            <TreatmentStep
+              key={`${opened.sid}/${opened.roomId}`}
+              room={room}
+              objective={objective}
+              onObjective={setObjective}
+              onHearTreated={hearTreated}
+              onOpenRoom={onOpenRoom}
+              onPick={pickRoom}
+            />
           </Section>
         )}
 

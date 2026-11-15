@@ -34,8 +34,11 @@ const POLL_MS = 4000
 
 /** The Deep Agents vision inspection of one room: status, start, and polling while it runs. */
 export function useInspection(sid: string, roomId: string, enabled: boolean) {
-  const [status, setStatus] = useState<InspectStatus | null>(null)
   const url = `/api/properties/${sid}/rooms/${roomId}/inspect`
+  // Keyed by room, so another room's answer never shows while this one's is fetched.
+  const [state, setState] = useState<{ url: string; s: InspectStatus } | null>(null)
+  const status = state?.url === url ? state.s : null
+  const setStatus = useCallback((s: InspectStatus) => setState({ url, s }), [url])
   const running = status?.state === 'running'
 
   useEffect(() => {
@@ -56,7 +59,7 @@ export function useInspection(sid: string, roomId: string, enabled: boolean) {
       live = false
       clearTimeout(timer)
     }
-  }, [url, enabled, running])
+  }, [url, enabled, running, setStatus])
 
   const start = useCallback(
     (fresh = false) =>
@@ -64,7 +67,7 @@ export function useInspection(sid: string, roomId: string, enabled: boolean) {
         .then((r) => r.json() as Promise<InspectStatus>)
         .then(setStatus)
         .catch((e: Error) => setStatus({ state: 'error', elapsed_s: null, error: e.message, model: null })),
-    [url],
+    [url, setStatus],
   )
 
   return { status, start }
