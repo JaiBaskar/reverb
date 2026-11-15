@@ -1,6 +1,7 @@
 """Overpass API client: build one query for all categories, fetch it, parse it."""
 
 import re
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 
 import httpx
 
@@ -45,20 +46,44 @@ def build_query(
     )
 
 
+HEDGE_S = 8.0  # no answer from a mirror after this long: ask the next one too
+
+
 def fetch(query: str, client: httpx.Client | None = None) -> dict:
-    """POST the query to each endpoint in turn; raise OverpassError if all fail."""
+    """POST the query to the mirrors and return the first good answer.
+
+    Hedged: a mirror that fails moves on to the next at once, and one that has not answered
+    within HEDGE_S gets company from the next mirror; the first success wins. Public Overpass
+    mirrors are often refused, overloaded or slow, and one slow mirror used to cost a minute
+    before the next was tried. Raises OverpassError if all fail.
+    """
     own = client is None
     client = client or httpx.Client(timeout=TIMEOUT_S, headers={"User-Agent": USER_AGENT})
-    errors = []
+    errors: list[str] = []
+
+    def one(url: str) -> dict:
+        resp = client.post(url, data={"data": query})
+        resp.raise_for_status()
+        return resp.json()
+
+    pool = ThreadPoolExecutor(max_workers=len(ENDPOINTS), thread_name_prefix="overpass")
     try:
-        for url in ENDPOINTS:
-            try:
-                resp = client.post(url, data={"data": query})
-                resp.raise_for_status()
-                return resp.json()
-            except (httpx.HTTPError, ValueError) as exc:
-                errors.append(f"{url}: {type(exc).__name__}: {exc}")
+        running: dict = {}
+        todo = list(ENDPOINTS)
+        while todo or running:
+            if todo and (not running or len(running) < len(ENDPOINTS)):
+                url = todo.pop(0)
+                running[pool.submit(one, url)] = url
+            done, _ = wait(running, timeout=HEDGE_S if todo else None, return_when=FIRST_COMPLETED)
+            for fut in done:
+                url = running.pop(fut)
+                try:
+                    return fut.result()
+                except (httpx.HTTPError, ValueError) as exc:
+                    errors.append(f"{url}: {type(exc).__name__}: {exc}")
+            # nothing finished within HEDGE_S (or a mirror failed): the loop starts the next one
     finally:
+        pool.shutdown(wait=False, cancel_futures=True)
         if own:
             client.close()
     raise OverpassError("; ".join(errors))

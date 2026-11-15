@@ -1,15 +1,19 @@
 """Build a NoiseReport for a location: Overpass query, parse, exposure rules, JSON cache."""
 
 import json
+import logging
 import os
+import threading
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 from pathlib import Path
 
-from noise import overpass
+from noise import local, overpass
 from noise.categories import BASE_CATEGORIES, CATEGORIES, EXTRA_CATEGORIES, MAX_RADIUS_M, Category
 from noise.models import CategoryExposure, NoiseReport, NoiseSource, Provenance
 
+log = logging.getLogger(__name__)
 Fetcher = Callable[[str], dict]
 SCHEMA_VERSION = 2  # bump when the report shape or categories change, to refresh caches
 
@@ -123,6 +127,18 @@ def get_noise_report(
     an error report (not cached)."""
     cache_dir = cache_dir or default_cache_dir()
     path = _cache_path(cache_dir, sid, lat, lon)
+    # /noise and /noise-risk for the same property arrive together: fetch once.
+    with _LOCKS_GUARD:
+        lock = _LOCKS.setdefault(str(path), threading.Lock())
+    with lock:
+        return _get_noise_report(lat, lon, sid, location_provenance, path, fetcher, refresh)
+
+
+_LOCKS: dict[str, threading.Lock] = {}
+_LOCKS_GUARD = threading.Lock()
+
+
+def _get_noise_report(lat, lon, sid, location_provenance, path, fetcher, refresh) -> NoiseReport:
     cached = None
     if path.exists():
         candidate = NoiseReport.model_validate_json(path.read_text())
@@ -132,9 +148,28 @@ def get_noise_report(
     if cached and not refresh and cached.schema_version >= SCHEMA_VERSION and complete:
         return cached
 
+    if fetcher is None:  # the local extract answers in milliseconds; Overpass is the fallback
+        try:
+            found = local.payload_near(lat, lon)
+        except Exception:  # a broken or half-built index must not break noise lookups
+            log.exception("local OSM index failed")
+            found = None
+        if found is not None:
+            payload, note = found
+            return build_report(payload, lat, lon, sid, location_provenance, CATEGORIES, [note])
+
     fetch = fetcher or overpass.fetch
+    # The two queries run at the same time (they used to run one after the other).
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        base_f = pool.submit(fetch, overpass.build_query(lat, lon, categories=BASE_CATEGORIES))
+        extra_f = pool.submit(
+            fetch,
+            overpass.build_query(
+                lat, lon, timeout_s=40, categories=EXTRA_CATEGORIES, geometry=False
+            ),
+        )
     try:
-        payload = fetch(overpass.build_query(lat, lon, categories=BASE_CATEGORIES))
+        payload = base_f.result()
     except overpass.OverpassError as exc:
         if cached is not None:
             note = f"Refresh failed ({str(exc)[:120]}); showing data cached earlier."
@@ -142,11 +177,7 @@ def get_noise_report(
         return error_report(lat, lon, sid, location_provenance, str(exc)[:300])
     categories, notes = BASE_CATEGORIES, []
     try:
-        extra = fetch(
-            overpass.build_query(
-                lat, lon, timeout_s=40, categories=EXTRA_CATEGORIES, geometry=False
-            )
-        )
+        extra = extra_f.result()
         payload = {
             **payload,
             "elements": [*payload.get("elements", []), *extra.get("elements", [])],

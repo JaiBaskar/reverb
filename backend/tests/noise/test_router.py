@@ -118,3 +118,21 @@ def test_noise_risk_ranks_sources_and_returns_heat(client):
     assert risks == sorted(risks, reverse=True) and risks
     assert body["heat"]["features"]
     assert body["location_provenance"] == "verified"
+
+
+def test_fetch_asks_the_next_mirror_when_one_is_slow(monkeypatch, overpass_sample):
+    import time
+
+    monkeypatch.setattr(overpass, "HEDGE_S", 0.05)
+    slow = overpass.ENDPOINTS[0]
+
+    def handler(request):
+        if str(request.url) == slow:
+            time.sleep(1.0)
+            return httpx.Response(200, json={"elements": []})
+        return httpx.Response(200, json=overpass_sample)
+
+    with httpx.Client(transport=httpx.MockTransport(handler)) as c:
+        t0 = time.time()
+        assert overpass.fetch("q", c) == overpass_sample
+        assert time.time() - t0 < 0.8

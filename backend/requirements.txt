@@ -13,3 +13,4 @@ langsmith
 langchain-openrouter
 trimesh
 pillow
+osmium
