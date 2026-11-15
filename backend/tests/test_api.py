@@ -118,3 +118,23 @@ def test_demo_pair_names_a_good_and_a_bad_room():
     assert {"good", "bad"} <= set(body)
     for side in ("good", "bad"):
         assert body[side]["sid"] and body[side]["room_id"] and body[side]["why"]
+
+
+def test_house_analysis_ranks_music_rooms_and_skips_service_rooms(client):
+    r = client.get(f"/properties/{SID}/analysis")
+    assert r.status_code == 200
+    body = r.json()
+    rooms = body["rooms"]
+    usable = [x for x in client.get(f"/properties/{SID}/rooms").json() if x["usable"]]
+    assert len(rooms) == len(usable)  # every usable room was analyzed
+    by_label = {x["label"]: x for x in rooms}
+    for label in ("Bathroom", "Closet", "Hallway", "Kitchen"):
+        if label in by_label:
+            assert by_label[label]["eligible"] is False and by_label[label]["reason"]
+    best = body["best"]
+    assert best["eligible"] and best["label"] not in ("Bathroom", "Closet", "Hallway", "Kitchen")
+    eligible = [x for x in rooms if x["eligible"]]
+    assert rooms[: len(eligible)] == eligible  # eligible rooms first, best first
+    gaps = [abs(x["mid_rt60_s"] - 0.4) for x in eligible]
+    assert gaps == sorted(gaps) and best == eligible[0]
+    assert body["rooms_analyzed"] == len(usable) and "0.4" in body["rule"]

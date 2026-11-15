@@ -1,10 +1,11 @@
 """The structured room representation, built by a LangGraph pipeline:
 
-    geometry -> imagery -> [walls agent | furniture agent | surroundings agent] -> assemble
+    geometry -> imagery -> inspect (Deep Agents coordinator -> walls | furniture | surroundings) -> assemble
 
 geometry: outline checked against the scan mesh (height, real wall surfaces, openings).
 imagery: the room's scan positions, their side/floor/ceiling views, and one rendered view per
-wall. The three specialist agents (roomintel/agents.py) run in parallel on those images.
+wall. inspect: a Deep Agents coordinator (roomintel/inspector.py) sends the three vision
+specialists (roomintel/agents.py) to those images, cross-checks them and may send one back.
 assemble: deterministic merge (roomintel/merge.py): per-wall finishes and features in metres,
 furniture by kind and covering, hazards per wall, furniture objects from the meshes, and the
 extra absorption all of that adds. Anything an agent could not establish stays "assumed".
@@ -24,7 +25,7 @@ from properties import matterport
 from properties.models import Room
 from properties.service import get_rooms
 from properties.tour import get_tour
-from roomintel import agents, merge, obstacles, views
+from roomintel import agents, inspector, merge, obstacles, views
 from roomintel.geometry import RoomGeometry, room_geometry
 from roomintel.obstacles import FurnitureObject
 from roomintel.panorama import ScanPosition, scan_positions
@@ -64,13 +65,16 @@ class RoomModel(BaseModel):
     vision_status: Literal["ok", "partial", "unavailable", "error"]
     vision_reason: str | None
     issues: list[str]
+    inspection: inspector.Inspection | None = None  # how the agents were orchestrated
 
 
 class _State(TypedDict, total=False):
     sid: str
     room_id: str
     use_vision: bool
+    fresh: bool
     skip_reason: str
+    inspection: inspector.Inspection
     room: Room
     geometry: RoomGeometry
     scans: list[ScanPosition]
@@ -178,30 +182,41 @@ def _side(state: _State) -> dict:
     return {k: v for k, v in state["faces"].items() if k[-2:] in ("F1", "F2", "F3", "F4")}
 
 
-def agent_walls(state: _State) -> _State:
-    imgs = dict(state["wall_images"])
-    extra = {}
-    if "S1F5" in state["faces"]:
-        extra["S1F5"] = state["faces"]["S1F5"]
-    if "S1F0" in state["faces"]:
-        extra["S1F0"] = state["faces"]["S1F0"]
-    run = agents.run_agent("walls", agents.WallsReport, agents.walls_prompt(list(imgs), list(extra)),
-                           {**imgs, **extra}, agents.cache_path(state["sid"], state["room_id"], "walls"))  # fmt: skip
-    return {"runs": [run]}
+def jobs_for(state: _State) -> dict[str, inspector.Job]:
+    """Each vision specialist's schema, prompt, images and cache file."""
+    sid, rid = state["sid"], state["room_id"]
+    walls = dict(state["wall_images"])
+    extra = {k: state["faces"][k] for k in ("S1F5", "S1F0") if k in state["faces"]}
+    side = _side(state)
+    return {
+        "walls": (agents.WallsReport, agents.walls_prompt(list(walls), list(extra)), {**walls, **extra}, agents.cache_path(sid, rid, "walls")),
+        "furniture": (agents.FurnitureReport, agents.furniture_prompt(list(side)), side, agents.cache_path(sid, rid, "furniture")),
+        "surroundings": (agents.SurroundingsReport, agents.surroundings_prompt(list(side)), side, agents.cache_path(sid, rid, "surroundings")),
+    }  # fmt: skip
 
 
-def agent_furniture(state: _State) -> _State:
-    imgs = _side(state)
-    run = agents.run_agent("furniture", agents.FurnitureReport, agents.furniture_prompt(list(imgs)), imgs,
-                           agents.cache_path(state["sid"], state["room_id"], "furniture"))  # fmt: skip
-    return {"runs": [run]}
-
-
-def agent_surroundings(state: _State) -> _State:
-    imgs = _side(state)
-    run = agents.run_agent("surroundings", agents.SurroundingsReport, agents.surroundings_prompt(list(imgs)),
-                           imgs, agents.cache_path(state["sid"], state["room_id"], "surroundings"))  # fmt: skip
-    return {"runs": [run]}
+def stage_inspect(state: _State) -> _State:
+    sid, rid = state["sid"], state["room_id"]
+    saved = agents.cache_path(sid, rid, "inspection")
+    jobs = jobs_for(state)
+    if inspected(sid, rid) and not state.get("fresh"):
+        runs = [agents.run_agent(n, *job) for n, job in jobs.items()]  # all cached on disk
+        ins = (
+            inspector.Inspection.model_validate_json(saved.read_text()) if saved.exists() else None
+        )
+        return {"runs": runs, **({"inspection": ins} if ins else {})}
+    geo = state["geometry"]
+    context = {
+        "label": state["room"].label,
+        "walls": len(geo.walls),
+        "height_m": geo.height.value,
+        "images": {n: sorted(job[2]) for n, job in jobs.items()},
+    }
+    results, ins = inspector.inspect(jobs, context)
+    if any(r.status == "ok" for r in results.values()):
+        saved.parent.mkdir(parents=True, exist_ok=True)
+        saved.write_text(ins.model_dump_json(indent=1))
+    return {"runs": list(results.values()), "inspection": ins}
 
 
 def _skipped(state: _State) -> _State:
@@ -308,15 +323,12 @@ def assemble(state: _State) -> _State:
         agents=list(runs.values()), walls=walls, pieces=pieces, hazards=hazards,
         furniture_objects=objects, wall_extra_sabins=extra, absorption_notes=notes,
         vision_status=vstat, vision_reason=vwhy, issues=issues + geo.notes,
+        inspection=state.get("inspection"),
     )}  # fmt: skip
 
 
 def _route(state: _State):
-    return (
-        ["agent_walls", "agent_furniture", "agent_surroundings"]
-        if state.get("use_vision", True)
-        else ["skipped"]
-    )
+    return "inspect" if state.get("use_vision", True) else "skipped"
 
 
 def _graph():
@@ -325,17 +337,13 @@ def _graph():
     g = StateGraph(_State)
     g.add_node("geometry", stage_geometry)
     g.add_node("imagery", stage_imagery)
-    g.add_node("agent_walls", agent_walls)
-    g.add_node("agent_furniture", agent_furniture)
-    g.add_node("agent_surroundings", agent_surroundings)
+    g.add_node("inspect", stage_inspect)
     g.add_node("skipped", _skipped)
     g.add_node("assemble", assemble)
     g.add_edge(START, "geometry")
     g.add_edge("geometry", "imagery")
-    g.add_conditional_edges(
-        "imagery", _route, ["agent_walls", "agent_furniture", "agent_surroundings", "skipped"]
-    )
-    for n in ("agent_walls", "agent_furniture", "agent_surroundings", "skipped"):
+    g.add_conditional_edges("imagery", _route, ["inspect", "skipped"])
+    for n in ("inspect", "skipped"):
         g.add_edge(n, "assemble")
     g.add_edge("assemble", END)
     return g.compile()
@@ -368,7 +376,14 @@ def build_room_model(
     if fresh or key not in _MODELS or (skip and _MODELS[key].vision_reason != skip):
         if _PIPELINE is None:
             _PIPELINE = _graph()
-        state = {"sid": sid, "room_id": room_id, "use_vision": use_vision, "runs": [], "issues": []}
+        state = {
+            "sid": sid,
+            "room_id": room_id,
+            "use_vision": use_vision,
+            "fresh": fresh,
+            "runs": [],
+            "issues": [],
+        }
         if skip:
             state["skip_reason"] = skip
         _MODELS[key] = _PIPELINE.invoke(state)["model"]

@@ -1,5 +1,8 @@
 import json
+import re
+from contextlib import asynccontextmanager
 
+import anyio
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, model_validator
@@ -23,7 +26,16 @@ from properties.tour import get_tour
 from suitability.router import router as suitability_router
 from treatment.router import router as treatment_router
 
-app = FastAPI(title="REVERB")
+WORKER_THREADS = 100  # sync endpoints share one pool; slow outside calls (Overpass, Matterport) must not starve it
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    anyio.to_thread.current_default_thread_limiter().total_tokens = WORKER_THREADS
+    yield
+
+
+app = FastAPI(title="REVERB", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
@@ -155,13 +167,83 @@ def analyze(req: AnalyzeRequest) -> AcousticReport:
         raise HTTPException(422, str(e)) from e
 
 
+# ---- whole-house analysis: every room, then the best music room ----
+
+NOT_MUSIC = re.compile(
+    r"bath|toilet|\bwc\b|closet|hall|corridor|laundry|stair|pantry|utility|void|foyer|entry|storage|kitchen",
+    re.IGNORECASE,
+)
+MIN_MUSIC_AREA_M2 = 7.0
+TARGET_MID_S = 0.4  # middle of the 0.3-0.5 s small-room mixing target
+_HOUSE: dict[str, "HouseAnalysis"] = {}
+
+
+class RankedRoom(BaseModel):
+    room_id: str
+    label: str
+    area_m2: float | None
+    mid_rt60_s: float
+    eligible: bool
+    reason: str | None = None  # why it is not a music-room candidate
+
+
+class HouseAnalysis(BaseModel):
+    sid: str
+    best: RankedRoom | None
+    rooms: list[RankedRoom]  # candidates first (closest to the target first), then the rest
+    rooms_analyzed: int
+    rule: str
+
+
+@app.get("/properties/{sid}/analysis", response_model=HouseAnalysis)
+def house_analysis(sid: str) -> HouseAnalysis:
+    """Analyze every usable room (typical furniture, real outline) and pick the music room:
+    the candidate whose mid-band RT60 is closest to TARGET_MID_S, i.e. the least work."""
+    _require_shortlisted(sid)
+    if sid in _HOUSE:
+        return _HOUSE[sid]
+    try:
+        rooms = [r for r in get_rooms(sid) if r.usable]
+    except MatterportError as e:
+        raise HTTPException(502, str(e)) from e
+    ranked = []
+    for room in rooms:
+        try:
+            rep = analyze(
+                AnalyzeRequest(sid=sid, room_id=room.id, furnished=True, use_outline=True)
+            )
+        except HTTPException:
+            continue
+        mid = (rep.rt60_s[rep.bands_hz.index(500)] + rep.rt60_s[rep.bands_hz.index(1000)]) / 2
+        area = room.area_m2.value
+        reason = None
+        if NOT_MUSIC.search(room.label):
+            reason = f"{room.label}: not a music room"
+        elif area is not None and area < MIN_MUSIC_AREA_M2:
+            reason = f"under {MIN_MUSIC_AREA_M2:.0f} m² floor area"
+        ranked.append(RankedRoom(room_id=room.id, label=room.label, area_m2=area,
+                                 mid_rt60_s=round(mid, 3), eligible=reason is None, reason=reason))  # fmt: skip
+    ranked.sort(key=lambda r: (not r.eligible, abs(r.mid_rt60_s - TARGET_MID_S)))
+    best = ranked[0] if ranked and ranked[0].eligible else None
+    out = HouseAnalysis(
+        sid=sid, best=best, rooms=ranked, rooms_analyzed=len(ranked),
+        rule=(f"Best room = the candidate whose modeled mid-band reverb is closest to {TARGET_MID_S} s "
+              f"(least treatment needed). Bathrooms, kitchens, closets, halls and rooms under "
+              f"{MIN_MUSIC_AREA_M2:.0f} m² are not candidates."),
+    )  # fmt: skip
+    _HOUSE[sid] = out
+    return out
+
+
 def from_room_model(req: AnalyzeRequest, room: Room) -> AcousticReport:
     from roomintel.model import build_room_model
     from treatment.service import base_report
 
-    rm = build_room_model(req.sid, room.id)
-    sel = {**DEFAULT_SELECTION, **(req.materials or {})}
-    return base_report(rm, room, "as_scanned", sel, furnishing(req, room) or [])
+    # cache_only: never start a vision inspection inside an analysis request (that is
+    # POST .../inspect); use the agents' answers if this room was already inspected.
+    rm = build_room_model(req.sid, room.id, cache_only=True)
+    # What the scan and agents saw wins; only the user's own edits override it.
+    return base_report(rm, room, "as_scanned", req.materials or {}, req.furniture)
 
 
 def treated(req: AnalyzeRequest, room: Room) -> AcousticReport:
