@@ -1,51 +1,51 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { fetchPhotorealStatus, makePhotoreal, type PhotorealStatus } from '../../api'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Variant } from '../matterport/connect'
 import { MatterportViewer } from '../matterport/MatterportViewer'
 import type { MpSdk } from '../matterport/sdkTypes'
 import { createTreatmentScene, goToViewpoint, type TreatmentScene } from './scene'
+import { itemCardLines, productNames } from './itemCard'
 import type { PlacedItem, TreatmentPlan } from './types'
 
 type Status =
   | { kind: 'connecting' }
   | { kind: 'positioning' }
-  | { kind: 'capturing' }
   | { kind: 'ready' }
   | { kind: 'embed' }
   | { kind: 'error'; message: string }
 
-const SHOT = { width: 1280, height: 720 }
 const NONE: PlacedItem[] = []
-const wait = (ms: number) => new Promise((r) => setTimeout(r, ms))
+/** Room the card keeps clear of: our status label (top) and Matterport's controls (bottom). */
+const SAFE = { top: 44, bottom: 84, side: 8 }
 
 /**
  * The plan installed in the real Matterport scan: live 3D view with a treated/original toggle,
- * and a before/after pair captured from the automatically chosen scan position.
+ * opened at the automatically chosen scan position.
  */
 export function TreatmentView({
   plan,
-  avoidWalls,
   extraItems = NONE,
+  focusKey = null,
 }: {
   plan: TreatmentPlan
-  avoidWalls: number[]
   /** Items of the other rooms (whole-house view), installed alongside this room's plan. */
   extraItems?: PlacedItem[]
+  /** An item hovered outside the 3D view (the plan's item list): highlighted with its card. */
+  focusKey?: string | null
 }) {
   const [conn, setConn] = useState<{ sdk: MpSdk; variant: Variant } | null>(null)
   const [status, setStatus] = useState<Status>({ kind: 'connecting' })
-  const [shots, setShots] = useState<{ key: string; before: string; after: string } | null>(null)
   const [treated, setTreated] = useState(true)
   const [moveError, setMoveError] = useState<string | null>(null)
   const scene = useRef<TreatmentScene | null>(null)
-  const [ai, setAi] = useState<PhotorealStatus | null>(null)
-  const [real, setReal] = useState<{ key: string; image?: string; label?: string; error?: string; busy?: boolean } | null>(null)
-  useEffect(() => {
-    fetchPhotorealStatus()
-      .then(setAi)
-      .catch(() => setAi(null))
-  }, [])
-  const planKey = `${plan.room_id}/${plan.objective.id}/${plan.scenario}/${plan.items.length}/${extraItems.length}`
+  const [sceneOn, setSceneOn] = useState(0) // bumps when a scene is installed
+  const [hover3d, setHover3d] = useState<string | null>(null)
+  const active = hover3d ?? focusKey
+  const box = useRef<HTMLDivElement | null>(null)
+  const cardRef = useRef<HTMLDivElement | null>(null)
+  const [cardAt, setCardAt] = useState<{ left: number; top: number } | null>(null)
+  const names = useMemo(() => productNames(plan), [plan])
+  const activeItem = active ? plan.items.find((i) => i.key === active) : undefined
+  const lines = activeItem ? itemCardLines(activeItem, plan.room.floor_z, names) : []
 
   const onConnected = useCallback((sdk: MpSdk, variant: Variant) => {
     // Dev-only handle for inspecting the SDK from the browser console.
@@ -63,9 +63,15 @@ export function TreatmentView({
         return
       }
       try {
-        const s = await createTreatmentScene(conn.sdk, [...plan.items, ...extraItems])
+        const s = await createTreatmentScene(
+          conn.sdk,
+          [...plan.items, ...extraItems],
+          plan.items.map((i) => i.key),
+        )
         if (!live) return s?.dispose()
         scene.current = s
+        s?.onHover(setHover3d)
+        setSceneOn((n) => n + 1)
         if (!plan.viewpoint) {
           setStatus({ kind: 'ready' })
           return
@@ -79,15 +85,7 @@ export function TreatmentView({
           if (live) setStatus({ kind: 'ready' })
           return
         }
-        await wait(2500) // let the panorama's high-resolution tiles load
         if (!live) return
-        setStatus({ kind: 'capturing' })
-        const before = s?.capture(false) ?? (await conn.sdk.Renderer.takeScreenShot(SHOT))
-        const after = s?.capture(true)
-        if (!live) return
-        // A capture from a hidden or not-yet-drawn canvas comes back blank ("data:,"): skip it.
-        const real = (u: string | null | undefined) => !!u && u.length > 2000
-        if (real(before) && real(after)) setShots({ key: planKey, before, after: after! })
         setTreated(true)
         setStatus({ kind: 'ready' })
       } catch (e) {
@@ -99,27 +97,54 @@ export function TreatmentView({
       live = false
       scene.current?.dispose()
       scene.current = null
+      setHover3d(null)
     }
-  }, [conn, plan, planKey, extraItems])
+  }, [conn, plan, extraItems])
+
+  // Highlight the active item and keep its card next to it while the camera moves.
+  useEffect(() => {
+    const s = scene.current
+    s?.highlight(treated ? active : null)
+    if (!s || !active || !treated) {
+      setCardAt(null)
+      return
+    }
+    let raf = 0
+    const tick = () => {
+      const p = s.project(active)
+      const el = box.current
+      if (!p || !el) setCardAt(null)
+      else {
+        const W = el.clientWidth
+        const H = el.clientHeight
+        const cw = cardRef.current?.offsetWidth ?? 200
+        const ch = cardRef.current?.offsetHeight ?? 64
+        // beside the item: right of it if there is room, else left of it, else clamped inside
+        let left = p.maxX + 12
+        if (left + cw > W - SAFE.side) left = p.minX - cw - 12
+        left = Math.max(SAFE.side, Math.min(W - SAFE.side - cw, left))
+        const midY = (Math.max(p.minY, 0) + Math.min(p.maxY, H)) / 2
+        const top = Math.max(SAFE.top, Math.min(H - SAFE.bottom - ch, midY - ch / 2))
+        setCardAt((c) => (c && Math.abs(c.left - left) < 0.5 && Math.abs(c.top - top) < 0.5 ? c : { left, top }))
+      }
+      raf = requestAnimationFrame(tick)
+    }
+    tick()
+    return () => {
+      cancelAnimationFrame(raf)
+      s.highlight(null)
+    }
+  }, [active, treated, sceneOn])
 
   const toggle = (on: boolean) => {
     setTreated(on)
     scene.current?.setVisible(on)
   }
-  const current = shots?.key === planKey ? shots : null
-  const realNow = real?.key === planKey ? real : null
-  const photoreal = () => {
-    if (!current) return
-    setReal({ key: planKey, busy: true })
-    makePhotoreal(plan, avoidWalls, current.before, current.after)
-      .then((r) => setReal({ key: planKey, image: r.image, label: r.label }))
-      .catch((e: Error) => setReal({ key: planKey, error: e.message }))
-  }
-  const busy = status.kind === 'connecting' || status.kind === 'positioning' || status.kind === 'capturing'
+  const busy = status.kind === 'connecting' || status.kind === 'positioning'
 
   return (
     <div className="space-y-3" data-testid="treatment-view">
-      <div className="relative overflow-hidden rounded-xl bg-black ring-1 ring-zinc-800">
+      <div ref={box} className="relative overflow-hidden rounded-xl bg-black ring-1 ring-zinc-800">
         <div className="aspect-video w-full">
           <MatterportViewer sid={plan.sid} onConnected={onConnected} onDisconnected={onDisconnected} />
         </div>
@@ -127,13 +152,27 @@ export function TreatmentView({
           {busy
             ? status.kind === 'connecting'
               ? 'Loading the 3D scan…'
-              : status.kind === 'positioning'
-                ? 'Moving to the best scan position…'
-                : 'Capturing before and after…'
+              : 'Moving to the best scan position…'
             : treated
               ? 'With the treatment plan (rendered at the calculated positions)'
               : 'Original scan'}
         </div>
+        {lines.length > 0 && (
+          <div
+            ref={cardRef}
+            className="pointer-events-none absolute z-10 w-max max-w-[220px] rounded-lg bg-paper/95 px-2.5 py-1.5 text-[11px] leading-4 text-ink shadow-lg ring-1 ring-line"
+            style={cardAt ? { left: cardAt.left, top: cardAt.top } : { visibility: 'hidden', left: 0, top: 0 }}
+            data-testid="item-card"
+          >
+            {lines.map((l, i) => (
+              <div key={i} className={
+                  activeItem?.status !== 'ok' && i === lines.length - 1 ? 'font-medium text-ok' : i === 0 ? 'font-semibold' : 'text-mute'
+                }>
+                {l}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
       <div className="flex flex-wrap items-center gap-2 text-sm">
         <div className="flex rounded-lg bg-zinc-900 p-0.5 ring-1 ring-zinc-800" role="radiogroup" aria-label="Show treatment">
@@ -186,44 +225,7 @@ export function TreatmentView({
           Viewpoint chosen automatically: {plan.viewpoint.reason}
         </p>
       ) : (
-        <p className="text-xs text-zinc-500">This room has no tour scan position, so there is no picture of it.</p>
-      )}
-      {current && (
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2" data-testid="before-after">
-          <figure>
-            <img src={current.before} alt="The room as scanned" className="w-full rounded-lg ring-1 ring-zinc-800" />
-            <figcaption className="mt-1 text-xs text-zinc-400">Before: the Matterport scan as captured</figcaption>
-          </figure>
-          <figure>
-            <img src={current.after} alt="The room with the recommended treatment" className="w-full rounded-lg ring-1 ring-zinc-800" />
-            <figcaption className="mt-1 text-xs text-zinc-400">
-              After: a visualization, with each item drawn at its calculated position. Not a photo of an installation.
-            </figcaption>
-          </figure>
-        </div>
-      )}
-      {current && ai && !ai.available && ai.reason && (
-        <p className="text-xs text-zinc-500" data-testid="photoreal-off">AI photo version not offered: {ai.reason}</p>
-      )}
-      {current && ai?.available && (
-        <div className="space-y-2" data-testid="photoreal">
-          {!realNow?.image && (
-            <button
-              onClick={photoreal}
-              disabled={realNow?.busy}
-              className="rounded-lg bg-zinc-800 px-3 py-1.5 text-sm hover:bg-zinc-700 disabled:opacity-50"
-            >
-              {realNow?.busy ? 'Generating…' : 'Make the "after" look photographic (AI)'}
-            </button>
-          )}
-          {realNow?.error && <p className="text-sm text-red-300">AI visualization failed: {realNow.error}</p>}
-          {realNow?.image && (
-            <figure>
-              <img src={realNow.image} alt="AI visualization of the treated room" className="w-full rounded-lg ring-1 ring-zinc-800" />
-              <figcaption className="mt-1 text-xs text-zinc-400">{realNow.label}</figcaption>
-            </figure>
-          )}
-        </div>
+        <p className="text-xs text-zinc-500">This room has no tour scan position.</p>
       )}
     </div>
   )

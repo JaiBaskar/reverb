@@ -95,7 +95,7 @@ export function AudioLab({ a, b, materials, onDry, outside, active = true, names
     if (!playing || !dry) return
     const id = setInterval(() => {
       const t = timing.current
-      setPos((t.offset + audioCtx().currentTime - t.startedAt) % dry.duration)
+      setPos(Math.min(dry.duration, t.offset + audioCtx().currentTime - t.startedAt))
     }, 200)
     return () => clearInterval(id)
   }, [playing, dry])
@@ -154,7 +154,13 @@ export function AudioLab({ a, b, materials, onDry, outside, active = true, names
     }
     const src = c.createBufferSource()
     src.buffer = dry
-    src.loop = true
+    // Plays once: when the take ends, stop everything (outside noise too) and rewind for the next play.
+    src.onended = () => {
+      if (graph.current?.src !== src) return // stopped by hand or rebuilt: not the natural end
+      stop()
+      timing.current.offset = 0
+      setPos(0)
+    }
     const dryG = c.createGain()
     src.connect(dryG).connect(master.current)
     const wetG = { A: c.createGain(), B: c.createGain() }

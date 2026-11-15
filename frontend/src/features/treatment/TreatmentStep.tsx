@@ -43,6 +43,8 @@ interface Props {
   onHearTreated: (plan: TreatmentPlan, avoidWalls: number[]) => void
   /** Hear another room: opens that room's page. */
   onOpenRoom?: (roomId: string, label: string) => void
+  /** A room was picked on the plan or in the list: the page above follows it. */
+  onPick?: (roomId: string, label: string) => void
 }
 
 /** Short names and one-line meaning for each use, so the choice reads at a glance. */
@@ -54,7 +56,7 @@ const USE: Record<string, { label: string; hint: string }> = {
   podcasting: { label: 'Podcast', hint: 'Clear speech: dead and quiet, no echo.' },
 }
 
-export function TreatmentStep({ room, objective, onObjective, onHearTreated, onOpenRoom }: Props) {
+export function TreatmentStep({ room, objective, onObjective, onHearTreated, onOpenRoom, onPick }: Props) {
   const [objectives, setObjectives] = useState<Objective[]>(FALLBACK)
   const [scenario, setScenario] = useState<Scenario>('as_scanned')
   const [roomId, setRoomId] = useState(room.roomId)
@@ -63,6 +65,7 @@ export function TreatmentStep({ room, objective, onObjective, onHearTreated, onO
   const [showAll, setShowAll] = useState(false)
   const [floor, setFloor] = useState<number | null>(null)
   const [showOthers, setShowOthers] = useState(false)
+  const [hoverItem, setHoverItem] = useState<string | null>(null)
   const { plan, error, loading } = usePlan(room.sid, roomId, objective, scenario, avoid)
   // The last plan stays on screen while a new one is worked out, so the 3D view is not reloaded.
   const [shown, setShown] = useState<TreatmentPlan | undefined>(undefined)
@@ -113,8 +116,9 @@ export function TreatmentStep({ room, objective, onObjective, onHearTreated, onO
   const planRooms = (layout?.rooms ?? []).filter((r) => floors.length < 2 || r.floor_index === floorShown)
   const pick = (id: string) => {
     setRoomId(id)
-    const f = layout?.rooms.find((r) => r.room_id === id)?.floor_index
-    if (f != null) setFloor(f)
+    const lr = layout?.rooms.find((r) => r.room_id === id)
+    if (lr?.floor_index != null) setFloor(lr.floor_index)
+    onPick?.(id, names[id] ?? lr?.label ?? id)
   }
   const candidates = ranked.filter((r) => r.eligible)
   const others = ranked.filter((r) => !r.eligible)
@@ -286,7 +290,7 @@ export function TreatmentStep({ room, objective, onObjective, onHearTreated, onO
             </div>
 
             <div>
-              <TreatmentView plan={current} avoidWalls={avoid} extraItems={extraItems} />
+              <TreatmentView plan={current} extraItems={extraItems} focusKey={hoverItem} />
               <ItemLegend plan={current} />
             </div>
 
@@ -381,12 +385,18 @@ export function TreatmentStep({ room, objective, onObjective, onHearTreated, onO
                     {current.items
                       .filter((i) => i.group === g.group && i.product_id === g.product_id)
                       .map((i) => (
-                        <li key={i.key} className="text-zinc-300" data-testid={`item-${i.key}`}>
+                        <li
+                          key={i.key}
+                          className="-mx-1 rounded px-1 text-zinc-300 hover:bg-soft"
+                          data-testid={`item-${i.key}`}
+                          onMouseEnter={() => setHoverItem(i.key)}
+                          onMouseLeave={() => setHoverItem((k) => (k === i.key ? null : k))}
+                        >
                           <span className="text-zinc-100">{i.where}.</span> <span className="text-zinc-400">{i.reason}</span>
                           {i.status === 'blocked' && (
                             <div className="mt-0.5 text-orange-300">
                               ⚠ In the way: {[...new Set(i.blocked_by.map((b) => b.label))].join(', ')}. Move{' '}
-                              {i.blocked_by.length > 1 ? 'them' : 'it'} to hang this here (shown see-through in the 3D view).
+                              {i.blocked_by.length > 1 ? 'them' : 'it'} to hang this here (dashed in the 3D view where it is hidden).
                             </div>
                           )}
                           {(i.status === 'moved' || i.status === 'replaced') && i.adjustment && (
@@ -503,7 +513,7 @@ function ItemLegend({ plan }: { plan: TreatmentPlan }) {
       {blocked > 0 && (
         <span className="flex items-center gap-1.5 rounded-full border border-line px-2.5 py-1 text-mute">
           <span className="h-3 w-3 rounded-sm border-2 border-dashed border-b" />
-          {blocked} blocked by furniture (see-through)
+          {blocked} behind furniture (dashed where hidden)
         </span>
       )}
     </div>
