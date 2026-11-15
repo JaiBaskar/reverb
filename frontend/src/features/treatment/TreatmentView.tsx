@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Variant } from '../matterport/connect'
 import { MatterportViewer } from '../matterport/MatterportViewer'
 import type { MpSdk } from '../matterport/sdkTypes'
 import { createTreatmentScene, goToViewpoint, type TreatmentScene } from './scene'
+import { itemCardLines, productNames } from './itemCard'
 import type { PlacedItem, TreatmentPlan } from './types'
 
 type Status =
@@ -13,6 +14,8 @@ type Status =
   | { kind: 'error'; message: string }
 
 const NONE: PlacedItem[] = []
+/** Room the card keeps clear of: our status label (top) and Matterport's controls (bottom). */
+const SAFE = { top: 44, bottom: 84, side: 8 }
 
 /**
  * The plan installed in the real Matterport scan: live 3D view with a treated/original toggle,
@@ -21,16 +24,28 @@ const NONE: PlacedItem[] = []
 export function TreatmentView({
   plan,
   extraItems = NONE,
+  focusKey = null,
 }: {
   plan: TreatmentPlan
   /** Items of the other rooms (whole-house view), installed alongside this room's plan. */
   extraItems?: PlacedItem[]
+  /** An item hovered outside the 3D view (the plan's item list): highlighted with its card. */
+  focusKey?: string | null
 }) {
   const [conn, setConn] = useState<{ sdk: MpSdk; variant: Variant } | null>(null)
   const [status, setStatus] = useState<Status>({ kind: 'connecting' })
   const [treated, setTreated] = useState(true)
   const [moveError, setMoveError] = useState<string | null>(null)
   const scene = useRef<TreatmentScene | null>(null)
+  const [sceneOn, setSceneOn] = useState(0) // bumps when a scene is installed
+  const [hover3d, setHover3d] = useState<string | null>(null)
+  const active = hover3d ?? focusKey
+  const box = useRef<HTMLDivElement | null>(null)
+  const cardRef = useRef<HTMLDivElement | null>(null)
+  const [cardAt, setCardAt] = useState<{ left: number; top: number } | null>(null)
+  const names = useMemo(() => productNames(plan), [plan])
+  const activeItem = active ? plan.items.find((i) => i.key === active) : undefined
+  const lines = activeItem ? itemCardLines(activeItem, plan.room.floor_z, names) : []
 
   const onConnected = useCallback((sdk: MpSdk, variant: Variant) => {
     // Dev-only handle for inspecting the SDK from the browser console.
@@ -48,9 +63,15 @@ export function TreatmentView({
         return
       }
       try {
-        const s = await createTreatmentScene(conn.sdk, [...plan.items, ...extraItems])
+        const s = await createTreatmentScene(
+          conn.sdk,
+          [...plan.items, ...extraItems],
+          plan.items.map((i) => i.key),
+        )
         if (!live) return s?.dispose()
         scene.current = s
+        s?.onHover(setHover3d)
+        setSceneOn((n) => n + 1)
         if (!plan.viewpoint) {
           setStatus({ kind: 'ready' })
           return
@@ -76,8 +97,44 @@ export function TreatmentView({
       live = false
       scene.current?.dispose()
       scene.current = null
+      setHover3d(null)
     }
   }, [conn, plan, extraItems])
+
+  // Highlight the active item and keep its card next to it while the camera moves.
+  useEffect(() => {
+    const s = scene.current
+    s?.highlight(treated ? active : null)
+    if (!s || !active || !treated) {
+      setCardAt(null)
+      return
+    }
+    let raf = 0
+    const tick = () => {
+      const p = s.project(active)
+      const el = box.current
+      if (!p || !el) setCardAt(null)
+      else {
+        const W = el.clientWidth
+        const H = el.clientHeight
+        const cw = cardRef.current?.offsetWidth ?? 200
+        const ch = cardRef.current?.offsetHeight ?? 64
+        // beside the item: right of it if there is room, else left of it, else clamped inside
+        let left = p.maxX + 12
+        if (left + cw > W - SAFE.side) left = p.minX - cw - 12
+        left = Math.max(SAFE.side, Math.min(W - SAFE.side - cw, left))
+        const midY = (Math.max(p.minY, 0) + Math.min(p.maxY, H)) / 2
+        const top = Math.max(SAFE.top, Math.min(H - SAFE.bottom - ch, midY - ch / 2))
+        setCardAt((c) => (c && Math.abs(c.left - left) < 0.5 && Math.abs(c.top - top) < 0.5 ? c : { left, top }))
+      }
+      raf = requestAnimationFrame(tick)
+    }
+    tick()
+    return () => {
+      cancelAnimationFrame(raf)
+      s.highlight(null)
+    }
+  }, [active, treated, sceneOn])
 
   const toggle = (on: boolean) => {
     setTreated(on)
@@ -87,7 +144,7 @@ export function TreatmentView({
 
   return (
     <div className="space-y-3" data-testid="treatment-view">
-      <div className="relative overflow-hidden rounded-xl bg-black ring-1 ring-zinc-800">
+      <div ref={box} className="relative overflow-hidden rounded-xl bg-black ring-1 ring-zinc-800">
         <div className="aspect-video w-full">
           <MatterportViewer sid={plan.sid} onConnected={onConnected} onDisconnected={onDisconnected} />
         </div>
@@ -100,6 +157,22 @@ export function TreatmentView({
               ? 'With the treatment plan (rendered at the calculated positions)'
               : 'Original scan'}
         </div>
+        {lines.length > 0 && (
+          <div
+            ref={cardRef}
+            className="pointer-events-none absolute z-10 w-max max-w-[220px] rounded-lg bg-paper/95 px-2.5 py-1.5 text-[11px] leading-4 text-ink shadow-lg ring-1 ring-line"
+            style={cardAt ? { left: cardAt.left, top: cardAt.top } : { visibility: 'hidden', left: 0, top: 0 }}
+            data-testid="item-card"
+          >
+            {lines.map((l, i) => (
+              <div key={i} className={
+                  activeItem?.status !== 'ok' && i === lines.length - 1 ? 'font-medium text-ok' : i === 0 ? 'font-semibold' : 'text-mute'
+                }>
+                {l}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
       <div className="flex flex-wrap items-center gap-2 text-sm">
         <div className="flex rounded-lg bg-zinc-900 p-0.5 ring-1 ring-zinc-800" role="radiogroup" aria-label="Show treatment">
