@@ -14,9 +14,11 @@ import { customRoomToRoom, type CustomRoomSpec, type SlotRef } from './roomRef'
 import type { CatalogEntry, CatalogPoints, MaterialCatalog, Property, Room } from './types'
 import { Button } from './ui/kit'
 
+type CompareOverlay = { kind: 'compare'; a: string; b: string }
 type Overlay =
-  | { kind: 'room'; ref: SlotRef; note?: string }
-  | { kind: 'compare'; a: string; b: string }
+  /** back: the comparison this room was opened from; closing the room returns to it. */
+  | { kind: 'room'; ref: SlotRef; note?: string; back?: CompareOverlay }
+  | CompareOverlay
   | { kind: 'tour'; sid: string; title: string; choose: boolean }
   | null
 
@@ -264,16 +266,16 @@ export default function App() {
           risk={roomRisk.risk}
           catalog={catalog}
           note={overlay.note}
-          onOpenRoom={(roomId, label) => setOverlay({ kind: 'room', ref: { ...overlay.ref, roomId, label } })}
+          onOpenRoom={(roomId, label) => setOverlay({ kind: 'room', ref: { ...overlay.ref, roomId, label }, back: overlay.back })}
           onHeatmap={() => setOverlay({ kind: 'tour', sid: overlay.ref.sid, title: overlay.ref.address, choose: true })}
-          onClose={() => setOverlay(null)}
+          onClose={() => setOverlay(overlay.back ?? null)}
         />
       )}
       {overlay?.kind === 'compare' && (
         <PropertyCompare
           a={{ sid: overlay.a, address: labelOf(overlay.a) }}
           b={{ sid: overlay.b, address: labelOf(overlay.b) }}
-          onOpen={(ref, note) => setOverlay({ kind: 'room', ref, note })}
+          onOpen={(ref, note) => setOverlay({ kind: 'room', ref, note, back: overlay })}
           onClose={() => setOverlay(null)}
         />
       )}
