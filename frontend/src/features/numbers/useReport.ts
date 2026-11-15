@@ -14,9 +14,11 @@ export function useReport(
   sid: string | null,
   roomId: string | null,
   materials?: MaterialSelection,
+  /** Changes when the server-side model changes (e.g. the AI inspection finished): refetch. */
+  refresh = '',
 ) {
   const matKey = JSON.stringify(materials ?? {})
-  const key = sid && roomId ? `${sid}/${roomId}/${matKey}` : ''
+  const key = sid && roomId ? `${sid}/${roomId}/${matKey}/${refresh}` : ''
   const [state, setState] = useState<State>({ key: '' })
 
   useEffect(() => {

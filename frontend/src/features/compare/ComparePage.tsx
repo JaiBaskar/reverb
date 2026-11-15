@@ -14,7 +14,8 @@ import { useNoiseRisk } from '../risk/useNoiseRisk'
 import { SuitabilityPanel } from '../suitability/SuitabilityPanel'
 
 type Slot = 'A' | 'B'
-const NONE = {}
+/** Each home's room modelled from its scan, as on the room page. */
+const NONE = { room_model: true }
 
 interface Props {
   a: SlotRef

@@ -52,7 +52,10 @@ export interface SlotRef {
 /**
  * Request body for /rooms/analyze, /rooms/ir and /rooms/compare. Every room is modeled with its
  * furniture (typical for the room type unless edited) and, for Matterport rooms, the wall area of
- * its real outline.
+ * its real outline. `room_model: true` models a Matterport room from its scan (height, openings,
+ * furniture as scanned: the model the treatment plan uses); the room page and Compare ask for it,
+ * house-wide loops do not (it costs a few seconds a room). The backend falls back to the simple
+ * model, with a note, when a room has no scan geometry.
  */
 export function roomBody(sid: string, roomId: string, sel?: MaterialSelection) {
   const { furniture, treatment, treatment_avoid, room_model, ...materials } = sel ?? {}
@@ -64,6 +67,6 @@ export function roomBody(sid: string, roomId: string, sel?: MaterialSelection) {
     use_outline: true,
     ...(furniture ? { furniture } : {}),
     ...(treatment ? { treatment_objective: treatment, treatment_avoid_walls: treatment_avoid ?? [] } : {}),
-    ...(room_model ? { use_room_model: true } : {}),
+    ...(room_model && !parseCustomRoomId(roomId) ? { use_room_model: true } : {}),
   }
 }

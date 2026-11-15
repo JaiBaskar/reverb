@@ -152,15 +152,27 @@ def analyze(req: AnalyzeRequest) -> AcousticReport:
     try:
         if req.treatment_objective is not None:
             return treated(req, room)
+        fallback = None
         if req.use_room_model and req.room_id is not None:
-            return from_room_model(req, room)
-        return analyze_room(
+            try:
+                return from_room_model(req, room)
+            except (UnknownMaterial, UnknownFurniture):
+                raise
+            except Exception as e:  # noqa: BLE001 - no scan geometry for this room: simple model
+                fallback = (
+                    f"No room model for this room ({str(e)[:120]}): modeled with typical "
+                    "furniture and the Matterport outline instead; openings are not counted."
+                )
+        rep = analyze_room(
             req.sid,
             room,
             req.materials,
             furniture=furnishing(req, room),
             outline=outline_for(req, room),
         )
+        if fallback:
+            rep.assumptions.append(fallback)
+        return rep
     except (UnknownMaterial, UnknownFurniture) as e:
         raise HTTPException(422, str(e)) from e
     except ValueError as e:
@@ -198,7 +210,8 @@ class HouseAnalysis(BaseModel):
 @app.get("/properties/{sid}/analysis", response_model=HouseAnalysis)
 def house_analysis(sid: str) -> HouseAnalysis:
     """Analyze every usable room (typical furniture, real outline) and pick the music room:
-    the candidate whose mid-band RT60 is closest to TARGET_MID_S, i.e. the least work."""
+    the candidate whose mid-band RT60 is closest to TARGET_MID_S, i.e. the least work.
+    A quick estimate (~1 s a house): the room page models its own room from the scan."""
     _require_shortlisted(sid)
     if sid in _HOUSE:
         return _HOUSE[sid]

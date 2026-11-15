@@ -22,6 +22,13 @@ def client(monkeypatch):
     from app import main
 
     monkeypatch.setattr(main, "is_known", lambda sid: sid == SID)
+
+    # Offline: no scan geometry, so room-model analysis is unavailable (simple model fallback).
+    def no_room_model(req, room):
+        raise MatterportError("offline test: no scan assets")
+
+    monkeypatch.setattr(main, "from_room_model", no_room_model)
+    main._HOUSE.clear()
     return TestClient(app)
 
 
@@ -138,3 +145,23 @@ def test_house_analysis_ranks_music_rooms_and_skips_service_rooms(client):
     gaps = [abs(x["mid_rt60_s"] - 0.4) for x in eligible]
     assert gaps == sorted(gaps) and best == eligible[0]
     assert body["rooms_analyzed"] == len(usable) and "0.4" in body["rule"]
+
+
+def test_analyze_with_room_model_falls_back_without_scan_geometry(client):
+    rid = room_id(client, "Living Room")
+    r = client.post(
+        "/rooms/analyze",
+        json={
+            "sid": SID,
+            "room_id": rid,
+            "furnished": True,
+            "use_outline": True,
+            "use_room_model": True,
+        },
+    )
+    assert r.status_code == 200
+    plain = client.post(
+        "/rooms/analyze", json={"sid": SID, "room_id": rid, "furnished": True, "use_outline": True}
+    ).json()
+    assert r.json()["rt60_s"] == plain["rt60_s"]
+    assert any("No room model" in x for x in r.json()["assumptions"])  # never silent

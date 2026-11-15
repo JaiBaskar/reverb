@@ -137,7 +137,7 @@ export function PlaceView(p: Props) {
               label="Best room →"
               value={best ? best.label : a ? 'None' : '…'}
               tone={best ? reverbRating(best.mid_rt60_s).tone : undefined}
-              sub={best ? `${best.mid_rt60_s.toFixed(2)} s reverb · ${reverbRating(best.mid_rt60_s).label}` : undefined}
+              sub={best ? `≈ ${best.mid_rt60_s.toFixed(2)} s reverb · ${reverbRating(best.mid_rt60_s).label}` : undefined}
             />
           </button>
         </div>
@@ -166,7 +166,7 @@ export function PlaceView(p: Props) {
                         {x.room_id === best?.room_id && <span className="ml-2 rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-semibold text-accent">Best</span>}
                       </span>
                       <span className="block truncate text-xs text-mute">
-                        {[room && roomSize(room), `${x.mid_rt60_s.toFixed(2)} s · ${rate.label}`, x.reason && 'not a music room'].filter(Boolean).join(' · ')}
+                        {[room && roomSize(room), `≈ ${x.mid_rt60_s.toFixed(2)} s · ${rate.label}`, x.reason && 'not a music room'].filter(Boolean).join(' · ')}
                       </span>
                     </span>
                     <svg className="shrink-0 text-mute" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M9 6l6 6-6 6" /></svg>

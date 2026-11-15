@@ -53,9 +53,10 @@ export function RoomPage({ room: opened, risk, catalog, note, onOpenRoom, onHeat
   const [active, setActive] = useState<SectionId>('overview')
   const scanned = !parseCustomRoomId(room.roomId)
   const inspection = useInspection(room.sid, room.roomId, scanned)
-  // Once the AI has looked, the room is modelled from what it saw (materials, furniture, windows).
-  const base: MaterialSelection = seen(inspection.status) ? { ...sel, room_model: true } : sel
-  const rep = useReport(room.sid, room.roomId, base)
+  // The room is modelled from its scan, exactly as Fix it's treatment plan models it, so the page
+  // shows one reverb. Once the AI has looked, the report refetches with what it saw.
+  const base: MaterialSelection = { ...sel, room_model: true }
+  const rep = useReport(room.sid, room.roomId, base, seen(inspection.status) ? 'inspected' : '')
   const verdict = useVerdict(rep.report, risk)
   const mid = rep.report ? midRt60(rep.report) : null
   const rate = mid != null ? reverbRating(mid) : null

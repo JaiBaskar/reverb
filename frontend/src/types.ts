@@ -99,7 +99,10 @@ export type MaterialSelection = Partial<Record<Surface, string>> & {
   treatment?: string
   /** Walls the treatment plan must keep clear (indices from the plan). */
   treatment_avoid?: number[]
-  /** Model the room with what the scan and the vision agents found (height, windows, doors, finishes). */
+  /**
+   * Model the room with what the scan and the vision agents found (height, windows, doors,
+   * finishes): the model the treatment plan uses. The room page and Compare set it.
+   */
   room_model?: boolean
 }
 

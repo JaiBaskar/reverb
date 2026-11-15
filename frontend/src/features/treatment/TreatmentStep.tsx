@@ -107,7 +107,7 @@ export function TreatmentStep({ room, objective, onObjective, onHearTreated, onO
   }, [ranked])
   const info = useMemo(() => {
     const out: Record<string, PlanRoomInfo> = {}
-    for (const r of ranked) out[r.room_id] = { tone: reverbRating(r.mid_rt60_s).tone, value: `${r.mid_rt60_s.toFixed(2)} s`, candidate: r.eligible }
+    for (const r of ranked) out[r.room_id] = { tone: reverbRating(r.mid_rt60_s).tone, value: `≈ ${r.mid_rt60_s.toFixed(2)} s`, candidate: r.eligible }
     return out
   }, [ranked])
   const floors = (layout?.floors ?? []).filter((f) => layout!.rooms.some((r) => r.floor_index === f.index && r.polygon))
@@ -170,7 +170,9 @@ export function TreatmentStep({ room, objective, onObjective, onHearTreated, onO
                 <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${r.room_id === roomId ? 'bg-paper' : TONE_BG[reverbRating(r.mid_rt60_s).tone]}`} />
                 <span className="min-w-0 flex-1 truncate font-medium">{names[r.room_id]}</span>
                 {r.room_id === room.roomId && <span className="text-[11px] opacity-70">this page</span>}
-                <span className="tabular-nums opacity-70">{r.mid_rt60_s.toFixed(2)} s</span>
+                <span className="tabular-nums opacity-70" title="Quick estimate with typical furniture; the room page models the room from its scan.">
+                  ≈ {r.mid_rt60_s.toFixed(2)} s
+                </span>
               </button>
             </li>
           ))}

@@ -1,5 +1,6 @@
 import json
 import os
+import tempfile
 from pathlib import Path
 
 import httpx
@@ -63,8 +64,7 @@ def _cached_query(sid: str, query: str, cache_name: str, use_cache: bool) -> dic
     model = (body.get("data") or {}).get("model")
     if not model:
         raise MatterportError(f"model {sid} not found or not shared: {body.get('errors')}")
-    CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    cache.write_text(json.dumps(model))
+    write_atomic(cache, json.dumps(model).encode())
     return model
 
 
@@ -109,6 +109,20 @@ def fetch_assets(sid: str, fresh: bool = False) -> dict:
     return _cached_query(sid, ASSETS_QUERY, f"{sid}.assets.json", use_cache=False)
 
 
+def write_atomic(dest: Path, data: bytes) -> None:
+    """Write a cache file so no reader ever sees it half-written (temp file, then rename):
+    concurrent requests for one model share its cached meshes and answers."""
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(dir=dest.parent, prefix=f".{dest.name}.")
+    try:
+        with os.fdopen(fd, "wb") as f:
+            f.write(data)
+        os.replace(tmp, dest)
+    except BaseException:
+        Path(tmp).unlink(missing_ok=True)
+        raise
+
+
 def download(url: str, dest: Path) -> Path:
     """Fetch a signed asset URL once; the file is kept in the cache."""
     if dest.exists() and dest.stat().st_size > 0:
@@ -121,8 +135,7 @@ def download(url: str, dest: Path) -> Path:
         raise ExpiredAsset(f"asset URL expired (HTTP {resp.status_code})")
     if resp.status_code != 200:
         raise MatterportError(f"asset download HTTP {resp.status_code}")
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_bytes(resp.content)
+    write_atomic(dest, resp.content)
     return dest
 
 
@@ -231,6 +244,6 @@ def furnished_mesh_path(sid: str) -> Path | None:
         if not objs:
             return None
         dest.parent.mkdir(parents=True, exist_ok=True)
-        dest.write_bytes(z.read(max(objs, key=lambda i: i.file_size)))
+        write_atomic(dest, z.read(max(objs, key=lambda i: i.file_size)))
         return dest
     return None
