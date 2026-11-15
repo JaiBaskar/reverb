@@ -24,6 +24,8 @@ interface Props {
   outside?: { A: AmbienceLayer[]; B: AmbienceLayer[] }
   /** False while the lab is kept mounted but hidden: keyboard shortcuts are off. */
   active?: boolean
+  /** Short names for the two room buttons (default: the room labels). */
+  names?: { A?: string; B?: string }
 }
 
 const LOOP_S: Record<AmbientKind, number> = { traffic: 20, rail: 24, aircraft: 30, helicopter: 28, siren: 26, venue: 8, works: 12 }
@@ -48,7 +50,7 @@ interface Graph {
   amb: { A: GainNode; B: GainNode; srcs: AudioBufferSourceNode[] }
 }
 
-export function AudioLab({ a, b, materials, onDry, outside, active = true }: Props) {
+export function AudioLab({ a, b, materials, onDry, outside, active = true, names }: Props) {
   const [outsideOn, setOutsideOn] = useState(true)
   const [outsideLevel, setOutsideLevel] = useState(100)
   const outsideRef = useRef(outside)
@@ -252,51 +254,58 @@ export function AudioLab({ a, b, materials, onDry, outside, active = true }: Pro
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
+  const roomName = (m: 'A' | 'B') => names?.[m] ?? label(m)
+  const modes = (['orig', 'A', 'B'] as Mode[]).filter((m) => m === 'orig' || (m === 'A' ? a : b))
   return (
-    <div className="text-sm" data-testid="audio-lab">
-      <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-zinc-700 bg-zinc-950/50 p-3">
-        <label className="cursor-pointer rounded-md bg-zinc-100 px-3 py-1.5 text-xs font-semibold text-black hover:bg-white">
-          {dry ? 'Replace recording' : 'Upload a dry take'}
-          <input
-            type="file"
-            accept="audio/*"
-            data-testid="dry-file"
-            onChange={(e) => onFile(e.target.files?.[0])}
-            className="sr-only"
-          />
-        </label>
-        <button
-          className="rounded-md bg-zinc-800 px-3 py-1.5 text-xs hover:bg-zinc-700"
-          onClick={() => {
-            stop()
-            timing.current.offset = 0
-            setDry(syntheticClaps())
-            setDryName('synthetic test claps (generated in browser)')
-          }}
-        >
-          or use test claps
-        </button>
-        <span className="min-w-0 truncate text-xs text-zinc-400" data-testid="dry-name">
-          {dryName || 'WAV, MP3 or M4A; a close-miked, dry take works best (first 30 s used).'}
-        </span>
-      </div>
-      {error && <div className="mb-2 text-red-300">{error}</div>}
-
-      <div className="mb-3 flex flex-wrap items-stretch gap-2" role="radiogroup" aria-label="Playback source">
+    <div className="space-y-4 text-sm" data-testid="audio-lab">
+      <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-soft p-4">
         <button
           disabled={!ready}
           onClick={() => (playing ? stop() : play())}
-          className="w-24 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-bold text-black hover:bg-emerald-400 disabled:opacity-40"
+          className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-accent text-paper transition hover:brightness-110 disabled:opacity-30"
+          aria-label={playing ? 'Pause' : 'Play'}
           data-testid="play"
         >
-          {playing ? '❚❚ Pause' : '▶ Play'}
+          {playing ? (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1" /><rect x="14" y="5" width="4" height="14" rx="1" /></svg>
+          ) : (
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z" /></svg>
+          )}
         </button>
-        {(['orig', 'A', 'B'] as Mode[]).map((m, i) => {
+        <div className="min-w-0 flex-1">
+          <div className="truncate font-semibold" data-testid="dry-name">{dryName || 'Add a recording to start'}</div>
+          <div className="text-xs text-mute">
+            {dry ? `${pos.toFixed(1)} / ${dry.duration.toFixed(1)} s` : 'A dry, close-miked take works best'}
+            {dry && <span className="sr-only" data-testid="position">{pos.toFixed(1)}</span>}
+          </div>
+        </div>
+        <div className="flex w-full gap-2 sm:w-auto">
+          <label className="inline-flex h-9 cursor-pointer items-center rounded-full border border-line bg-paper px-3 text-[13px] font-semibold hover:bg-soft">
+            {dry ? 'Replace' : 'Upload'}
+            <input type="file" accept="audio/*" data-testid="dry-file" onChange={(e) => onFile(e.target.files?.[0])} className="sr-only" />
+          </label>
+          <button
+            className="inline-flex h-9 items-center rounded-full border border-line bg-paper px-3 text-[13px] font-semibold hover:bg-soft"
+            onClick={() => {
+              stop()
+              timing.current.offset = 0
+              setDry(syntheticClaps())
+              setDryName('Test claps')
+            }}
+            data-testid="test-claps"
+          >
+            Test claps
+          </button>
+        </div>
+      </div>
+      {error && <div className="text-bad">{error}</div>}
+
+      <div className="flex rounded-full bg-soft p-1" role="radiogroup" aria-label="Playback source">
+        {modes.map((m, i) => {
           const loading = m === 'A' ? irA.loading : m === 'B' ? irB.loading : false
           const missing = m !== 'orig' && !(m === 'A' ? irA.ir : irB.ir)
           const on = mode === m
-          const tone =
-            m === 'A' ? 'bg-sky-500 text-black' : m === 'B' ? 'bg-fuchsia-500 text-black' : 'bg-zinc-200 text-black'
+          const dot = m === 'A' ? 'bg-a' : m === 'B' ? 'bg-b' : 'bg-mute'
           return (
             <button
               key={m}
@@ -304,48 +313,33 @@ export function AudioLab({ a, b, materials, onDry, outside, active = true }: Pro
               aria-checked={on}
               disabled={missing}
               onClick={() => setMode(m)}
-              className={`min-w-0 flex-1 rounded-lg px-3 py-2 text-left text-xs disabled:opacity-40 ${
-                on ? tone : 'bg-zinc-800 hover:bg-zinc-700'
+              title={`Key ${i}`}
+              className={`flex min-w-0 flex-1 items-center justify-center gap-2 rounded-full px-3 py-2 text-[13px] font-semibold transition disabled:opacity-40 ${
+                on ? 'bg-paper shadow-sm' : 'text-mute hover:text-ink'
               }`}
+              data-testid={`mode-${m}`}
             >
-              <div className="flex items-center justify-between font-semibold">
-                {m === 'orig' ? 'Dry original' : `Room ${m}`}
-                <kbd className={`rounded px-1 text-[10px] ${on ? 'bg-black/20' : 'bg-zinc-900 text-zinc-400'}`}>{i}</kbd>
-              </div>
-              <div className={`truncate ${on ? 'text-black/70' : 'text-zinc-400'}`}>
-                {m === 'orig' ? 'no room' : loading ? 'generating impulse response…' : label(m)}
-              </div>
+              <span className={`h-2 w-2 shrink-0 rounded-full ${dot}`} />
+              <span className="truncate">{m === 'orig' ? 'No room' : loading ? 'Loading…' : roomName(m)}</span>
             </button>
           )
         })}
       </div>
 
-      <div className="grid grid-cols-1 gap-x-4 gap-y-2 text-xs sm:grid-cols-[1fr_1fr_auto]">
-        <label className="block text-zinc-400">
-          Room {wet}% · dry {100 - wet}%
-          <input type="range" min={0} max={100} value={wet} onChange={(e) => setWet(+e.target.value)} className="w-full accent-amber-400" />
+      <div className="grid grid-cols-1 gap-x-6 gap-y-3 text-xs text-mute sm:grid-cols-3">
+        <label className="block">
+          Room mix {wet}%
+          <input type="range" min={0} max={100} value={wet} onChange={(e) => setWet(+e.target.value)} className="w-full accent-[var(--color-accent)]" />
         </label>
-        <label className="block text-zinc-400">
+        <label className="block">
           Volume {volume}%
-          <input type="range" min={0} max={100} value={volume} onChange={(e) => setVolume(+e.target.value)} className="w-full accent-amber-400" />
+          <input type="range" min={0} max={100} value={volume} onChange={(e) => setVolume(+e.target.value)} className="w-full accent-[var(--color-accent)]" />
         </label>
-        {dry && (
-          <span className="self-end tabular-nums text-zinc-400" data-testid="position">
-            {pos.toFixed(1)} / {dry.duration.toFixed(1)} s
-          </span>
-        )}
-      </div>
-      <p className="mt-2 text-[11px] text-zinc-500">
-        Rooms are loudness-matched, so you hear the room, not a volume change. Keys: 0 / 1 / 2 to switch, space
-        to play.
-      </p>
-
-      {outside && (
-        <div className="mt-3 rounded-lg border border-zinc-800 p-3 text-xs" data-testid="outside-noise">
-          <div className="flex flex-wrap items-center gap-3">
-            <label className="flex cursor-pointer items-center gap-1.5 font-medium text-zinc-200">
-              <input type="checkbox" checked={outsideOn} onChange={(e) => setOutsideOn(e.target.checked)} />
-              Add outside noise
+        {outside && (
+          <div data-testid="outside-noise">
+            <label className="flex cursor-pointer items-center gap-1.5">
+              <input type="checkbox" checked={outsideOn} onChange={(e) => setOutsideOn(e.target.checked)} className="accent-[var(--color-accent)]" />
+              Outside noise {outsideOn ? `${outsideLevel}%` : 'off'}
             </label>
             <input
               type="range"
@@ -354,43 +348,21 @@ export function AudioLab({ a, b, materials, onDry, outside, active = true }: Pro
               value={outsideLevel}
               onChange={(e) => setOutsideLevel(+e.target.value)}
               aria-label="Outside noise level"
-              className="min-w-24 flex-1 accent-amber-400"
+              disabled={!outsideOn}
+              className="w-full accent-[var(--color-accent)] disabled:opacity-40"
             />
-            <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] uppercase text-amber-300">illustrative</span>
-          </div>
-          <details className="mt-2 text-zinc-400">
-            <summary className="cursor-pointer">What you hear from outside</summary>
-            <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {(['A', 'B'] as const).map((slot) => {
-                const ref = slot === 'A' ? a : b
-                if (!ref) return null
-                const layers = outside[slot]
-                return (
-                  <div key={slot}>
-                    <div className="font-medium text-zinc-300">Room {slot}&apos;s place</div>
-                    {layers.length === 0 ? (
-                      <div>Nothing intrusive mapped nearby.</div>
-                    ) : (
-                      <ul>
-                        {layers.map((l) => (
-                          <li key={l.kind}>
-                            {KIND_LABEL[l.kind]}: {l.source}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                )
-              })}
+            <div className="truncate" title="Synthetic sounds for the kinds of sources mapped nearby, heard through a wall. Illustrative, not a measured level.">
+              {(['A', 'B'] as const)
+                .flatMap((slot) => ((slot === 'A' ? a : b) ? outside[slot] : []))
+                .map((l) => KIND_LABEL[l.kind])
+                .filter((v, i, xs) => xs.indexOf(v) === i)
+                .join(', ') || 'Nothing loud mapped nearby'}
             </div>
-            <p className="mt-2 text-[11px] text-zinc-500">
-              Synthetic sounds for the kinds of sources mapped nearby (OpenStreetMap), heard through a wall. Loudness
-              follows a relative risk ranking, not a measured sound level.
-            </p>
-          </details>
-        </div>
-      )}
-      {(irA.error || irB.error) && <div className="mt-2 text-xs text-red-300">{irA.error ?? irB.error}</div>}
+          </div>
+        )}
+      </div>
+      {(irA.error || irB.error) && <div className="text-xs text-bad">{irA.error ?? irB.error}</div>}
+      <p className="text-[11px] text-mute">Modeled, not recorded. Loudness-matched. Keys 0 / 1 / 2 switch, space plays.</p>
     </div>
   )
 }

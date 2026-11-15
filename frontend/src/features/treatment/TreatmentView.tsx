@@ -85,7 +85,9 @@ export function TreatmentView({
         const before = s?.capture(false) ?? (await conn.sdk.Renderer.takeScreenShot(SHOT))
         const after = s?.capture(true)
         if (!live) return
-        if (after) setShots({ key: planKey, before, after })
+        // A capture from a hidden or not-yet-drawn canvas comes back blank ("data:,"): skip it.
+        const real = (u: string | null | undefined) => !!u && u.length > 2000
+        if (real(before) && real(after)) setShots({ key: planKey, before, after: after! })
         setTreated(true)
         setStatus({ kind: 'ready' })
       } catch (e) {

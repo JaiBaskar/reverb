@@ -146,3 +146,21 @@ export async function makePhotoreal(
 
 export const fetchHouseTreatment = (sid: string, objective: string, scenario: 'as_scanned' | 'empty') =>
   get<HouseTreatment>(`/properties/${sid}/treatment?objective=${encodeURIComponent(objective)}&scenario=${scenario}`)
+
+// Mirrors backend/app/main.py (HouseAnalysis): every room analyzed, the best music room first.
+export interface RankedRoom {
+  room_id: string
+  label: string
+  area_m2: number | null
+  mid_rt60_s: number
+  eligible: boolean
+  reason: string | null
+}
+export interface HouseAnalysis {
+  sid: string
+  best: RankedRoom | null
+  rooms: RankedRoom[]
+  rooms_analyzed: number
+  rule: string
+}
+export const fetchAnalysis = (sid: string) => get<HouseAnalysis>(`/properties/${sid}/analysis`)

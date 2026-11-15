@@ -1,9 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
-import { fetchObjectives } from '../../api'
+import { fetchObjectives, fetchTour } from '../../api'
 import type { SlotRef } from '../../roomRef'
+import type { TourLayout } from '../../types'
+import { reverbRating, TONE_BG } from '../../ui/rating'
+import { useAnalysis } from '../place/useAnalysis'
+import { HousePlan, type PlanRoomInfo } from './HousePlan'
 import { RtChart } from './RtChart'
+import { ITEM_COLORS } from './colors'
 import { TreatmentView } from './TreatmentView'
-import type { HouseTreatment, Objective, TreatmentPlan } from './types'
+import type { Objective, PlacedItem, TreatmentPlan } from './types'
 import { useHousePlan, usePlan } from './usePlan'
 
 type Scenario = 'as_scanned' | 'empty'
@@ -31,157 +36,274 @@ function Badge({ p }: { p: string }) {
 }
 
 interface Props {
+  /** The room whose page this is: the plan opens on it. */
   room: SlotRef
   objective: string
   onObjective: (id: string) => void
   onHearTreated: (plan: TreatmentPlan, avoidWalls: number[]) => void
+  /** Hear another room: opens that room's page. */
+  onOpenRoom?: (roomId: string, label: string) => void
 }
 
-export function TreatmentStep({ room, objective, onObjective, onHearTreated }: Props) {
+/** Short names and one-line meaning for each use, so the choice reads at a glance. */
+const USE: Record<string, { label: string; hint: string }> = {
+  mixing: { label: 'Mixing', hint: 'Hear your mix as it really is: speakers, no room colour.' },
+  music_production: { label: 'Producing', hint: 'Writing and producing at the desk, a little more forgiving than mixing.' },
+  critical_listening: { label: 'Listening', hint: 'Hi-fi or reference listening from one sweet spot.' },
+  recording: { label: 'Recording', hint: 'Vocals and instruments into a mic, without the room in the take.' },
+  podcasting: { label: 'Podcast', hint: 'Clear speech: dead and quiet, no echo.' },
+}
+
+export function TreatmentStep({ room, objective, onObjective, onHearTreated, onOpenRoom }: Props) {
   const [objectives, setObjectives] = useState<Objective[]>(FALLBACK)
   const [scenario, setScenario] = useState<Scenario>('as_scanned')
-  const [avoid, setAvoid] = useState<number[]>([])
-  const { plan, error, loading } = usePlan(room.sid, room.roomId, objective, scenario, avoid)
+  const [roomId, setRoomId] = useState(room.roomId)
+  const [avoidBy, setAvoidBy] = useState<Record<string, number[]>>({})
+  const avoid = avoidBy[roomId] ?? NONE
+  const [showAll, setShowAll] = useState(false)
+  const [floor, setFloor] = useState<number | null>(null)
+  const [showOthers, setShowOthers] = useState(false)
+  const { plan, error, loading } = usePlan(room.sid, roomId, objective, scenario, avoid)
   // The last plan stays on screen while a new one is worked out, so the 3D view is not reloaded.
   const [shown, setShown] = useState<TreatmentPlan | undefined>(undefined)
   if (plan && plan !== shown) setShown(plan)
-  const [wholeHouse, setWholeHouse] = useState(false)
-  const house = useHousePlan(room.sid, objective, scenario, wholeHouse)
-  // memoised: the 3D scene is rebuilt whenever this array changes identity
-  const extraItems = useMemo(
-    () =>
-      wholeHouse
-        ? (house.house?.rooms ?? []).filter((r) => r.status === 'ok' && r.room_id !== room.roomId).flatMap((r) => r.items)
-        : [],
-    [house.house, room.roomId, wholeHouse],
-  )
-  const toggleWall = (i: number) => setAvoid((a) => (a.includes(i) ? a.filter((x) => x !== i) : [...a, i].sort((x, y) => x - y)))
-
+  const house = useHousePlan(room.sid, objective, scenario, showAll)
+  const analysis = useAnalysis(room.sid).analysis
+  const [layout, setLayout] = useState<TourLayout | null>(null)
   useEffect(() => {
     fetchObjectives()
       .then(setObjectives)
       .catch(() => setObjectives(FALLBACK))
-  }, [])
+    fetchTour(room.sid)
+      .then(setLayout)
+      .catch(() => setLayout(null))
+  }, [room.sid])
 
-  const p = shown?.prediction
-  const worstBefore = p?.reflections.length ? Math.max(...p.reflections.map((r) => r.before_db)) : null
-  const worstAfter = p?.reflections.length ? Math.max(...p.reflections.map((r) => r.after_db)) : null
+  const extraItems = useMemo(
+    () => (showAll ? (house.house?.rooms ?? []).filter((r) => r.status === 'ok' && r.room_id !== roomId).flatMap((r) => r.items) : NONE_ITEMS),
+    [house.house, roomId, showAll],
+  )
+  const toggleWall = (i: number) =>
+    setAvoidBy((m) => {
+      const cur = m[roomId] ?? []
+      return { ...m, [roomId]: cur.includes(i) ? cur.filter((x) => x !== i) : [...cur, i].sort((x, y) => x - y) }
+    })
+
+  // Rooms: the server's analysis (best music room first), names disambiguated, grouped by floor.
+  const ranked = useMemo(() => analysis?.rooms ?? [], [analysis])
+  const names = useMemo(() => {
+    const out: Record<string, string> = {}
+    const count: Record<string, number> = {}
+    for (const r of ranked) count[r.label] = (count[r.label] ?? 0) + 1
+    const seen: Record<string, number> = {}
+    for (const r of ranked) {
+      seen[r.label] = (seen[r.label] ?? 0) + 1
+      out[r.room_id] = count[r.label] > 1 ? `${r.label} ${seen[r.label]}` : r.label
+    }
+    return out
+  }, [ranked])
+  const info = useMemo(() => {
+    const out: Record<string, PlanRoomInfo> = {}
+    for (const r of ranked) out[r.room_id] = { tone: reverbRating(r.mid_rt60_s).tone, value: `${r.mid_rt60_s.toFixed(2)} s`, candidate: r.eligible }
+    return out
+  }, [ranked])
+  const floors = (layout?.floors ?? []).filter((f) => layout!.rooms.some((r) => r.floor_index === f.index && r.polygon))
+  const selectedFloor = layout?.rooms.find((r) => r.room_id === roomId)?.floor_index ?? null
+  const floorShown = floor ?? selectedFloor ?? floors[0]?.index ?? null
+  const planRooms = (layout?.rooms ?? []).filter((r) => floors.length < 2 || r.floor_index === floorShown)
+  const pick = (id: string) => {
+    setRoomId(id)
+    const f = layout?.rooms.find((r) => r.room_id === id)?.floor_index
+    if (f != null) setFloor(f)
+  }
+  const candidates = ranked.filter((r) => r.eligible)
+  const others = ranked.filter((r) => !r.eligible)
+  const pickedName = names[roomId] ?? shown?.label ?? room.label
+  const isHome = roomId === room.roomId
+  const use = USE[objective] ?? { label: objectives.find((o) => o.id === objective)?.label ?? objective, hint: '' }
+
+  const p = shown?.room_id === roomId ? shown.prediction : undefined
+  const current = shown?.room_id === roomId ? shown : undefined
+  const inTarget = (v: number) => p && v >= p.target_low_s[2] && v <= p.target_high_s[2]
 
   return (
-    <div className="space-y-6" data-testid="treatment-step">
-      <div className="space-y-3">
-        <div>
-          <div className="mb-1.5 text-sm text-zinc-400">What will you use {room.label} for?</div>
-          <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Intended use">
-            {objectives.map((o) => (
-              <button
-                key={o.id}
-                role="radio"
-                aria-checked={objective === o.id}
-                onClick={() => onObjective(o.id)}
-                className={`rounded-full px-3 py-1.5 text-sm ${objective === o.id ? 'bg-amber-400 font-semibold text-black' : 'bg-zinc-800 hover:bg-zinc-700'}`}
-                data-testid={`objective-${o.id}`}
-              >
-                {o.label}
-              </button>
-            ))}
-          </div>
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[360px_minmax(0,1fr)]" data-testid="treatment-step">
+      {/* Left: the house. Click any room to plan its treatment. */}
+      <aside className="space-y-3 lg:sticky lg:top-16 lg:self-start" data-testid="treatment-rooms">
+        <div className="flex items-baseline justify-between">
+          <h3 className="font-semibold">Pick a room</h3>
+          {floors.length > 1 && (
+            <div className="flex gap-1">
+              {floors.map((f) => (
+                <button
+                  key={f.index}
+                  onClick={() => setFloor(f.index)}
+                  className={`h-7 rounded-full px-2.5 text-xs font-semibold ${floorShown === f.index ? 'bg-ink text-paper' : 'border border-line'}`}
+                >
+                  {f.label || `Floor ${f.index + 1}`}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
-        <div>
-          <div className="mb-1.5 text-sm text-zinc-400">Show treatment for</div>
-          <div className="mb-3 flex flex-wrap gap-2" role="radiogroup" aria-label="Scope">
-            {(
-              [
-                [false, `Just ${room.label}`],
-                [true, 'The whole house'],
-              ] as const
-            ).map(([on, label]) => (
-              <button
-                key={String(on)}
-                role="radio"
-                aria-checked={wholeHouse === on}
-                onClick={() => setWholeHouse(on)}
-                className={`rounded-full px-3 py-1.5 text-sm ${wholeHouse === on ? 'bg-zinc-100 font-semibold text-black' : 'bg-zinc-800 hover:bg-zinc-700'}`}
-                data-testid={`scope-${on ? 'house' : 'room'}`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-          <div className="mb-1.5 text-sm text-zinc-400">Furniture</div>
-          <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Furniture scenario">
-            {(
-              [
-                ['as_scanned', 'As in the scan'],
-                ['empty', 'Empty (moving in)'],
-              ] as const
-            ).map(([id, label]) => (
-              <button
-                key={id}
-                role="radio"
-                aria-checked={scenario === id}
-                onClick={() => setScenario(id)}
-                className={`rounded-full px-3 py-1.5 text-sm ${scenario === id ? 'bg-zinc-100 font-semibold text-black' : 'bg-zinc-800 hover:bg-zinc-700'}`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+        <div className="aspect-square w-full rounded-2xl border border-line bg-soft p-2">
+          {layout ? (
+            <HousePlan rooms={planRooms} info={info} selectedId={roomId} homeId={room.roomId} names={names} onSelect={pick} />
+          ) : (
+            <p className="p-4 text-sm text-mute">Loading the floor plan…</p>
+          )}
         </div>
-      </div>
-
-      {loading && !shown && <p className="rounded-xl border border-dashed border-zinc-800 px-3 py-6 text-center text-sm text-zinc-500">Reading the scan and working out the treatment…</p>}
-      {error && <p className="rounded-lg bg-red-950/50 px-3 py-2 text-sm text-red-200">{error}</p>}
-
-      {shown && p && (
-        <>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3" data-testid="plan-summary">
-            <Stat
-              label="Reverb time (RT60, mid)"
-              value={`${p.mid_before_s.toFixed(2)} → ${p.mid_after_s.toFixed(2)} s`}
-              sub={`target ${p.target_low_s[2].toFixed(2)}–${p.target_high_s[2].toFixed(2)} s`}
-            />
-            <Stat
-              label="Loudest early reflection"
-              value={worstBefore == null ? '—' : `${worstBefore.toFixed(0)} → ${worstAfter!.toFixed(0)} dB`}
-              sub="relative to the direct sound, first 15 ms"
-            />
-            <Stat
-              label="Treatment"
-              value={`${shown.items.length} items`}
-              sub={shown.groups.map((g) => `${g.count} ${shortName(g.product_id)}`).join(' · ')}
-            />
-          </div>
-          <button
-            onClick={() => onHearTreated(shown, avoid)}
-            className="w-full rounded-xl bg-emerald-400 px-4 py-3 text-sm font-semibold text-black hover:bg-emerald-300"
-            data-testid="hear-treated"
-          >
-            Hear the room before and after →
+        <ul className="space-y-1" data-testid="treatment-room-list">
+          {[...candidates, ...(showOthers ? others : [])].map((r) => (
+            <li key={r.room_id}>
+              <button
+                onClick={() => pick(r.room_id)}
+                className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition ${
+                  r.room_id === roomId ? 'bg-accent text-paper' : 'hover:bg-soft'
+                } ${r.eligible ? '' : 'opacity-60'}`}
+                data-testid={`treat-room-${r.room_id}`}
+              >
+                <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${r.room_id === roomId ? 'bg-paper' : TONE_BG[reverbRating(r.mid_rt60_s).tone]}`} />
+                <span className="min-w-0 flex-1 truncate font-medium">{names[r.room_id]}</span>
+                {r.room_id === room.roomId && <span className="text-[11px] opacity-70">this page</span>}
+                <span className="tabular-nums opacity-70">{r.mid_rt60_s.toFixed(2)} s</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+        {others.length > 0 && (
+          <button className="text-xs font-semibold text-mute hover:text-ink" onClick={() => setShowOthers((v) => !v)}>
+            {showOthers ? 'Hide' : 'Show'} {others.length} other rooms (bathrooms, halls…)
           </button>
+        )}
+      </aside>
 
-          <section>
-            <h2 className="mb-2 text-lg font-semibold">See it in the room</h2>
-            {wholeHouse && house.loading && (
-              <p className="mb-2 text-sm text-amber-300">Planning every room of the house (about 10-30 s the first time)…</p>
-            )}
-            {wholeHouse && house.error && <p className="mb-2 text-sm text-red-300">Whole-house plan failed: {house.error}</p>}
-            <TreatmentView plan={shown} avoidWalls={avoid} extraItems={extraItems} />
-            {wholeHouse && house.house && <HouseTable house={house.house} current={room.roomId} />}
-            <div className="mt-3 rounded-xl border border-zinc-800 p-3" data-testid="keep-clear">
-              <div className="text-sm text-zinc-300">
-                Keep a wall clear <span className="text-zinc-500">(a window, door or built-in REVERB could not see)</span>
-                {loading && <span className="ml-2 text-amber-300">re-planning…</span>}
+      {/* Right: the picked room's treatment. */}
+      <div className="min-w-0 space-y-5">
+        <div className="space-y-3 rounded-2xl border border-line p-4">
+          <div>
+            <div className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-mute">1 · What will you do in {pickedName}?</div>
+            <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Intended use">
+              {objectives.map((o) => (
+                <button
+                  key={o.id}
+                  role="radio"
+                  aria-checked={objective === o.id}
+                  onClick={() => onObjective(o.id)}
+                  className={`h-9 rounded-full px-4 text-sm font-semibold transition ${objective === o.id ? 'bg-ink text-paper' : 'border border-line hover:bg-soft'}`}
+                  data-testid={`objective-${o.id}`}
+                >
+                  {USE[o.id]?.label ?? o.label}
+                </button>
+              ))}
+            </div>
+            {use.hint && <p className="mt-1.5 text-xs text-mute">{use.hint}</p>}
+          </div>
+          <div>
+            <div className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-mute">2 · Furniture</div>
+            <div className="inline-flex rounded-full bg-soft p-1" role="radiogroup" aria-label="Furniture scenario">
+              {(
+                [
+                  ['as_scanned', 'As it is now'],
+                  ['empty', 'Empty (moving in)'],
+                ] as const
+              ).map(([id, label]) => (
+                <button
+                  key={id}
+                  role="radio"
+                  aria-checked={scenario === id}
+                  onClick={() => setScenario(id)}
+                  className={`h-8 rounded-full px-4 text-sm font-semibold transition ${scenario === id ? 'bg-paper shadow-sm' : 'text-mute hover:text-ink'}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {error && <p className="rounded-xl bg-red-950/50 px-3 py-2 text-sm text-red-200">{error}</p>}
+        {!current && !error && (
+          <p className="rounded-2xl border border-dashed border-line px-3 py-10 text-center text-sm text-mute">
+            Working out the treatment for {pickedName}…
+          </p>
+        )}
+
+        {current && p && (
+          <>
+            <div className="rounded-2xl border border-line p-4" data-testid="plan-summary">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h3 className="text-lg font-semibold">
+                  {pickedName} for {use.label.toLowerCase()}
+                </h3>
+                {loading && <span className="text-xs text-mute">updating…</span>}
               </div>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {shown.room.walls
+              <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-2">
+                <div>
+                  <div className="text-xs text-mute">Reverb now → treated</div>
+                  <div className="flex items-center gap-2 text-2xl font-bold tabular-nums">
+                    <span className={inTarget(p.mid_before_s) ? 'text-good' : 'text-bad'}>{p.mid_before_s.toFixed(2)} s</span>
+                    <span className="text-mute">→</span>
+                    <span className={inTarget(p.mid_after_s) ? 'text-good' : 'text-ok'}>{p.mid_after_s.toFixed(2)} s</span>
+                  </div>
+                  <div className="text-xs text-mute">
+                    goal {p.target_low_s[2].toFixed(2)}–{p.target_high_s[2].toFixed(2)} s for {use.label.toLowerCase()}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-mute">You'd add</div>
+                  <div className="text-2xl font-bold">{current.items.length} items</div>
+                  <div className="text-xs text-mute">{itemSummary(current)}</div>
+                </div>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {isHome ? (
+                  <button
+                    onClick={() => onHearTreated(current, avoid)}
+                    className="h-11 rounded-full bg-accent px-5 text-sm font-semibold text-paper hover:brightness-110"
+                    data-testid="hear-treated"
+                  >
+                    ▶ Hear it before and after
+                  </button>
+                ) : (
+                  onOpenRoom && (
+                    <button
+                      onClick={() => onOpenRoom(roomId, current.label)}
+                      className="h-11 rounded-full bg-accent px-5 text-sm font-semibold text-paper hover:brightness-110"
+                      data-testid="open-treated-room"
+                    >
+                      Open {pickedName} to hear it →
+                    </button>
+                  )
+                )}
+                <label className="flex h-11 items-center gap-2 rounded-full border border-line px-4 text-sm">
+                  <input type="checkbox" checked={showAll} onChange={(e) => setShowAll(e.target.checked)} className="accent-[var(--color-accent)]" data-testid="show-all-rooms" />
+                  Show every room's panels in 3D
+                </label>
+              </div>
+              {showAll && house.loading && <p className="mt-2 text-xs text-mute">Planning the other rooms (10-30 s the first time)…</p>}
+              {showAll && house.error && <p className="mt-2 text-xs text-bad">Could not plan the other rooms: {house.error}</p>}
+            </div>
+
+            <div>
+              <TreatmentView plan={current} avoidWalls={avoid} extraItems={extraItems} />
+              <ItemLegend plan={current} />
+            </div>
+
+            <div className="rounded-2xl border border-line p-3" data-testid="keep-clear">
+              <div className="text-sm">
+                <span className="font-semibold">Something on a wall we missed?</span>{' '}
+                <span className="text-mute">Tap that wall to keep it clear (window, door, built-in).</span>
+              </div>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {current.room.walls
                   .filter((w) => w.length_m >= 0.9)
                   .map((w) => (
                     <button
                       key={w.index}
                       onClick={() => toggleWall(w.index)}
                       aria-pressed={avoid.includes(w.index)}
-                      className={`rounded-full px-3 py-1 text-sm ${avoid.includes(w.index) ? 'bg-rose-400 font-semibold text-black' : 'bg-zinc-800 hover:bg-zinc-700'}`}
+                      className={`h-8 rounded-full px-3 text-[13px] ${avoid.includes(w.index) ? 'bg-ink font-semibold text-paper' : 'border border-line hover:bg-soft'}`}
                       data-testid={`keep-clear-${w.index}`}
                     >
                       {avoid.includes(w.index) ? '✕ ' : ''}
@@ -190,13 +312,15 @@ export function TreatmentStep({ room, objective, onObjective, onHearTreated }: P
                   ))}
               </div>
             </div>
-          </section>
 
+            <details className="rounded-2xl border border-line" data-testid="plan-why">
+              <summary className="cursor-pointer px-4 py-3 text-sm font-semibold">Why these items, and where exactly</summary>
+              <div className="space-y-6 px-4 pb-4">
           <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <div>
               <h2 className="mb-2 text-lg font-semibold">What's wrong with the room</h2>
               <ul className="space-y-2" data-testid="problems">
-                {shown.problems.map((pr) => (
+                {current.problems.map((pr) => (
                   <li key={pr.id} className="rounded-xl border border-zinc-800 p-3">
                     <div className="flex items-center gap-2">
                       <span className={`rounded px-1.5 py-px text-[10px] uppercase ${SEVERITY[pr.severity]}`}>{pr.severity}</span>
@@ -216,7 +340,7 @@ export function TreatmentStep({ room, objective, onObjective, onHearTreated }: P
                 <Kv k="Schroeder frequency" v={`${p.schroeder_before_hz.toFixed(0)} → ${p.schroeder_after_hz.toFixed(0)} Hz`} />
               </dl>
               <details className="mt-3 rounded-xl border border-zinc-800">
-                <summary className="cursor-pointer px-3 py-2 text-sm text-zinc-300">Early reflections at the {shown.layout?.kind === 'mic' ? 'mic' : 'listening position'}</summary>
+                <summary className="cursor-pointer px-3 py-2 text-sm text-zinc-300">Early reflections at the {current.layout?.kind === 'mic' ? 'mic' : 'listening position'}</summary>
                 <table className="w-full text-xs">
                   <thead className="text-zinc-500">
                     <tr>
@@ -245,16 +369,16 @@ export function TreatmentStep({ room, objective, onObjective, onHearTreated }: P
 
           <section>
             <h2 className="mb-2 text-lg font-semibold">The plan</h2>
-            {shown.layout && <p className="mb-3 text-sm text-zinc-400">{shown.layout.note}</p>}
+            {current.layout && <p className="mb-3 text-sm text-zinc-400">{current.layout.note}</p>}
             <div className="space-y-3" data-testid="plan-groups">
-              {shown.groups.map((g) => (
+              {current.groups.map((g) => (
                 <div key={`${g.group}-${g.product_id}`} className="rounded-xl border border-zinc-800 p-3">
                   <div className="font-medium">
                     {g.count} × {g.product}
                   </div>
                   <div className="text-sm text-zinc-400">{g.why}.</div>
                   <ul className="mt-2 space-y-1 text-sm">
-                    {shown.items
+                    {current.items
                       .filter((i) => i.group === g.group && i.product_id === g.product_id)
                       .map((i) => (
                         <li key={i.key} className="text-zinc-300" data-testid={`item-${i.key}`}>
@@ -274,9 +398,9 @@ export function TreatmentStep({ room, objective, onObjective, onHearTreated }: P
                 </div>
               ))}
             </div>
-            {shown.notes.length > 0 && (
+            {current.notes.length > 0 && (
               <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-amber-200">
-                {shown.notes.map((n) => (
+                {current.notes.map((n) => (
                   <li key={n}>{n}</li>
                 ))}
               </ul>
@@ -285,13 +409,13 @@ export function TreatmentStep({ room, objective, onObjective, onHearTreated }: P
 
           <section>
             <h2 className="mb-2 text-lg font-semibold">What REVERB read from the scan</h2>
-            <Found plan={shown} />
+            <Found plan={current} />
           </section>
 
           <div className="space-y-2">
             <More title="Other configurations the optimiser compared">
               <ul className="space-y-1 text-sm">
-                {shown.alternatives.map((a) => (
+                {current.alternatives.map((a) => (
                   <li key={a.summary} className={a.chosen ? 'text-emerald-300' : 'text-zinc-400'}>
                     {a.chosen ? '✓ ' : ''}
                     {a.summary}: {a.items} items, mid RT60 {a.mid_rt60_s.toFixed(2)} s (score {a.score})
@@ -315,12 +439,12 @@ export function TreatmentStep({ room, objective, onObjective, onHearTreated }: P
                   </tr>
                 </thead>
                 <tbody>
-                  {shown.items.map((i) => (
+                  {current.items.map((i) => (
                     <tr key={i.key} className="border-t border-zinc-800">
                       <td className="py-1">{i.key}</td>
                       <td className="text-right">{i.center[0].toFixed(2)}</td>
                       <td className="text-right">{i.center[1].toFixed(2)}</td>
-                      <td className="text-right">{(i.center[2] - shown.room.floor_z).toFixed(2)}</td>
+                      <td className="text-right">{(i.center[2] - current.room.floor_z).toFixed(2)}</td>
                       <td className="text-right">
                         {i.width_m.toFixed(2)} × {i.height_m.toFixed(2)} × {i.depth_m.toFixed(2)}
                       </td>
@@ -331,13 +455,56 @@ export function TreatmentStep({ room, objective, onObjective, onHearTreated }: P
             </More>
             <More title="Assumptions and limits">
               <ul className="list-disc space-y-1 pl-5 text-sm text-zinc-400">
-                {[...shown.assumptions, ...shown.limitations].map((a) => (
+                {[...current.assumptions, ...current.limitations].map((a) => (
                   <li key={a}>{a}</li>
                 ))}
               </ul>
             </More>
           </div>
-        </>
+              </div>
+            </details>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/** "2 thick panels · 1 bass trap": counts per product name across groups. */
+function itemSummary(plan: TreatmentPlan): string {
+  const n = new Map<string, number>()
+  for (const g of plan.groups) n.set(shortName(g.product_id), (n.get(shortName(g.product_id)) ?? 0) + g.count)
+  return [...n].map(([k, v]) => `${v} ${v === 1 ? k.replace(/s$/, '').replace(/traps$/, 'trap') : k}`).join(' · ')
+}
+
+const NONE: number[] = []
+const NONE_ITEMS: PlacedItem[] = []
+
+const GROUP_LABEL: Record<string, string> = {
+  first_reflection: 'First-reflection panels',
+  ceiling: 'Ceiling cloud',
+  front_wall: 'Front-wall panels',
+  rear_wall: 'Rear-wall panels',
+  corner: 'Bass traps',
+  coverage: 'Extra absorption',
+}
+
+/** What is drawn in the 3D view, by colour (scene.ts COLORS). */
+function ItemLegend({ plan }: { plan: TreatmentPlan }) {
+  const blocked = plan.items.filter((i) => i.status === 'blocked').length
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-2 text-[13px]" data-testid="item-legend">
+      {plan.groups.map((g) => (
+        <span key={`${g.group}-${g.product_id}`} className="flex items-center gap-1.5 rounded-full border border-line px-2.5 py-1">
+          <span className="h-3 w-3 rounded-sm" style={{ background: ITEM_COLORS[g.product_id] ?? '#6b7079' }} />
+          {g.count} × {GROUP_LABEL[g.group] ?? g.product}
+        </span>
+      ))}
+      {blocked > 0 && (
+        <span className="flex items-center gap-1.5 rounded-full border border-line px-2.5 py-1 text-mute">
+          <span className="h-3 w-3 rounded-sm border-2 border-dashed border-b" />
+          {blocked} blocked by furniture (see-through)
+        </span>
       )}
     </div>
   )
@@ -437,80 +604,8 @@ function Found({ plan }: { plan: TreatmentPlan }) {
   )
 }
 
-function HouseTable({ house, current }: { house: HouseTreatment; current: string }) {
-  const ok = house.rooms.filter((r) => r.status === 'ok')
-  const skipped = house.rooms.filter((r) => r.status !== 'ok')
-  return (
-    <div className="mt-3 rounded-xl border border-zinc-800 p-3 text-sm" data-testid="house-table">
-      <div className="mb-2 font-medium">
-        Every room: {house.total_items} items in {ok.length} rooms
-      </div>
-      <table className="w-full text-xs tabular-nums">
-        <thead className="text-zinc-500">
-          <tr>
-            <th className="py-1 text-left">Room</th>
-            <th className="text-right">RT60 now</th>
-            <th className="text-right">With plan</th>
-            <th className="text-right">Target</th>
-            <th className="text-right">Items</th>
-            <th className="text-right">Furniture in the way</th>
-            <th className="text-right">Inspected</th>
-          </tr>
-        </thead>
-        <tbody>
-          {ok.map((r) => (
-            <tr key={r.room_id} className={`border-t border-zinc-800 ${r.room_id === current ? 'text-amber-200' : ''}`}>
-              <td className="py-1">
-                {r.label}
-                {r.area_m2 ? <span className="text-zinc-500"> · {r.area_m2.toFixed(0)} m²</span> : null}
-              </td>
-              <td className="text-right">{r.mid_before_s?.toFixed(2)} s</td>
-              <td className="text-right text-emerald-300">{r.mid_after_s?.toFixed(2)} s</td>
-              <td className="text-right text-zinc-400">
-                {r.target_mid ? `${r.target_mid[0].toFixed(2)}–${r.target_mid[1].toFixed(2)}` : '—'}
-              </td>
-              <td className="text-right">{r.item_count}</td>
-              <td className="text-right">{r.blocked ? <span className="text-orange-300">{r.blocked}</span> : '—'}</td>
-              <td className="text-right">{r.vision_status === 'ok' ? '✓' : <span className="text-zinc-500">assumed</span>}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      {skipped.length > 0 && (
-        <details className="mt-2 text-xs text-zinc-500">
-          <summary className="cursor-pointer">{skipped.length} spaces not planned</summary>
-          <ul className="mt-1 space-y-0.5">
-            {skipped.map((r) => (
-              <li key={r.room_id}>
-                {r.label}: {r.reason}
-              </li>
-            ))}
-          </ul>
-        </details>
-      )}
-      <p className="mt-2 text-xs text-zinc-500">
-        Each room is planned on its own for this use. "Assumed" rooms have not been inspected by the vision agents yet
-        (open that room's own plan to inspect it); they use typical materials and furniture plus the scan's geometry and
-        furniture.
-      </p>
-    </div>
-  )
-}
-
 const shortName = (id: string) =>
   ({ panel_50: 'thin panels', panel_50_square: 'half-size panels', panel_100: 'thick panels', bass_trap: 'bass traps', cloud_100: 'cloud', diffuser_qrd: 'diffusers' })[id] ?? id
-
-function Stat({ label, value, sub }: { label: string; value: string; sub: string }) {
-  return (
-    <div className="rounded-xl border border-zinc-800 p-3">
-      <div className="text-xs text-zinc-400">{label}</div>
-      <div className="text-xl font-semibold tabular-nums">{value}</div>
-      <div className="truncate text-xs text-zinc-500" title={sub}>
-        {sub}
-      </div>
-    </div>
-  )
-}
 
 function Kv({ k, v }: { k: string; v: string }) {
   return (

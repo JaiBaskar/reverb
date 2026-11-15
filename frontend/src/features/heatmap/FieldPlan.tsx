@@ -71,7 +71,7 @@ export function FieldPlan({ layout, rooms, metric, range, selectedId, placing, o
             className="cursor-pointer"
           >
             <title>{ins ? `${r.label}` : `${r.label}: not modeled`}</title>
-            <polygon points={pts} fill="#27272a" />
+            <polygon points={pts} fill="#ececee" />
             {ins && (
               <g clipPath={`url(#clip-${r.room_id})`}>
                 <g filter="url(#field-blur)">
@@ -97,7 +97,7 @@ export function FieldPlan({ layout, rooms, metric, range, selectedId, placing, o
             <polygon
               points={pts}
               fill="none"
-              stroke={sel ? '#fafafa' : '#09090b'}
+              stroke={sel ? '#111114' : '#ffffff'}
               strokeWidth={sel ? 0.1 : 0.06}
               strokeLinejoin="round"
             />

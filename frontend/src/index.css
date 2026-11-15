@@ -1,4 +1,174 @@
 @import "tailwindcss";
 
-:root { color-scheme: dark; }
-body { margin: 0; background: #0b0d10; color: #e6e8eb; font-family: ui-sans-serif, system-ui, sans-serif; }
+/*
+ * Design tokens. New UI code uses ONLY these: paper, ink, mute, line, soft, accent, a, b,
+ * good, ok, bad. One accent (blue); green / amber / red only for good / so-so / bad.
+ */
+@theme {
+  --color-paper: #ffffff;
+  --color-soft: #f6f6f7;
+  --color-line: #e6e6e8;
+  --color-mute: #6b6b73;
+  --color-ink: #111114;
+  --color-accent: #2563eb;
+  --color-accent-soft: #eef3fe;
+  --color-a: #2563eb;
+  --color-b: #ea580c;
+  --color-good: #16a34a;
+  --color-ok: #d97706;
+  --color-bad: #dc2626;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/*
+ * Compatibility layer: the older panels (audio, treatment, tour, numbers) were written for a dark
+ * theme with zinc/sky/fuchsia/amber... classes. Each scale is reversed here (50 <-> 950, black <->
+ * white) so they render light and in the same palette. Do not use these names in new code.
+ */
+@theme {
+  --color-black: #ffffff;
+  --color-white: #111114;
+  --color-zinc-50: #09090b;
+  --color-zinc-100: #18181b;
+  --color-zinc-200: #27272a;
+  --color-zinc-300: #3f3f46;
+  --color-zinc-400: #52525b;
+  --color-zinc-500: #71717a;
+  --color-zinc-600: #a1a1aa;
+  --color-zinc-700: #d4d4d8;
+  --color-zinc-800: #e4e4e7;
+  --color-zinc-900: #f4f4f5;
+  --color-zinc-950: #ffffff;
+  --color-sky-50: #172554;
+  --color-sky-100: #1e3a8a;
+  --color-sky-200: #1e40af;
+  --color-sky-300: #1d4ed8;
+  --color-sky-400: #2563eb;
+  --color-sky-500: #3b82f6;
+  --color-sky-600: #60a5fa;
+  --color-sky-700: #93c5fd;
+  --color-sky-800: #bfdbfe;
+  --color-sky-900: #dbeafe;
+  --color-sky-950: #eff6ff;
+  --color-violet-50: #172554;
+  --color-violet-100: #1e3a8a;
+  --color-violet-200: #1e40af;
+  --color-violet-300: #1d4ed8;
+  --color-violet-400: #2563eb;
+  --color-violet-500: #3b82f6;
+  --color-violet-600: #60a5fa;
+  --color-violet-700: #93c5fd;
+  --color-violet-800: #bfdbfe;
+  --color-violet-900: #dbeafe;
+  --color-violet-950: #eff6ff;
+  --color-indigo-50: #172554;
+  --color-indigo-100: #1e3a8a;
+  --color-indigo-200: #1e40af;
+  --color-indigo-300: #1d4ed8;
+  --color-indigo-400: #2563eb;
+  --color-indigo-500: #3b82f6;
+  --color-indigo-600: #60a5fa;
+  --color-indigo-700: #93c5fd;
+  --color-indigo-800: #bfdbfe;
+  --color-indigo-900: #dbeafe;
+  --color-indigo-950: #eff6ff;
+  --color-cyan-50: #172554;
+  --color-cyan-100: #1e3a8a;
+  --color-cyan-200: #1e40af;
+  --color-cyan-300: #1d4ed8;
+  --color-cyan-400: #2563eb;
+  --color-cyan-500: #3b82f6;
+  --color-cyan-600: #60a5fa;
+  --color-cyan-700: #93c5fd;
+  --color-cyan-800: #bfdbfe;
+  --color-cyan-900: #dbeafe;
+  --color-cyan-950: #eff6ff;
+  --color-fuchsia-50: #431407;
+  --color-fuchsia-100: #7c2d12;
+  --color-fuchsia-200: #9a3412;
+  --color-fuchsia-300: #c2410c;
+  --color-fuchsia-400: #ea580c;
+  --color-fuchsia-500: #f97316;
+  --color-fuchsia-600: #fb923c;
+  --color-fuchsia-700: #fdba74;
+  --color-fuchsia-800: #fed7aa;
+  --color-fuchsia-900: #ffedd5;
+  --color-fuchsia-950: #fff7ed;
+  --color-orange-50: #431407;
+  --color-orange-100: #7c2d12;
+  --color-orange-200: #9a3412;
+  --color-orange-300: #c2410c;
+  --color-orange-400: #ea580c;
+  --color-orange-500: #f97316;
+  --color-orange-600: #fb923c;
+  --color-orange-700: #fdba74;
+  --color-orange-800: #fed7aa;
+  --color-orange-900: #ffedd5;
+  --color-orange-950: #fff7ed;
+  --color-amber-50: #451a03;
+  --color-amber-100: #78350f;
+  --color-amber-200: #92400e;
+  --color-amber-300: #b45309;
+  --color-amber-400: #d97706;
+  --color-amber-500: #f59e0b;
+  --color-amber-600: #fbbf24;
+  --color-amber-700: #fcd34d;
+  --color-amber-800: #fde68a;
+  --color-amber-900: #fef3c7;
+  --color-amber-950: #fffbeb;
+  --color-yellow-50: #451a03;
+  --color-yellow-100: #78350f;
+  --color-yellow-200: #92400e;
+  --color-yellow-300: #b45309;
+  --color-yellow-400: #d97706;
+  --color-yellow-500: #f59e0b;
+  --color-yellow-600: #fbbf24;
+  --color-yellow-700: #fcd34d;
+  --color-yellow-800: #fde68a;
+  --color-yellow-900: #fef3c7;
+  --color-yellow-950: #fffbeb;
+  --color-emerald-50: #052e16;
+  --color-emerald-100: #14532d;
+  --color-emerald-200: #166534;
+  --color-emerald-300: #15803d;
+  --color-emerald-400: #16a34a;
+  --color-emerald-500: #22c55e;
+  --color-emerald-600: #4ade80;
+  --color-emerald-700: #86efac;
+  --color-emerald-800: #bbf7d0;
+  --color-emerald-900: #dcfce7;
+  --color-emerald-950: #f0fdf4;
+  --color-red-50: #450a0a;
+  --color-red-100: #7f1d1d;
+  --color-red-200: #991b1b;
+  --color-red-300: #b91c1c;
+  --color-red-400: #dc2626;
+  --color-red-500: #ef4444;
+  --color-red-600: #f87171;
+  --color-red-700: #fca5a5;
+  --color-red-800: #fecaca;
+  --color-red-900: #fee2e2;
+  --color-red-950: #fef2f2;
+  --color-rose-50: #450a0a;
+  --color-rose-100: #7f1d1d;
+  --color-rose-200: #991b1b;
+  --color-rose-300: #b91c1c;
+  --color-rose-400: #dc2626;
+  --color-rose-500: #ef4444;
+  --color-rose-600: #f87171;
+  --color-rose-700: #fca5a5;
+  --color-rose-800: #fecaca;
+  --color-rose-900: #fee2e2;
+  --color-rose-950: #fef2f2;
+}
+
+:root { color-scheme: light; }
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+.maplibregl-popup-content { border-radius: 10px; padding: 8px 10px; box-shadow: 0 4px 16px rgb(0 0 0 / 0.12); }

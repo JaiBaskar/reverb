@@ -24,11 +24,15 @@ interface Props {
   flyTo: { lon: number; lat: number; zoom: number; key: number } | null
   onSelect: (sid: string) => void
   noise: NoiseReport | null
+  /** The open property's surroundings: its heat is the only noise heat drawn. */
   risk?: NoiseRisk | null
+  riskState?: 'idle' | 'loading' | 'ready' | 'error'
+  /** A listing card under the pointer; its pin is highlighted. */
+  hovered?: string | null
 }
 
 /** All CoStar properties with a Matterport scan, clustered; click to select. */
-export function PropertyMap({ points, selected, flyTo, onSelect, noise, risk }: Props) {
+export function PropertyMap({ points, selected, flyTo, onSelect, noise, risk = null, riskState = 'idle', hovered = null }: Props) {
   const [heatOn, setHeatOn] = useState(true)
   const [enabled, setEnabled] = useState<string[] | null>(null)
   const el = useRef<HTMLDivElement>(null)
@@ -45,18 +49,9 @@ export function PropertyMap({ points, selected, flyTo, onSelect, noise, risk }: 
     if (!el.current) return
     const m = new MapLibreMap({
       container: el.current,
-      style: {
-        version: 8,
-        sources: {
-          osm: {
-            type: 'raster',
-            tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-            tileSize: 256,
-            attribution: '© OpenStreetMap contributors · properties: CoStar',
-          },
-        },
-        layers: [{ id: 'osm', type: 'raster', source: 'osm' }],
-      },
+      // Light, keyless vector basemap (OpenFreeMap "positron", OpenStreetMap data).
+      style: 'https://tiles.openfreemap.org/styles/positron',
+      attributionControl: { compact: true, customAttribution: 'Properties: CoStar' },
       center: [-118.3171, 34.0935],
       zoom: 14,
     })
@@ -80,8 +75,8 @@ export function PropertyMap({ points, selected, flyTo, onSelect, noise, risk }: 
         source: 'catalog',
         filter: ['has', 'point_count'],
         paint: {
-          'circle-color': '#6366f1',
-          'circle-opacity': 0.75,
+          'circle-color': '#111114',
+          'circle-opacity': 0.85,
           'circle-stroke-color': '#fff',
           'circle-stroke-width': 1.5,
           'circle-radius': ['step', ['get', 'point_count'], 12, 20, 16, 100, 22, 500, 30],
@@ -93,15 +88,8 @@ export function PropertyMap({ points, selected, flyTo, onSelect, noise, risk }: 
         source: 'catalog',
         filter: ['!', ['has', 'point_count']],
         paint: {
-          'circle-color': [
-            'case',
-            ['get', 'demo'],
-            '#f59e0b',
-            ['==', ['get', 'kind'], 'residential'],
-            '#10b981',
-            '#38bdf8',
-          ],
-          'circle-radius': ['case', ['get', 'demo'], 8, 6],
+          'circle-color': '#2563eb',
+          'circle-radius': 6,
           'circle-stroke-color': '#fff',
           'circle-stroke-width': 1.5,
         },
@@ -113,13 +101,21 @@ export function PropertyMap({ points, selected, flyTo, onSelect, noise, risk }: 
         paint: {
           'circle-radius': 12,
           'circle-color': 'rgba(0,0,0,0)',
-          'circle-stroke-color': '#f59e0b',
+          'circle-stroke-color': '#111114',
           'circle-stroke-width': 3,
         },
+      })
+      m.addSource('hover', { type: 'geojson', data: EMPTY })
+      m.addLayer({
+        id: 'hover',
+        type: 'circle',
+        source: 'hover',
+        paint: { 'circle-radius': 9, 'circle-color': '#111114', 'circle-stroke-color': '#fff', 'circle-stroke-width': 2 },
       })
       addRiskLayer(m, 'clusters')
       addNoiseLayers(m, 'clusters')
       loaded.current = true
+
 
       m.on('click', 'clusters', async (e) => {
         const f = e.features?.[0] as MapGeoJSONFeature | undefined
@@ -142,9 +138,7 @@ export function PropertyMap({ points, selected, flyTo, onSelect, noise, risk }: 
         hover
           .setLngLat(e.lngLat)
           .setHTML(
-            `<div style="color:#111;font:12px system-ui"><b>${esc(p.label)}</b><br/>${esc(p.type)}${
-              p.demo ? ' · demo pick' : ''
-            }<br/><span style="color:#666">Click to explore</span></div>`,
+            `<div style="color:#111;font:12px system-ui"><b>${esc(p.label)}</b><br/>${esc(p.type)}</div>`,
           )
           .addTo(m)
       })
@@ -223,26 +217,41 @@ export function PropertyMap({ points, selected, flyTo, onSelect, noise, risk }: 
   }, [shown.join(',')]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    const m = map.current
+    if (!m || !loaded.current) return
+    const f = hovered ? points?.features.find((x) => x.properties.sid === hovered) : undefined
+    ;(m.getSource('hover') as GeoJSONSource | undefined)?.setData(f ? { type: 'FeatureCollection', features: [f] } : EMPTY)
+  }, [hovered, points])
+
+  useEffect(() => {
     if (flyTo) map.current?.flyTo({ center: [flyTo.lon, flyTo.lat], zoom: flyTo.zoom })
   }, [flyTo])
 
   return (
     <div className="relative h-full w-full">
       <div ref={el} className="h-full w-full" data-testid="map" />
-      {noise?.status === 'ok' && (
-        <NoiseLegend
-          report={noise}
-          enabled={shown}
-          onChange={setEnabled}
-          heat={risk ? { on: heatOn, onChange: setHeatOn } : undefined}
-        />
+      {noise?.status === 'ok' && <NoiseLegend report={noise} enabled={shown} onChange={setEnabled} />}
+      {selected && (
+        <div className="pointer-events-none absolute left-1/2 top-3 z-10 flex -translate-x-1/2 gap-2" data-testid="area-status">
+          <button
+            onClick={() => setHeatOn((v) => !v)}
+            className="pointer-events-auto flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-line bg-paper px-3 text-[13px] font-semibold shadow-sm"
+            data-testid="heat-toggle"
+            title="Loud neighbours around this home (roads, rail, venues, airports…), from OpenStreetMap. Relative, not decibels."
+          >
+            <span className={`h-2.5 w-2.5 rounded-full ${heatOn ? 'bg-bad' : 'bg-line'}`} />
+            Noise {heatOn ? 'on' : 'off'}
+          </button>
+          {heatOn && riskState === 'loading' && (
+            <span className="flex h-8 items-center whitespace-nowrap rounded-full bg-paper px-3 text-[13px] text-mute shadow-sm" data-testid="area-loading">
+              Mapping noise around this home…
+            </span>
+          )}
+          {heatOn && riskState === 'error' && (
+            <span className="flex h-8 items-center whitespace-nowrap rounded-full bg-paper px-3 text-[13px] text-mute shadow-sm">Noise map unavailable right now</span>
+          )}
+        </div>
       )}
-      <div className="pointer-events-none absolute bottom-8 left-2 z-10 hidden rounded-md sm:block bg-zinc-950/85 px-2 py-1.5 text-[11px] text-zinc-300">
-        <div className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-amber-500" />Demo pick</div>
-        <div className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />Home (CoStar residential)</div>
-        <div className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-sky-400" />Commercial (CoStar)</div>
-        <div className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-indigo-500" />Cluster, click to zoom</div>
-      </div>
     </div>
   )
 }

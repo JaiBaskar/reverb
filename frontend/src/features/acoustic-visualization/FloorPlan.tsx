@@ -43,7 +43,7 @@ export function FloorPlan({ layout, classes, selectedId, currentId, sweepId, onS
               points={pts}
               fill={c?.color ?? '#6b7280'}
               fillOpacity={sel ? 0.85 : 0.5}
-              stroke={sel ? '#f4f4f5' : '#18181b'}
+              stroke={sel ? '#111114' : '#ffffff'}
               strokeWidth={sel ? 0.09 : 0.05}
               strokeLinejoin="round"
             />
@@ -64,7 +64,7 @@ export function FloorPlan({ layout, classes, selectedId, currentId, sweepId, onS
         )
       })}
       {sweep && (
-        <circle cx={sx(sweep.position[0])} cy={sy(sweep.position[1])} r={0.2} fill="none" stroke="#fafafa" strokeWidth={0.07}>
+        <circle cx={sx(sweep.position[0])} cy={sy(sweep.position[1])} r={0.2} fill="none" stroke="#111114" strokeWidth={0.07}>
           <title>You are here (current tour position)</title>
         </circle>
       )}

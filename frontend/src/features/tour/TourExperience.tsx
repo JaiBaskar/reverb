@@ -10,16 +10,15 @@ import { HeatmapLegend, VizControls } from '../acoustic-visualization/VizControl
 import type { Variant } from '../matterport/connect'
 import { polygonArea, resolveCurrentRoom } from '../matterport/geometry'
 import { MatterportViewer } from '../matterport/MatterportViewer'
-import { createRoomOverlay, type OverlayController } from '../matterport/overlay'
 import type { MpSdk } from '../matterport/sdkTypes'
 import { useTourState } from '../matterport/useTourState'
-import { buildFieldMesh, houseRange } from '../heatmap/field'
+import { houseRange } from '../heatmap/field'
 import { FieldPlan } from '../heatmap/FieldPlan'
 import { FieldLegend, InsightPanel, MetricPicker } from '../heatmap/InsightPanel'
-import { createFieldOverlay, type FieldMeshInput, type FieldOverlay } from '../heatmap/overlay3d'
 import type { FieldMetric } from '../heatmap/types'
 import { useInsights } from '../heatmap/useInsights'
-import { roomFloorHeight } from '../matterport/geometry'
+import { fetchTreatment } from '../../api'
+import { createTreatmentScene, goToViewpoint, type TreatmentScene } from '../treatment/scene'
 
 interface Props {
   sid: string
@@ -32,9 +31,11 @@ interface Props {
   backLabel?: string
 }
 
-type OverlayStatus = 'pending' | 'on' | 'unavailable' | 'error'
-
-/** Matterport tour + room-level acoustic heatmap + room audio, for one property. */
+/**
+ * Matterport tour + 2D acoustic plan, for one property. The 3D model is never tinted: room
+ * colours and the music room's heatmap live on the 2D plan only, so the scan stays clean
+ * wherever you look. The treatment plan can be installed in the 3D model as an overlay.
+ */
 export function TourExperience({ sid, title, startChoosing = false, onBack, backLabel, onUseRoom }: Props) {
   // Tour first; then "Choose my music room" switches to the top-down view, and the room you click
   // gets the heatmap (one room only, so the rest of the model stays clean).
@@ -43,8 +44,8 @@ export function TourExperience({ sid, title, startChoosing = false, onBack, back
   const heat = musicRoom != null
   const [metric, setMetric] = useState<FieldMetric>('bass_spread_db')
   const [placing, setPlacing] = useState(false)
-  const fieldOverlay = useRef<FieldOverlay | null>(null)
-  const [fieldReady, setFieldReady] = useState<object | null>(null)
+  const [panels, setPanels] = useState<{ room: string; status: 'loading' | 'on' | 'error'; message?: string; count?: number } | null>(null)
+  const panelScene = useRef<TreatmentScene | null>(null)
   const [loaded, setLoaded] = useState<{ sid: string; layout?: TourLayout; error?: string } | null>(null)
   const [conn, setConn] = useState<{ sdk: MpSdk; variant: Variant } | null>(null)
   const [mode, setMode] = useState<VizMode>('fit')
@@ -53,9 +54,7 @@ export function TourExperience({ sid, title, startChoosing = false, onBack, back
   // A manual pick holds until the visitor walks into another room (when following the tour).
   const [pick, setPick] = useState<{ id: string; whileIn: string | null } | null>(null)
   const [follow, setFollow] = useState(true)
-  const [overlayState, setOverlayState] = useState<{ conn: object; status: OverlayStatus } | null>(null)
   const [navError, setNavError] = useState<string | null>(null)
-  const overlay = useRef<OverlayController | null>(null)
 
   useEffect(() => {
     let live = true
@@ -91,82 +90,37 @@ export function TourExperience({ sid, title, startChoosing = false, onBack, back
     return out
   }, [layout, acoustics, mode, useCase, basis])
 
-  // 3D floor tints (Bundle SDK only).
-  useEffect(() => {
-    if (!conn || !layout) return
-    let live = true
-    createRoomOverlay(conn.sdk, layout)
-      .then((ctl) => {
-        if (!live) return ctl?.dispose()
-        overlay.current = ctl
-        setOverlayState({ conn, status: ctl ? 'on' : 'unavailable' })
-      })
-      .catch(() => live && setOverlayState({ conn, status: 'error' }))
-    return () => {
-      live = false
-      overlay.current?.dispose()
-      overlay.current = null
-    }
-  }, [conn, layout])
-
-  const overlayStatus: OverlayStatus = overlayState && overlayState.conn === conn ? overlayState.status : 'pending'
-  useEffect(() => {
-    if (overlayStatus !== 'on') return
-    const paints: Record<string, { color: string; selected: boolean; hidden?: boolean }> = {}
-    for (const [id, c] of Object.entries(classes)) paints[id] = { color: c.color, selected: id === selectedId, hidden: heat || choosing }
-    overlay.current?.paint(paints)
-  }, [classes, selectedId, overlayStatus, heat, choosing])
-
-  // Heatmap: dollhouse view + continuous field overlay (Bundle SDK). Created once per connection.
-  useEffect(() => {
-    if (!conn || !(heat || choosing) || !settled || tour.mode === 'mode.floorplan') return
-    conn.sdk.Mode.moveTo(conn.sdk.Mode.Mode.FLOORPLAN).catch(() => undefined)
-  }, [conn, heat, choosing, settled]) // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    if (!conn) return
-    let live = true
-    createFieldOverlay(conn.sdk)
-      .then((ctl) => {
-        if (!live) return ctl?.dispose()
-        fieldOverlay.current = ctl
-        setFieldReady(ctl ? conn : null)
-      })
-      .catch(() => live && setFieldReady(null))
-    return () => {
-      live = false
-      fieldOverlay.current?.dispose()
-      fieldOverlay.current = null
-    }
-  }, [conn])
   const fieldRooms = insights.rooms
   const range = useMemo(() => {
     const fs = Object.values(fieldRooms).map((r) => r.field)
     return fs.length ? houseRange(fs, metric) : ([0, 1] as [number, number])
   }, [fieldRooms, metric])
+  // Treatment panels installed in the 3D model for the music room (Bundle SDK scene objects).
+  const panelsOn = panels?.room === musicRoom ? panels : null
   useEffect(() => {
-    const ctl = fieldOverlay.current
-    if (!ctl || !layout || fieldReady !== conn) return
-    const inside = tour.mode === 'mode.inside'
-    ctl.setVisible(heat && !inside)
-    if (!heat) return
-    const meshes: Record<string, FieldMeshInput> = {}
-    for (const r of layout.rooms) {
-      const ins = fieldRooms[r.room_id]
-      if (!ins || r.room_id !== musicRoom) continue
-      const z = roomFloorHeight(r, layout)
-      const mesh = buildFieldMesh(ins.field, z, metric, range, 0.12)
-      const top = z + 0.25
-      meshes[r.room_id] = {
-        ...mesh,
-        markers: [
-          { x: ins.field.best_spot[0], y: top, z: -ins.field.best_spot[1], color: '#fafafa', size: 0.22 },
-          { x: ins.field.source[0], y: top, z: -ins.field.source[1], color: '#18181b', size: 0.16 },
-        ],
-      }
+    if (!conn || !panelsOn || panelsOn.status !== 'loading' || !musicRoom) return
+    let live = true
+    fetchTreatment(sid, musicRoom, 'mixing', 'as_scanned')
+      .then(async (plan) => {
+        if (!live) return
+        if (conn.variant !== 'bundle' || !conn.sdk.Scene) throw new Error('needs the Bundle SDK (npm run setup:matterport)')
+        const scene = await createTreatmentScene(conn.sdk, plan.items)
+        if (!live) return scene?.dispose()
+        panelScene.current = scene
+        setPanels({ room: musicRoom, status: 'on', count: plan.items.length })
+        if (plan.viewpoint) await goToViewpoint(conn.sdk, plan.viewpoint).catch(() => undefined)
+      })
+      .catch((e: Error) => live && setPanels({ room: musicRoom, status: 'error', message: e.message }))
+    return () => {
+      live = false
     }
-    for (const id of Object.keys(fieldRooms)) if (!meshes[id]) meshes[id] = { positions: [], colors: [], markers: [] }
-    ctl.update(meshes)
-  }, [fieldRooms, metric, range, heat, layout, conn, fieldReady, tour.mode, musicRoom])
+  }, [conn, sid, musicRoom, panelsOn?.status]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (panelsOn) return
+    panelScene.current?.dispose()
+    panelScene.current = null
+  }, [panelsOn])
+  useEffect(() => () => panelScene.current?.dispose(), [])
 
   const onConnected = useCallback((sdk: MpSdk, variant: Variant) => {
     // Dev-only handle for inspecting the SDK from the browser console.
@@ -183,8 +137,11 @@ export function TourExperience({ sid, title, startChoosing = false, onBack, back
         setMusicRoom(room.room_id)
         setChoosing(false)
         setPlacing(false)
+        // Look at that part of the house in 3D; its heatmap is on the 2D plan beside it.
+        if (conn && room.entry_sweep_id && settled)
+          conn.sdk.Sweep.moveTo(room.entry_sweep_id, { transition: conn.sdk.Sweep.Transition.FLY }).catch(() => undefined)
       }
-      return // stay in the top-down view
+      return
     }
     if (!conn || !room.entry_sweep_id) return
     conn.sdk.Sweep.moveTo(room.entry_sweep_id, { transition: conn.sdk.Sweep.Transition.FLY }).catch((e: Error) =>
@@ -213,12 +170,12 @@ export function TourExperience({ sid, title, startChoosing = false, onBack, back
                   setMusicRoom(null)
                   setChoosing(false)
                   setPlacing(false)
-                  conn?.sdk.Mode.moveTo(conn.sdk.Mode.Mode.INSIDE).catch(() => undefined)
+                  setPanels(null)
                 } else setChoosing(true)
               }}
               aria-pressed={heat || choosing}
-              className={`rounded-md px-3 py-1 text-xs font-semibold ${
-                heat || choosing ? 'bg-zinc-200 text-black' : 'bg-gradient-to-r from-rose-500 via-amber-400 to-cyan-400 text-black'
+              className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                heat || choosing ? 'border border-line text-ink' : 'bg-accent text-paper'
               }`}
               data-testid="heatmap-toggle"
             >
@@ -226,9 +183,20 @@ export function TourExperience({ sid, title, startChoosing = false, onBack, back
             </button>
             {heat && (
               <button
+                onClick={() => setPanels(panelsOn ? null : { room: musicRoom!, status: 'loading' })}
+                aria-pressed={!!panelsOn}
+                className={`rounded-full px-3 py-1 text-xs font-semibold ${panelsOn ? 'bg-ink text-paper' : 'bg-accent text-paper'}`}
+                data-testid="tour-panels"
+              >
+                {panelsOn?.status === 'loading' ? 'Placing panels…' : panelsOn ? 'Hide panels' : 'Show treatment panels'}
+              </button>
+            )}
+            {heat && (
+              <button
                 onClick={() => {
                   setMusicRoom(null)
                   setChoosing(true)
+                  setPanels(null)
                 }}
                 className="rounded-md bg-zinc-800 px-2.5 py-1 text-xs hover:bg-zinc-700"
               >
@@ -262,8 +230,7 @@ export function TourExperience({ sid, title, startChoosing = false, onBack, back
 
         {choosing && (
           <div className="rounded-xl bg-amber-400/10 p-3 text-sm text-amber-100 ring-1 ring-amber-400/40" data-testid="choose-hint">
-            <b>Choose your music room.</b> Click a room in the plan below, in the list, or in the top-down view: it gets a
-            heatmap of where the sound is good or bad, and advice for using it as a studio.
+            <b>Choose your music room</b> in the plan or the list. The plan shows its heatmap; the 3D view takes you there.
           </div>
         )}
         {heat && (insights.loading || insights.error) && (
@@ -272,7 +239,7 @@ export function TourExperience({ sid, title, startChoosing = false, onBack, back
           </p>
         )}
         {heat && layout && Object.keys(fieldRooms).length > 0 && (
-          <div className="h-64 rounded-xl bg-zinc-900/60 p-2 ring-1 ring-zinc-800">
+          <div className="h-80 rounded-xl bg-zinc-900/60 p-2 ring-1 ring-zinc-800" data-testid="field-plan">
             <FieldPlan
               layout={layout}
               rooms={musicRoom && fieldRooms[musicRoom] ? { [musicRoom]: fieldRooms[musicRoom] } : {}}
@@ -291,17 +258,12 @@ export function TourExperience({ sid, title, startChoosing = false, onBack, back
             />
           </div>
         )}
-        {heat && conn && tour.mode === 'mode.inside' && (
-          <button
-            onClick={() => conn.sdk.Mode.moveTo(conn.sdk.Mode.Mode.FLOORPLAN).catch(() => undefined)}
-            className="w-full rounded-md bg-amber-400 px-3 py-1.5 text-xs font-semibold text-black"
-          >
-            The heatmap shows from above: back to the top-down view
-          </button>
+        {panelsOn?.status === 'on' && (
+          <p className="text-xs text-mute" data-testid="tour-panels-note">
+            {panelsOn.count} treatment items drawn in the 3D model at their calculated positions (mixing plan). A visualization, not a photo.
+          </p>
         )}
-        {heat && fieldReady === null && conn && (
-          <p className="text-[11px] text-zinc-500">3D heatmap needs the Bundle SDK (npm run setup:matterport); the plan above shows it.</p>
-        )}
+        {panelsOn?.status === 'error' && <p className="text-xs text-bad">Panels unavailable: {panelsOn.message}</p>}
         {!heat && layout && (
           <div className="h-52 rounded-xl bg-zinc-900/60 p-2 ring-1 ring-zinc-800">
             <FloorPlan
@@ -372,16 +334,13 @@ export function TourExperience({ sid, title, startChoosing = false, onBack, back
             />
             {onUseRoom && (
               <div className="flex flex-wrap gap-2 border-t border-zinc-800 pt-3">
-                {(['A', 'B'] as const).map((slot) => (
-                  <button
-                    key={slot}
-                    onClick={() => onUseRoom(slot, musicRoom, names[musicRoom] ?? fieldRooms[musicRoom].label)}
-                    className={`rounded-md px-3 py-1.5 text-xs font-semibold text-black ${slot === 'A' ? 'bg-sky-400' : 'bg-fuchsia-400'}`}
-                    data-testid={`use-room-${slot}`}
+                <button
+                    onClick={() => onUseRoom('A', musicRoom, names[musicRoom] ?? fieldRooms[musicRoom].label)}
+                    className="rounded-full bg-accent px-4 py-1.5 text-xs font-semibold text-paper"
+                    data-testid="use-room"
                   >
-                    Use as Room {slot} and listen →
+                    Analyze and listen →
                   </button>
-                ))}
               </div>
             )}
           </section>
@@ -392,16 +351,13 @@ export function TourExperience({ sid, title, startChoosing = false, onBack, back
             <h3 className="mb-2 text-sm font-semibold">{names[selected.room_id]}</h3>
             {onUseRoom && selected.usable && (
               <div className="mb-3 flex flex-wrap gap-2">
-                {(['A', 'B'] as const).map((slot) => (
-                  <button
-                    key={slot}
-                    onClick={() => onUseRoom(slot, selected.room_id, names[selected.room_id] ?? selected.label)}
-                    className={`rounded-md px-3 py-1.5 text-xs font-semibold text-black ${slot === 'A' ? 'bg-sky-400' : 'bg-fuchsia-400'}`}
-                    data-testid={`pick-room-${slot}`}
+                <button
+                    onClick={() => onUseRoom('A', selected.room_id, names[selected.room_id] ?? selected.label)}
+                    className="rounded-full bg-accent px-4 py-1.5 text-xs font-semibold text-paper"
+                    data-testid="pick-room"
                   >
-                    Use as Room {slot} and listen →
+                    Analyze and listen →
                   </button>
-                ))}
               </div>
             )}
             <RoomDetails

@@ -1,4 +1,5 @@
 import type { MpSdk, SceneComponent, SceneObject } from '../matterport/sdkTypes'
+import { ITEM_COLORS } from './colors'
 import type { PlacedItem, Viewpoint } from './types'
 
 /**
@@ -14,13 +15,7 @@ import type { PlacedItem, Viewpoint } from './types'
 type V3 = [number, number, number]
 const toSdk = ([x, y, z]: V3): V3 => [x, z, -y]
 
-const COLORS: Record<string, string> = {
-  panel_50: '#5b606b',
-  panel_100: '#4a4f5a',
-  bass_trap: '#3b3f48',
-  cloud_100: '#6b7079',
-  diffuser_qrd: '#b9895a',
-}
+const COLORS = ITEM_COLORS
 /** Fixed shade per face direction (local axes: z = front, y = up): reads as solid, unlit. */
 function shadeFor(nx: number, ny: number, nz: number): number {
   if (nz > 0.5) return 1.0
